@@ -122,6 +122,9 @@ func _scheda_breve(p: Dictionary) -> Control:
 	var armi := []
 	for o in p.get("oggetti", []):
 		armi.append(Dati.nome_oggetto(str(o.id)) + (" (rotto)" if o.get("danneggiato", false) else ""))
+	var icone := _icone_oggetti(p.get("oggetti", []), 30)
+	if icone != null:
+		v.add_child(icone)
 	v.add_child(UI.etichetta(", ".join(armi) if not armi.is_empty() else "Disarmato", 14, UI.TENUE))
 	var b := Button.new()
 	b.flat = true
@@ -166,8 +169,12 @@ func _apri_scheda(p: Dictionary) -> void:
 	for i in ogg.size():
 		var o: Dictionary = ogg[i]
 		var hh := UI.hbox()
-		hh.add_child(UI.etichetta(_descr_oggetto(o), 16))
-		hh.get_child(0).size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		var ic := Immagini.icona(Immagini.oggetto(str(o.get("id", ""))), 52)
+		if ic != null:
+			hh.add_child(ic)
+		var lo := UI.etichetta(_descr_oggetto(o), 16)
+		lo.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		hh.add_child(lo)
 		hh.add_child(UI.bottone("Al deposito", func(): c.sposta_oggetto(p.id, i, ""); pop.hide(); aggiorna()))
 		v.add_child(hh)
 	var possibili := c.miglioramenti_possibili(p)
@@ -234,6 +241,9 @@ func _schede() -> void:
 	var dep: Array = c.s.deposito
 	for i in dep.size():
 		var h := UI.hbox()
+		var ic := Immagini.icona(Immagini.oggetto(str(dep[i].get("id", ""))), 40)
+		if ic != null:
+			h.add_child(ic)
 		var l := UI.etichetta(_descr_oggetto(dep[i]), 15)
 		l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		h.add_child(l)
@@ -350,6 +360,42 @@ func _passo() -> void:
 			_bottone_grande("Chiudi il turno", func(): c.fine_turno(); main.salva(false); aggiorna())
 		_:
 			_bottone_grande("Continua", func(): c.s.fase = "inizio_turno"; aggiorna())
+
+## Riga di icone degli oggetti (con il nome come suggerimento); null se nessun oggetto ha un'icona.
+func _icone_oggetti(ogg: Array, lato: float) -> Control:
+	var h := HFlowContainer.new()
+	h.add_theme_constant_override("h_separation", 3)
+	for o in ogg:
+		var id := str(o.get("id", ""))
+		var ic := Immagini.icona(Immagini.oggetto(id), lato, Dati.nome_oggetto(id))
+		if ic != null:
+			if o.get("danneggiato", false):
+				ic.modulate = Color(1, 0.55, 0.5, 0.7)
+			h.add_child(ic)
+	if h.get_child_count() == 0:
+		h.queue_free()
+		return null
+	return h
+
+## Mette un'immagine come icona di un bottone; false se l'immagine manca.
+func _icona_bottone(b: Button, tex: Texture2D, larghezza: int) -> bool:
+	if tex == null:
+		return false
+	b.icon = Immagini.ridotta(tex, larghezza)
+	return true
+
+## Testo con una piccola illustrazione accanto (se c'è).
+func _riga_illustrata(tex: Texture2D, testo: String) -> Control:
+	var l := UI.etichetta(testo, 17)
+	var ill := Immagini.illustrazione(tex, 110, 165)
+	if ill == null:
+		return l
+	var h := UI.hbox(12)
+	h.add_child(ill)
+	l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	h.add_child(l)
+	return h
 
 func _bottone_grande(t: String, cb: Callable) -> Button:
 	var b := UI.bottone(t, cb)
@@ -468,6 +514,9 @@ func _passo_scelta_battaglia() -> void:
 	centro.add_child(hs)
 	for o in ops:
 		var b := _bottone_grande(str(o.nome), func(): _scegli(o))
+		if _icona_bottone(b, Immagini.tipo_battaglia(str(o.tipo)), 132):
+			b.custom_minimum_size.y = 96
+			b.alignment = HORIZONTAL_ALIGNMENT_LEFT
 		if o.tipo == "nessuna":
 			b.add_theme_color_override("font_color", UI.TENUE)
 
@@ -501,14 +550,23 @@ func _scegli(o: Dictionary) -> void:
 
 func _passo_battaglia() -> void:
 	var b: Dictionary = c.s.battaglia
+	var ill := UI.hbox(10)
+	var r1 := Immagini.riquadro(Immagini.tipo_battaglia(str(b.get("tipo", ""))), "", 250)
+	var r2 := Immagini.riquadro(Immagini.obiettivo(str(b.get("obiettivo", ""))), "Obiettivo: " + c.nome_obiettivo(str(b.get("obiettivo", ""))), 250)
+	for r in [r1, r2]:
+		if r != null:
+			r.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			ill.add_child(r)
+	if ill.get_child_count() > 0:
+		centro.add_child(ill)
 	centro.add_child(UI.etichetta(str(b.get("descrizione", "")), 20))
 	var nem := Dati.nemico(str(b.get("nemico", "")))
 	var info := "%s: Velocità %d\", Combattimento %+d, Robustezza %d, IA %s, Panico %s.\n%s" % [nem.get("nome", ""), int(nem.get("velocita", 4)), int(nem.get("combattimento", 0)), int(nem.get("robustezza", 3)), str(nem.get("ia", "")), str(nem.get("panico", [])), nem.get("regole", "")]
 	centro.add_child(UI.etichetta(info, 17, UI.TENUE))
 	if not b.get("condizione", {}).is_empty():
-		centro.add_child(UI.etichetta("Condizione di schieramento: %s - %s" % [b.condizione.get("nome", ""), b.condizione.get("testo", "")], 17))
+		centro.add_child(_riga_illustrata(Immagini.condizione(str(b.condizione.get("nome", ""))), "Condizione di schieramento: %s - %s" % [b.condizione.get("nome", ""), b.condizione.get("testo", "")]))
 	if not b.get("luogo", {}).is_empty():
-		centro.add_child(UI.etichetta("Luogo notevole: %s - %s" % [b.luogo.get("nome", ""), b.luogo.get("testo", "")], 17))
+		centro.add_child(_riga_illustrata(Immagini.luogo(str(b.luogo.get("nome", ""))), "Luogo notevole: %s - %s" % [b.luogo.get("nome", ""), b.luogo.get("testo", "")]))
 	_bottone_grande("Al campo di battaglia!", func(): main.salva(false); main.mostra_battaglia())
 	_bottone_grande("Risolvi la battaglia in automatico", _auto_battaglia)
 
@@ -537,6 +595,7 @@ func _passo_acquisti() -> void:
 	var h := HFlowContainer.new()
 	for t in [["arma_militare", "Tiro armi militari (3)"], ["equip", "Tiro equipaggiamento (3)"], ["gadget", "Tiro gadget (3)"], ["pistola", "Pistola (1)"], ["lama", "Lama (1)"], ["fucile_coloniale", "Fucile coloniale (1)"], ["fucile_pompa", "Fucile a pompa (1)"]]:
 		var b := UI.bottone(t[1], func(): c.compra(t[0]); aggiorna())
+		_icona_bottone(b, Immagini.oggetto(t[0]), 30)
 		b.disabled = int(c.s.crediti) < (3 if t[1].ends_with("(3)") else 1)
 		h.add_child(b)
 	centro.add_child(h)
@@ -545,7 +604,9 @@ func _passo_acquisti() -> void:
 		var hv := HFlowContainer.new()
 		for i in dep.size():
 			if not dep[i].get("danneggiato", false):
-				hv.add_child(UI.bottone("Vendi " + Dati.nome_oggetto(str(dep[i].id)), func(): c.vendi("", i); aggiorna()))
+				var bv := UI.bottone("Vendi " + Dati.nome_oggetto(str(dep[i].id)), func(): c.vendi("", i); aggiorna())
+				_icona_bottone(bv, Immagini.oggetto(str(dep[i].id)), 30)
+				hv.add_child(bv)
 		centro.add_child(UI.etichetta("Vendere:", 17, UI.TENUE))
 		centro.add_child(hv)
 	# miglioramenti

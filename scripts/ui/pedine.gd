@@ -1,34 +1,12 @@
-## Pedine viste dall'alto. Se esiste assets/pedine/<nome>.png si usa l'immagine (ritagliata in un cerchio),
+## Pedine viste dall'alto. Se esiste assets/pedine/<nome>.webp (o .png) si usa l'immagine (ritagliata in un cerchio),
 ## altrimenti una pedina segnaposto disegnata: colore della specie o del nemico, sagoma e iniziali.
 class_name Pedine
 extends RefCounted
 
-static var _cache := {}
-static var _mancanti := {}
-
 static func texture(nome: String) -> Texture2D:
 	if nome == "":
 		return null
-	if _cache.has(nome):
-		return _cache[nome]
-	if _mancanti.has(nome):
-		return null
-	var tex: Texture2D = null
-	for base in ["res://assets/pedine/", "user://pedine/"]:
-		var p: String = base + nome + ".png"
-		if base.begins_with("res://") and ResourceLoader.exists(p):
-			tex = load(p)
-		elif base.begins_with("user://") and FileAccess.file_exists(p):
-			var img := Image.load_from_file(ProjectSettings.globalize_path(p))
-			if img != null:
-				tex = ImageTexture.create_from_image(img)
-		if tex != null:
-			break
-	if tex == null:
-		_mancanti[nome] = true
-	else:
-		_cache[nome] = tex
-	return tex
+	return Immagini.texture("pedine/" + nome)
 
 static func colore_da_nome(nome: String, nemico: bool) -> Color:
 	var h := float(abs(nome.hash()) % 1000) / 1000.0
@@ -95,3 +73,24 @@ static func elenco() -> Array:
 		if not p in r:
 			r.append(p)
 	return r
+
+## Segnalino di obiettivo con immagine (pedina rotonda con bordo del colore dato). Restituisce false se manca.
+static func disegna_segnalino(ci: CanvasItem, c: Vector2, r: float, chiave: String, bordo: Color, attenuato := false) -> bool:
+	var tex := texture(chiave)
+	if tex == null:
+		return false
+	var mod := Color(1, 1, 1, 0.45) if attenuato else Color.WHITE
+	ci.draw_circle(c + Vector2(2, 3), r, Color(0, 0, 0, 0.45))
+	var punti := PackedVector2Array()
+	var uv := PackedVector2Array()
+	for i in 40:
+		var a := TAU * i / 40.0
+		var d := Vector2(cos(a), sin(a))
+		punti.append(c + d * r)
+		uv.append(Vector2(0.5, 0.5) + d * 0.5)
+	var col := PackedColorArray()
+	col.resize(40)
+	col.fill(mod)
+	ci.draw_polygon(punti, col, uv, tex)
+	ci.draw_arc(c, r, 0, TAU, 40, bordo * mod, 3.0, true)
+	return true

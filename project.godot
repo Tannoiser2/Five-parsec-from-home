@@ -33,3 +33,11 @@ theme/custom_font="res://assets/fonts/Exo2.ttf"
 textures/canvas_textures/default_texture_filter=1
 renderer/rendering_method="gl_compatibility"
 renderer/rendering_method.mobile="gl_compatibility"
+
+[importer_defaults]
+
+texture={
+"compress/mode": 1,
+"compress/lossy_quality": 0.82,
+"mipmaps/generate": true
+}

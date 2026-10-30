@@ -17,6 +17,7 @@ var anim := {}           # uid -> posizione disegnata (Vector2) per l'animazione
 
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_STOP
+	texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
 	resized.connect(_calcola)
 
 func _calcola() -> void:
@@ -56,6 +57,14 @@ const COL := {
 	5: Color(0.20, 0.26, 0.30),   # campo
 }
 
+## Grafica del campo (assets/mappe/): nome dell'elemento del motore -> immagine.
+const ELEMENTI_IMG := {"Edificio": "edificio", "Navetta atterrata": "navetta_atterrata", "Container": "container",
+	"Masso": "masso", "Bosco": "bosco", "Rovine": "rovine", "Cespugli": "cespugli", "Vegetazione": "vegetazione"}
+const PER_CELLA := {"Deposito di casse": "cassa", "Barili": "barile", "Alberi": "albero", "Casse della navetta": "casse_navetta"}
+const LINEARI := {"Barricata": "barricata", "Recinzione": "recinzione", "Muretto": "muretto", "Siepe": "siepe",
+	"Sacchi di sabbia": "sacchi_sabbia", "Muro di forza": "muro_forza"}
+const ORIENTABILI := ["edificio", "edificio_grande", "navetta_atterrata", "container", "masso"]
+
 func _draw() -> void:
 	if b == null:
 		return
@@ -64,11 +73,15 @@ func _draw() -> void:
 	var tot := Rect2(origine, Vector2(lato * b.W, lato * b.H))
 	draw_rect(tot.grow(6), Color(0.05, 0.05, 0.06))
 	draw_rect(tot.grow(6), UI.BORDO.darkened(0.3), false, 2.0)
+	var ha_suolo := _suolo(tot)
+	var coperte := _elementi_grafici()
 	var rng := RandomNumberGenerator.new()
 	for y in b.H:
 		for x in b.W:
 			var p := Vector2i(x, y)
 			var t := b.t_at(p)
+			if coperte.has(p) or (ha_suolo and t == Battaglia.T.APERTO):
+				continue
 			var r := Rect2(origine + Vector2(x, y) * lato, Vector2(lato, lato))
 			rng.seed = x * 7919 + y * 104729
 			var base: Color = COL.get(t, COL[0])
@@ -90,6 +103,7 @@ func _draw() -> void:
 					draw_arc(r.get_center(), lato * 0.2, 0, TAU, 16, Color(0.36, 0.24, 0.13), 1.5)
 				Battaglia.T.CAMPO:
 					draw_line(r.position + Vector2(lato * 0.2, lato * 0.5), r.position + Vector2(lato * 0.8, lato * 0.5), Color(0.4, 0.55, 0.65, 0.6), 2.0)
+	_sovrapposizione(tot)
 	# griglia
 	for x in b.W + 1:
 		draw_line(origine + Vector2(x * lato, 0), origine + Vector2(x * lato, b.H * lato), Color(0, 0, 0, 0.22), 1.0)
@@ -136,28 +150,194 @@ func _draw() -> void:
 			draw_string_outline(f, c + Vector2(-lato * 0.3, lato * 0.62), s, HORIZONTAL_ALIGNMENT_LEFT, -1, int(lato * 0.4), 4, Color.BLACK)
 			draw_string(f, c + Vector2(-lato * 0.3, lato * 0.62), s, HORIZONTAL_ALIGNMENT_LEFT, -1, int(lato * 0.4), Color(1, 0.85, 0.5))
 
+## ---------------- grafica del campo ----------------
+
+func _mappa(nome: String) -> Texture2D:
+	return Immagini.texture("mappe/" + nome)
+
+func _elem(nome: String) -> Texture2D:
+	return Immagini.texture("mappe/elementi/" + nome)
+
+func _rett_cella(p: Vector2i) -> Rect2:
+	return Rect2(origine + Vector2(p) * lato, Vector2(lato, lato))
+
+func _bbox(celle: Array) -> Rect2:
+	var a := Vector2i(999, 999)
+	var z := Vector2i(-1, -1)
+	for c in celle:
+		a = Vector2i(min(a.x, c.x), min(a.y, c.y))
+		z = Vector2i(max(z.x, c.x), max(z.y, c.y))
+	return Rect2(origine + Vector2(a) * lato, Vector2(z - a + Vector2i.ONE) * lato)
+
+## Fondo del tavolo: plancia intera dell'ambiente o, in mancanza, la texture del suolo ripetuta ogni 4 caselle.
+func _suolo(tot: Rect2) -> bool:
+	var amb := str(b.ambiente)
+	var plancia := _mappa("plancia_" + amb)
+	if plancia != null:
+		draw_texture_rect(plancia, tot, false)
+		return true
+	var suolo := _mappa("suolo_" + amb)
+	if suolo == null:
+		return false
+	for y in range(0, b.H, 4):
+		for x in range(0, b.W, 4):
+			var n := Vector2(min(4, b.W - x), min(4, b.H - y))
+			draw_texture_rect_region(suolo, Rect2(origine + Vector2(x, y) * lato, n * lato), Rect2(Vector2.ZERO, suolo.get_size() * n / 4.0))
+	return true
+
+## Disegna un'immagine nel rettangolo; se l'immagine è orizzontale e il rettangolo verticale la ruota di 90 gradi.
+func _disegna_in(tex: Texture2D, r: Rect2, orientabile: bool) -> void:
+	var ts := tex.get_size()
+	if orientabile and ts.x > ts.y * 1.1 and r.size.y > r.size.x * 1.1:
+		draw_set_transform(r.get_center(), PI / 2.0, Vector2.ONE)
+		draw_texture_rect(tex, Rect2(-Vector2(r.size.y, r.size.x) / 2.0, Vector2(r.size.y, r.size.x)), false)
+		draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	else:
+		draw_texture_rect(tex, r, false)
+
+## Ostacolo lineare: un quarto della striscia (lunga 4 caselle) per casella, ruotato dove l'ostacolo è verticale.
+func _disegna_lineare(tex: Texture2D, celle: Array) -> void:
+	var ts := tex.get_size()
+	var quarto := Vector2(ts.x / 4.0, ts.y)
+	for c in celle:
+		var oriz: bool = (c + Vector2i.LEFT) in celle or (c + Vector2i.RIGHT) in celle
+		var vert: bool = (c + Vector2i.UP) in celle or (c + Vector2i.DOWN) in celle
+		var r := _rett_cella(c)
+		var alto := lato * quarto.y / quarto.x
+		if oriz or not vert:
+			var src := Rect2(Vector2(float(posmod(c.x, 4)) * quarto.x, 0), quarto)
+			draw_texture_rect_region(tex, Rect2(r.position.x, r.get_center().y - alto / 2.0, lato, alto), src)
+		if vert:
+			var src := Rect2(Vector2(float(posmod(c.y, 4)) * quarto.x, 0), quarto)
+			draw_set_transform(r.get_center(), PI / 2.0, Vector2.ONE)
+			draw_texture_rect_region(tex, Rect2(-lato / 2.0, -alto / 2.0, lato, alto), src)
+			draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+
+## Disegna gli elementi di terreno che hanno un'immagine; restituisce le caselle coperte (niente disegno di ripiego).
+func _elementi_grafici() -> Dictionary:
+	var coperte := {}
+	var amb := str(b.ambiente)
+	var campo := _mappa("campo_" + amb)
+	if campo != null:
+		var q := campo.get_size() / 4.0
+		for y in b.H:
+			for x in b.W:
+				if b.t_at(Vector2i(x, y)) == Battaglia.T.CAMPO:
+					draw_texture_rect_region(campo, _rett_cella(Vector2i(x, y)), Rect2(Vector2(x % 4, y % 4) * q, q))
+					coperte[Vector2i(x, y)] = true
+	# prima le aree (stanno sotto), poi il resto
+	var ordinati := b.elementi.filter(func(e): return e.tipo == Battaglia.T.AREA) + b.elementi.filter(func(e): return e.tipo != Battaglia.T.AREA)
+	var solidi := {}
+	for e in ordinati:
+		var nome := str(e.nome)
+		var celle: Array = e.celle
+		if e.tipo in [Battaglia.T.BLOCCO, Battaglia.T.SINGOLO]:
+			for c in celle:
+				solidi[c] = true
+		if PER_CELLA.has(nome):
+			var tex := _elem(PER_CELLA[nome])
+			if tex == null:
+				continue
+			var g := 1.3 if nome == "Alberi" else 1.05
+			for c in celle:
+				var r := _rett_cella(c)
+				draw_texture_rect(tex, Rect2(r.get_center() - r.size * g / 2.0, r.size * g), false)
+				coperte[c] = true
+		elif LINEARI.has(nome):
+			var tex := _elem(LINEARI[nome])
+			if tex == null:
+				continue
+			_disegna_lineare(tex, celle)
+			for c in celle:
+				coperte[c] = true
+		elif ELEMENTI_IMG.has(nome):
+			var chiave: String = ELEMENTI_IMG[nome]
+			if chiave == "edificio" and celle.size() >= 20 and _elem("edificio_grande") != null:
+				chiave = "edificio_grande"
+			var tex := _elem(chiave)
+			if tex == null:
+				continue
+			var area: bool = e.tipo == Battaglia.T.AREA
+			_disegna_in(tex, _bbox(celle).grow(lato * (0.2 if area else 0.05)), chiave in ORIENTABILI)
+			for c in celle:
+				if b.t_at(c) == e.tipo:
+					coperte[c] = true
+	# pezzi di muro rimasti in piedi tra le rovine (blocchi che non appartengono a nessun elemento solido)
+	var muro := _elem("rovine_muro")
+	if muro != null:
+		for y in b.H:
+			for x in b.W:
+				var p := Vector2i(x, y)
+				if b.t_at(p) == Battaglia.T.BLOCCO and not solidi.has(p):
+					draw_texture_rect(muro, _rett_cella(p).grow(lato * 0.08), false)
+					coperte[p] = true
+	return coperte
+
+## Nebbia, buio, polvere o gas sopra il terreno, secondo la condizione di schieramento, l'evento o il mondo.
+func _sovrapposizione(tot: Rect2) -> void:
+	var cond := str(b.setup.get("condizione", {}).get("nome", ""))
+	var ev := str(b.ultimo_evento.get("nome", ""))
+	var tratti := " ".join(b.tratti_mondo).to_lower()
+	var nome := ""
+	if ev == "Banco di nebbia" or (ev == "Cambio di visibilità" and b.visibilita > 0):
+		nome = "nebbia"
+	elif cond == "Buio":
+		nome = "buio"
+	elif cond == "Scarsa visibilità":
+		nome = "tempesta_polvere"
+	elif cond == "Ambiente tossico":
+		nome = "gas_tossico"
+	elif tratti.contains("nebbia") or tratti.contains("foschia"):
+		nome = "nebbia"
+	elif tratti.contains("oscurità"):
+		nome = "buio"
+	if nome == "":
+		return
+	var tex := _mappa("sovrapposizioni/" + nome)
+	if tex == null:
+		return
+	var alfa: float = {"nebbia": 0.5, "buio": 0.55, "tempesta_polvere": 0.4, "gas_tossico": 0.28}.get(nome, 0.5)
+	var passo := 8
+	for y in range(0, b.H, passo):
+		for x in range(0, b.W, passo):
+			var n := Vector2(min(passo, b.W - x), min(passo, b.H - y))
+			draw_texture_rect_region(tex, Rect2(origine + Vector2(x, y) * lato, n * lato), Rect2(Vector2.ZERO, tex.get_size() * n / float(passo)), Color(1, 1, 1, alfa))
+
 func _rombo(c: Vector2, r: float, col: Color) -> void:
 	draw_colored_polygon(PackedVector2Array([c + Vector2(0, -r), c + Vector2(r, 0), c + Vector2(0, r), c + Vector2(-r, 0)]), col)
 
 func _marcatori() -> void:
 	var cc := centro_cella(b.centro)
+	var verde := Color(0.5, 0.9, 0.5, 0.9)
 	if b.obiettivo in ["consegnare", "accedere", "acquisire", "assicurare", "proteggere"]:
 		draw_arc(cc, lato * (2.5 if b.obiettivo in ["assicurare"] else 0.6), 0, TAU, 40, Color(0.5, 0.9, 0.5, 0.8), 2.0)
-		_rombo(cc, lato * 0.3, Color(0.5, 0.9, 0.5, 0.9))
+		var seg: String = str({"accedere": "segnalino_console", "consegnare": "obiettivo_consegna"}.get(b.obiettivo, ""))
+		if not (seg != "" and Pedine.disegna_segnalino(self, cc, lato * 0.45, seg, verde)):
+			if not b.stato_obj.has("oggetto_a"):
+				_rombo(cc, lato * 0.3, verde)
 		if b.obiettivo == "proteggere":
 			draw_arc(cc, lato * 3.5, 0, TAU, 48, Color(0.5, 0.9, 0.5, 0.5), 2.0)
+	var oro := Color(0.95, 0.85, 0.3)
 	if b.stato_obj.has("oggetto_a"):
-		_rombo(centro_cella(b.stato_obj.oggetto_a), lato * 0.32, Color(0.95, 0.85, 0.3))
+		var c := centro_cella(b.stato_obj.oggetto_a)
+		if not Pedine.disegna_segnalino(self, c, lato * 0.45, "segnalino_pacco", oro):
+			_rombo(c, lato * 0.32, oro)
 	if b.stato_obj.has("caduto"):
-		_rombo(centro_cella(b.stato_obj.caduto.pos), lato * 0.28, Color(0.95, 0.85, 0.3))
+		var c := centro_cella(b.stato_obj.caduto.pos)
+		if not Pedine.disegna_segnalino(self, c, lato * 0.4, "segnalino_pacco", oro):
+			_rombo(c, lato * 0.28, oro)
 	for pt in b.stato_obj.get("punti", []):
 		var c := centro_cella(pt.cella)
-		draw_arc(c, lato * 0.45, 0, TAU, 24, Color(0.5, 0.9, 0.5) if not pt.fatto else Color(0.5, 0.5, 0.5), 3.0)
+		var col := Color(0.5, 0.9, 0.5) if not pt.fatto else Color(0.5, 0.5, 0.5)
+		if not Pedine.disegna_segnalino(self, c, lato * 0.45, "obiettivo_pattuglia", col, pt.fatto):
+			draw_arc(c, lato * 0.45, 0, TAU, 24, col, 3.0)
 	for sg in b.stato_obj.get("segnalini", []):
 		if not sg.fatto:
 			var c := centro_cella(sg.cella)
-			draw_rect(Rect2(c - Vector2(lato * 0.2, lato * 0.2), Vector2(lato * 0.4, lato * 0.4)), Color(0.5, 0.9, 0.5, 0.9), false, 3.0)
+			if not Pedine.disegna_segnalino(self, c, lato * 0.42, "segnalino_perquisire", verde):
+				draw_rect(Rect2(c - Vector2(lato * 0.2, lato * 0.2), Vector2(lato * 0.4, lato * 0.4)), verde, false, 3.0)
 	if b.stato_obj.has("luogo_pos") and not b.stato_obj.get("luogo_preso", false):
 		var c := centro_cella(b.stato_obj.luogo_pos)
-		draw_circle(c, lato * 0.28, Color(0.36, 0.78, 0.80, 0.9))
-		draw_circle(c, lato * 0.14, Color(0.05, 0.1, 0.12))
+		if not Pedine.disegna_segnalino(self, c, lato * 0.42, "segnalino_luogo", UI.ACQUA):
+			draw_circle(c, lato * 0.28, Color(0.36, 0.78, 0.80, 0.9))
+			draw_circle(c, lato * 0.14, Color(0.05, 0.1, 0.12))

@@ -14,6 +14,9 @@ var sel: Dictionary = {}
 var iniziativa_libera := false
 var occupato := false
 var log_visti := 0
+var banner: TextureRect
+var banner_testo: Label
+var banner_evento := ""
 
 func _ready() -> void:
 	b = Battaglia.new(c.dadi.d(999999))
@@ -49,6 +52,14 @@ func _ready() -> void:
 	radice.add_child(UI.pannello(dx))
 	info_fase = UI.etichetta("", 24, UI.AMBRA, true)
 	dx.add_child(info_fase)
+	# illustrazione: l'obiettivo della missione, poi l'ultimo evento della battaglia
+	banner = Immagini.illustrazione(Immagini.obiettivo(b.obiettivo), 150)
+	if banner != null:
+		banner_testo = UI.etichetta("", 15, UI.AMBRA, true)
+		var vb := UI.vbox(2)
+		vb.add_child(banner)
+		vb.add_child(banner_testo)
+		dx.add_child(vb)
 	dx.add_child(UI.etichetta(str(c.s.battaglia.get("descrizione", "")), 16, UI.TENUE))
 	info_sel = UI.testo_ricco("", 17)
 	dx.add_child(info_sel)
@@ -88,6 +99,7 @@ func aggiorna() -> void:
 	var nomi := {"iniziativa": "Prendere l'iniziativa", "rapida": "Fase rapida", "nemici": "Fase dei nemici", "lenta": "Fase lenta", "fine": "Fine del round", "finita": "Battaglia conclusa"}
 	info_fase.text = "ROUND %d - %s" % [b.round_n, nomi.get(b.fase, b.fase)] if b.round_n > 0 else nomi.get(b.fase, "")
 	_registro()
+	_banner()
 	_info_sel()
 	_azioni()
 	tavolo.selezionata = sel.get("uid", -1)
@@ -105,6 +117,21 @@ func aggiorna() -> void:
 	tavolo.queue_redraw()
 	if b.fase == "finita":
 		_fine()
+
+func _banner() -> void:
+	if banner == null:
+		return
+	var ev := str(b.ultimo_evento.get("nome", ""))
+	if ev == "":
+		banner_testo.text = "Obiettivo: " + str(Dati.f("incontri").get("tipi_obiettivo", {}).get(b.obiettivo, {}).get("nome", b.obiettivo))
+		return
+	if ev == banner_evento:
+		return
+	banner_evento = ev
+	var tex := Immagini.evento(ev)
+	if tex != null:
+		banner.texture = tex
+	banner_testo.text = "Evento: " + ev
 
 func _registro() -> void:
 	var t := ""
