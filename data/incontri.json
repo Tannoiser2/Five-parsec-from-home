@@ -1,0 +1,5001 @@
+{
+ "_nota": "Incontri e preparazione della battaglia (Five Parsecs from Home 3a ed., pdf p.89-113 = libro p.87-111, e Battle Events pdf p.118-119; IA da pdf p.44-45). Chiavi tipo missione: opportunita, patrono, rivale, missione (= Quest), invasione. Difficoltà: facile, normale, impegnativo, hardcore, follia. Gli `effetti` delle tabelle di battaglia usano chiavi specifiche della battaglia (es. nemici_mod, visibilita, rinforzi) oltre a quelle di LEGGIMI_DATI.md: hanno nomi autoesplicativi e il `testo` resta la regola completa. Nei nemici: panico [] = campo di Panico 0 (combattono fino alla morte, `_panico_0`: true) oppure Impavidi (speciali.impavido); armi = codice Enemy Weapons (es. '2A') o lista di id di armi.json; arma_naturale = attacco naturale con danno (id = arma di armi.json più vicina, null se manca).",
+ "procedura": {
+  "_nota": "Readying for Battle (p.88) ed esempio (p.111).",
+  "tipi_battaglia": [
+   "patrono",
+   "rivale",
+   "missione",
+   "opportunita",
+   "invasione"
+  ],
+  "default": "opportunita",
+  "passi": [
+   "1. Condizioni di schieramento: d100 sulla colonna del tipo di missione (non in Invasione).",
+   "2. Luoghi notevoli: d100 sulla colonna giusta (non in Invasione).",
+   "3. Obiettivo: d10 per Opportunità/Patrono/Missione; tipo di attacco per Rivale; regole fisse per Invasione.",
+   "4. Nemico: d100 sulla tabella delle categorie (colonna del tipo di missione), poi d100 sulla sottotabella. Per Rivali/Invasione usa il tipo noto.",
+   "5. Numero: dado secondo la dimensione dell'equipaggio + Numeri del nemico + modificatori.",
+   "6. Specialisti e Luogotenente in base al numero; Individui Unici (2D6, 9+).",
+   "7. Armi: 1D6 sulla colonna numerica per le figure base, 1D6 sulla colonna lettera per gli Specialisti.",
+   "8. Terreno, bordi e schieramento; poi tentativo di Prendere l'Iniziativa."
+  ],
+  "esempio": "Opportunità: categoria 40 = Forza mercenaria; nemico 55 = Mercenari ferali (Numeri +2). Equipaggio 6: 2D6 = 3 e 5, si tiene 5, +2 = 7 nemici, quindi 2 Specialisti. Individuo Unico: 2D6 = 7, assente. Codice armi 2B: arma 3 = Fucili militari; Specialisti 6 = Mitragliatrici (Rattle Gun). Condizione 32 = nessuna; Luogo notevole 74 = Persona d'interesse; obiettivo d10 = 8 = Pattugliare."
+ },
+ "condizioni_schieramento": {
+  "_nota": "Deployment Conditions (p.88). Una tabella d100 per tipo di missione (Opportunità e Patrono condividono la colonna). Ignorata nelle battaglie d'Invasione. Gli `effetti` sono chiavi di battaglia (vedi _nota del file).",
+  "_dado": "d100",
+  "esclusa_in": [
+   "invasione"
+  ],
+  "opportunita": {
+   "_dado": "d100",
+   "righe": [
+    {
+     "da": 1,
+     "a": 40,
+     "id": "nessuna",
+     "nome": "Nessuna condizione",
+     "en": "No Condition",
+     "testo": "Nessun effetto.",
+     "effetti": {}
+    },
+    {
+     "da": 41,
+     "a": 45,
+     "id": "scontro_ridotto",
+     "nome": "Scontro ridotto",
+     "en": "Small encounter",
+     "testo": "Un membro dell'equipaggio casuale deve saltare questo scontro. Riduci il numero dei nemici di 1 (di 2 se inizialmente sono più di voi).",
+     "effetti": {
+      "escludi_membri_casuali": 1,
+      "nemici_mod": -1,
+      "nemici_mod_se_superiori": -2
+     }
+    },
+    {
+     "da": 46,
+     "a": 50,
+     "id": "scarsa_visibilita",
+     "nome": "Scarsa visibilità",
+     "en": "Poor visibility",
+     "testo": "La visibilità massima è 1D6+8\". Ritira all'inizio di ogni round.",
+     "effetti": {
+      "visibilita": "1d6+8",
+      "visibilita_ritira_ogni_round": true
+     }
+    },
+    {
+     "da": 51,
+     "a": 55,
+     "id": "scontro_breve",
+     "nome": "Scontro breve",
+     "en": "Brief engagement",
+     "testo": "Alla fine di ogni round tira 2D6: se il risultato è pari o inferiore al numero del round, la partita finisce senza esito.",
+     "effetti": {
+      "fine_se_tiro_max_round": "2d6"
+     }
+    },
+    {
+     "da": 56,
+     "a": 60,
+     "id": "ambiente_tossico",
+     "nome": "Ambiente tossico",
+     "en": "Toxic environment",
+     "testo": "Ogni volta che un combattente viene Stordito tira 1D6+Acume (0 per i nemici): se non ottiene 4+ diventa una perdita.",
+     "effetti": {
+      "tossico": {
+       "dado": "1d6",
+       "stat": "acume",
+       "soglia": 4
+      }
+     }
+    },
+    {
+     "da": 61,
+     "a": 65,
+     "id": "incontro_sorpresa",
+     "nome": "Incontro a sorpresa",
+     "en": "Surprise encounter",
+     "testo": "Il nemico non può agire nel primo round.",
+     "effetti": {
+      "nemico_salta_round": 1
+     }
+    },
+    {
+     "da": 66,
+     "a": 75,
+     "id": "in_ritardo",
+     "nome": "In ritardo",
+     "en": "Delayed",
+     "testo": "2 membri dell'equipaggio casuali non iniziano sul tavolo. Alla fine di ogni round tira 1D6: se il risultato è pari o inferiore al numero del round, possono essere piazzati in qualsiasi punto del tuo bordo del campo.",
+     "effetti": {
+      "ritardati": 2,
+      "arrivo_se_1d6_max_round": true
+     }
+    },
+    {
+     "da": 76,
+     "a": 80,
+     "id": "terreno_scivoloso",
+     "nome": "Terreno scivoloso",
+     "en": "Slippery ground",
+     "testo": "Ogni movimento al livello del suolo ha Velocità -1.",
+     "effetti": {
+      "velocita_suolo": -1
+     }
+    },
+    {
+     "da": 81,
+     "a": 85,
+     "id": "lotta_accanita",
+     "nome": "Lotta accanita",
+     "en": "Bitter struggle",
+     "testo": "Il Morale nemico è +1.",
+     "effetti": {
+      "morale_nemico": 1
+     }
+    },
+    {
+     "da": 86,
+     "a": 90,
+     "id": "colti_alla_sprovvista",
+     "nome": "Colti alla sprovvista",
+     "en": "Caught off guard",
+     "testo": "Tutta la tua squadra agisce nella fase Azioni Lente del Round 1.",
+     "effetti": {
+      "tutti_lenti_round": 1
+     }
+    },
+    {
+     "da": 91,
+     "a": 100,
+     "id": "buio",
+     "nome": "Buio",
+     "en": "Gloomy",
+     "testo": "La visibilità massima è 9\". Però i personaggi che sparano possono essere bersagliati a qualsiasi distanza.",
+     "effetti": {
+      "visibilita": 9,
+      "chi_spara_visibile": true
+     }
+    }
+   ]
+  },
+  "patrono": {
+   "_dado": "d100",
+   "righe": [
+    {
+     "da": 1,
+     "a": 40,
+     "id": "nessuna",
+     "nome": "Nessuna condizione",
+     "en": "No Condition",
+     "testo": "Nessun effetto.",
+     "effetti": {}
+    },
+    {
+     "da": 41,
+     "a": 45,
+     "id": "scontro_ridotto",
+     "nome": "Scontro ridotto",
+     "en": "Small encounter",
+     "testo": "Un membro dell'equipaggio casuale deve saltare questo scontro. Riduci il numero dei nemici di 1 (di 2 se inizialmente sono più di voi).",
+     "effetti": {
+      "escludi_membri_casuali": 1,
+      "nemici_mod": -1,
+      "nemici_mod_se_superiori": -2
+     }
+    },
+    {
+     "da": 46,
+     "a": 50,
+     "id": "scarsa_visibilita",
+     "nome": "Scarsa visibilità",
+     "en": "Poor visibility",
+     "testo": "La visibilità massima è 1D6+8\". Ritira all'inizio di ogni round.",
+     "effetti": {
+      "visibilita": "1d6+8",
+      "visibilita_ritira_ogni_round": true
+     }
+    },
+    {
+     "da": 51,
+     "a": 55,
+     "id": "scontro_breve",
+     "nome": "Scontro breve",
+     "en": "Brief engagement",
+     "testo": "Alla fine di ogni round tira 2D6: se il risultato è pari o inferiore al numero del round, la partita finisce senza esito.",
+     "effetti": {
+      "fine_se_tiro_max_round": "2d6"
+     }
+    },
+    {
+     "da": 56,
+     "a": 60,
+     "id": "ambiente_tossico",
+     "nome": "Ambiente tossico",
+     "en": "Toxic environment",
+     "testo": "Ogni volta che un combattente viene Stordito tira 1D6+Acume (0 per i nemici): se non ottiene 4+ diventa una perdita.",
+     "effetti": {
+      "tossico": {
+       "dado": "1d6",
+       "stat": "acume",
+       "soglia": 4
+      }
+     }
+    },
+    {
+     "da": 61,
+     "a": 65,
+     "id": "incontro_sorpresa",
+     "nome": "Incontro a sorpresa",
+     "en": "Surprise encounter",
+     "testo": "Il nemico non può agire nel primo round.",
+     "effetti": {
+      "nemico_salta_round": 1
+     }
+    },
+    {
+     "da": 66,
+     "a": 75,
+     "id": "in_ritardo",
+     "nome": "In ritardo",
+     "en": "Delayed",
+     "testo": "2 membri dell'equipaggio casuali non iniziano sul tavolo. Alla fine di ogni round tira 1D6: se il risultato è pari o inferiore al numero del round, possono essere piazzati in qualsiasi punto del tuo bordo del campo.",
+     "effetti": {
+      "ritardati": 2,
+      "arrivo_se_1d6_max_round": true
+     }
+    },
+    {
+     "da": 76,
+     "a": 80,
+     "id": "terreno_scivoloso",
+     "nome": "Terreno scivoloso",
+     "en": "Slippery ground",
+     "testo": "Ogni movimento al livello del suolo ha Velocità -1.",
+     "effetti": {
+      "velocita_suolo": -1
+     }
+    },
+    {
+     "da": 81,
+     "a": 85,
+     "id": "lotta_accanita",
+     "nome": "Lotta accanita",
+     "en": "Bitter struggle",
+     "testo": "Il Morale nemico è +1.",
+     "effetti": {
+      "morale_nemico": 1
+     }
+    },
+    {
+     "da": 86,
+     "a": 90,
+     "id": "colti_alla_sprovvista",
+     "nome": "Colti alla sprovvista",
+     "en": "Caught off guard",
+     "testo": "Tutta la tua squadra agisce nella fase Azioni Lente del Round 1.",
+     "effetti": {
+      "tutti_lenti_round": 1
+     }
+    },
+    {
+     "da": 91,
+     "a": 100,
+     "id": "buio",
+     "nome": "Buio",
+     "en": "Gloomy",
+     "testo": "La visibilità massima è 9\". Però i personaggi che sparano possono essere bersagliati a qualsiasi distanza.",
+     "effetti": {
+      "visibilita": 9,
+      "chi_spara_visibile": true
+     }
+    }
+   ]
+  },
+  "rivale": {
+   "_dado": "d100",
+   "righe": [
+    {
+     "da": 1,
+     "a": 10,
+     "id": "nessuna",
+     "nome": "Nessuna condizione",
+     "en": "No Condition",
+     "testo": "Nessun effetto.",
+     "effetti": {}
+    },
+    {
+     "da": 11,
+     "a": 15,
+     "id": "scontro_ridotto",
+     "nome": "Scontro ridotto",
+     "en": "Small encounter",
+     "testo": "Un membro dell'equipaggio casuale deve saltare questo scontro. Riduci il numero dei nemici di 1 (di 2 se inizialmente sono più di voi).",
+     "effetti": {
+      "escludi_membri_casuali": 1,
+      "nemici_mod": -1,
+      "nemici_mod_se_superiori": -2
+     }
+    },
+    {
+     "da": 16,
+     "a": 20,
+     "id": "scarsa_visibilita",
+     "nome": "Scarsa visibilità",
+     "en": "Poor visibility",
+     "testo": "La visibilità massima è 1D6+8\". Ritira all'inizio di ogni round.",
+     "effetti": {
+      "visibilita": "1d6+8",
+      "visibilita_ritira_ogni_round": true
+     }
+    },
+    {
+     "da": 21,
+     "a": 25,
+     "id": "scontro_breve",
+     "nome": "Scontro breve",
+     "en": "Brief engagement",
+     "testo": "Alla fine di ogni round tira 2D6: se il risultato è pari o inferiore al numero del round, la partita finisce senza esito.",
+     "effetti": {
+      "fine_se_tiro_max_round": "2d6"
+     }
+    },
+    {
+     "da": 26,
+     "a": 30,
+     "id": "ambiente_tossico",
+     "nome": "Ambiente tossico",
+     "en": "Toxic environment",
+     "testo": "Ogni volta che un combattente viene Stordito tira 1D6+Acume (0 per i nemici): se non ottiene 4+ diventa una perdita.",
+     "effetti": {
+      "tossico": {
+       "dado": "1d6",
+       "stat": "acume",
+       "soglia": 4
+      }
+     }
+    },
+    {
+     "da": 31,
+     "a": 45,
+     "id": "incontro_sorpresa",
+     "nome": "Incontro a sorpresa",
+     "en": "Surprise encounter",
+     "testo": "Il nemico non può agire nel primo round.",
+     "effetti": {
+      "nemico_salta_round": 1
+     }
+    },
+    {
+     "da": 46,
+     "a": 50,
+     "id": "in_ritardo",
+     "nome": "In ritardo",
+     "en": "Delayed",
+     "testo": "2 membri dell'equipaggio casuali non iniziano sul tavolo. Alla fine di ogni round tira 1D6: se il risultato è pari o inferiore al numero del round, possono essere piazzati in qualsiasi punto del tuo bordo del campo.",
+     "effetti": {
+      "ritardati": 2,
+      "arrivo_se_1d6_max_round": true
+     }
+    },
+    {
+     "da": 51,
+     "a": 60,
+     "id": "terreno_scivoloso",
+     "nome": "Terreno scivoloso",
+     "en": "Slippery ground",
+     "testo": "Ogni movimento al livello del suolo ha Velocità -1.",
+     "effetti": {
+      "velocita_suolo": -1
+     }
+    },
+    {
+     "da": 61,
+     "a": 75,
+     "id": "lotta_accanita",
+     "nome": "Lotta accanita",
+     "en": "Bitter struggle",
+     "testo": "Il Morale nemico è +1.",
+     "effetti": {
+      "morale_nemico": 1
+     }
+    },
+    {
+     "da": 76,
+     "a": 90,
+     "id": "colti_alla_sprovvista",
+     "nome": "Colti alla sprovvista",
+     "en": "Caught off guard",
+     "testo": "Tutta la tua squadra agisce nella fase Azioni Lente del Round 1.",
+     "effetti": {
+      "tutti_lenti_round": 1
+     }
+    },
+    {
+     "da": 91,
+     "a": 100,
+     "id": "buio",
+     "nome": "Buio",
+     "en": "Gloomy",
+     "testo": "La visibilità massima è 9\". Però i personaggi che sparano possono essere bersagliati a qualsiasi distanza.",
+     "effetti": {
+      "visibilita": 9,
+      "chi_spara_visibile": true
+     }
+    }
+   ]
+  },
+  "missione": {
+   "_dado": "d100",
+   "righe": [
+    {
+     "da": 1,
+     "a": 5,
+     "id": "nessuna",
+     "nome": "Nessuna condizione",
+     "en": "No Condition",
+     "testo": "Nessun effetto.",
+     "effetti": {}
+    },
+    {
+     "da": 6,
+     "a": 10,
+     "id": "scontro_ridotto",
+     "nome": "Scontro ridotto",
+     "en": "Small encounter",
+     "testo": "Un membro dell'equipaggio casuale deve saltare questo scontro. Riduci il numero dei nemici di 1 (di 2 se inizialmente sono più di voi).",
+     "effetti": {
+      "escludi_membri_casuali": 1,
+      "nemici_mod": -1,
+      "nemici_mod_se_superiori": -2
+     }
+    },
+    {
+     "da": 11,
+     "a": 25,
+     "id": "scarsa_visibilita",
+     "nome": "Scarsa visibilità",
+     "en": "Poor visibility",
+     "testo": "La visibilità massima è 1D6+8\". Ritira all'inizio di ogni round.",
+     "effetti": {
+      "visibilita": "1d6+8",
+      "visibilita_ritira_ogni_round": true
+     }
+    },
+    {
+     "da": 26,
+     "a": 30,
+     "id": "scontro_breve",
+     "nome": "Scontro breve",
+     "en": "Brief engagement",
+     "testo": "Alla fine di ogni round tira 2D6: se il risultato è pari o inferiore al numero del round, la partita finisce senza esito.",
+     "effetti": {
+      "fine_se_tiro_max_round": "2d6"
+     }
+    },
+    {
+     "da": 31,
+     "a": 40,
+     "id": "ambiente_tossico",
+     "nome": "Ambiente tossico",
+     "en": "Toxic environment",
+     "testo": "Ogni volta che un combattente viene Stordito tira 1D6+Acume (0 per i nemici): se non ottiene 4+ diventa una perdita.",
+     "effetti": {
+      "tossico": {
+       "dado": "1d6",
+       "stat": "acume",
+       "soglia": 4
+      }
+     }
+    },
+    {
+     "da": 41,
+     "a": 50,
+     "id": "incontro_sorpresa",
+     "nome": "Incontro a sorpresa",
+     "en": "Surprise encounter",
+     "testo": "Il nemico non può agire nel primo round.",
+     "effetti": {
+      "nemico_salta_round": 1
+     }
+    },
+    {
+     "da": 51,
+     "a": 60,
+     "id": "in_ritardo",
+     "nome": "In ritardo",
+     "en": "Delayed",
+     "testo": "2 membri dell'equipaggio casuali non iniziano sul tavolo. Alla fine di ogni round tira 1D6: se il risultato è pari o inferiore al numero del round, possono essere piazzati in qualsiasi punto del tuo bordo del campo.",
+     "effetti": {
+      "ritardati": 2,
+      "arrivo_se_1d6_max_round": true
+     }
+    },
+    {
+     "da": 61,
+     "a": 65,
+     "id": "terreno_scivoloso",
+     "nome": "Terreno scivoloso",
+     "en": "Slippery ground",
+     "testo": "Ogni movimento al livello del suolo ha Velocità -1.",
+     "effetti": {
+      "velocita_suolo": -1
+     }
+    },
+    {
+     "da": 66,
+     "a": 80,
+     "id": "lotta_accanita",
+     "nome": "Lotta accanita",
+     "en": "Bitter struggle",
+     "testo": "Il Morale nemico è +1.",
+     "effetti": {
+      "morale_nemico": 1
+     }
+    },
+    {
+     "da": 81,
+     "a": 90,
+     "id": "colti_alla_sprovvista",
+     "nome": "Colti alla sprovvista",
+     "en": "Caught off guard",
+     "testo": "Tutta la tua squadra agisce nella fase Azioni Lente del Round 1.",
+     "effetti": {
+      "tutti_lenti_round": 1
+     }
+    },
+    {
+     "da": 91,
+     "a": 100,
+     "id": "buio",
+     "nome": "Buio",
+     "en": "Gloomy",
+     "testo": "La visibilità massima è 9\". Però i personaggi che sparano possono essere bersagliati a qualsiasi distanza.",
+     "effetti": {
+      "visibilita": 9,
+      "chi_spara_visibile": true
+     }
+    }
+   ]
+  }
+ },
+ "luoghi_notevoli": {
+  "_nota": "Notable Sights (p.89). Nessuno nelle battaglie d'Invasione. Opportunità e Patrono condividono la colonna. Il segnalino si piazza a 2D6+2\" in direzione casuale dal centro del tavolo; si raccoglie muovendo a contatto e rinunciando a ogni altra azione in quel round. `prova` senza `stat` = tiro di dado puro.",
+  "_dado": "d100",
+  "esclusa_in": [
+   "invasione"
+  ],
+  "piazzamento": {
+   "distanza": "2d6+2",
+   "da": "centro",
+   "direzione": "casuale",
+   "raccolta": "muovere a contatto e rinunciare a ogni altra azione del round"
+  },
+  "opportunita": {
+   "_dado": "d100",
+   "righe": [
+    {
+     "da": 1,
+     "a": 20,
+     "id": "niente",
+     "nome": "Niente di speciale",
+     "en": "Nothing special",
+     "testo": "Nessun effetto.",
+     "effetti": {}
+    },
+    {
+     "da": 21,
+     "a": 30,
+     "id": "documentazione",
+     "nome": "Documentazione",
+     "en": "Documentation",
+     "testo": "Ottieni una Diceria di missione.",
+     "effetti": {
+      "dicerie": 1
+     }
+    },
+    {
+     "da": 31,
+     "a": 40,
+     "id": "bersaglio_prioritario",
+     "nome": "Bersaglio prioritario",
+     "en": "Priority target",
+     "testo": "Scegli una figura nemica casuale: ha Robustezza +1. Se viene uccisa ottieni 1D3 crediti. (Non è un oggetto da raccogliere.)",
+     "effetti": {
+      "nemico_casuale_robustezza": 1,
+      "se_ucciso": {
+       "crediti": "1d3"
+      },
+      "manuale": true
+     }
+    },
+    {
+     "da": 41,
+     "a": 50,
+     "id": "deposito_bottino",
+     "nome": "Deposito di bottino",
+     "en": "Loot cache",
+     "testo": "Tira una volta sulla tabella del Bottino (p.131).",
+     "effetti": {
+      "oggetti": [
+       "bottino"
+      ]
+     }
+    },
+    {
+     "da": 51,
+     "a": 60,
+     "id": "pezzi_luccicanti",
+     "nome": "Pezzi luccicanti",
+     "en": "Shiny bits",
+     "testo": "Ottieni 1 credito.",
+     "effetti": {
+      "crediti": 1
+     }
+    },
+    {
+     "da": 61,
+     "a": 70,
+     "id": "pezzi_molto_luccicanti",
+     "nome": "Pezzi molto luccicanti",
+     "en": "Really shiny bits",
+     "testo": "Ottieni 2 crediti.",
+     "effetti": {
+      "crediti": 2
+     }
+    },
+    {
+     "da": 71,
+     "a": 80,
+     "id": "persona_interesse",
+     "nome": "Persona d'interesse",
+     "en": "Person of interest",
+     "testo": "Ottieni +1 punto Storia.",
+     "effetti": {
+      "punti_storia": 1
+     }
+    },
+    {
+     "da": 81,
+     "a": 90,
+     "id": "oggetto_singolare",
+     "nome": "Oggetto singolare",
+     "en": "Peculiar item",
+     "testo": "Ottieni +2 XP (al personaggio che lo raccoglie).",
+     "effetti": {
+      "xp": 2
+     }
+    },
+    {
+     "da": 91,
+     "a": 100,
+     "id": "oggetto_curioso",
+     "nome": "Oggetto curioso",
+     "en": "Curious item",
+     "testo": "Tira 1D6: con 1-4 può essere venduto per 1 credito; con 5-6 tira sulla tabella del Bottino (p.131).",
+     "effetti": {
+      "prova": {
+       "dado": "1d6",
+       "soglia": 5,
+       "successo": {
+        "oggetti": [
+         "bottino"
+        ]
+       },
+       "fallimento": {
+        "crediti": 1
+       }
+      }
+     }
+    }
+   ]
+  },
+  "patrono": {
+   "_dado": "d100",
+   "righe": [
+    {
+     "da": 1,
+     "a": 20,
+     "id": "niente",
+     "nome": "Niente di speciale",
+     "en": "Nothing special",
+     "testo": "Nessun effetto.",
+     "effetti": {}
+    },
+    {
+     "da": 21,
+     "a": 30,
+     "id": "documentazione",
+     "nome": "Documentazione",
+     "en": "Documentation",
+     "testo": "Ottieni una Diceria di missione.",
+     "effetti": {
+      "dicerie": 1
+     }
+    },
+    {
+     "da": 31,
+     "a": 40,
+     "id": "bersaglio_prioritario",
+     "nome": "Bersaglio prioritario",
+     "en": "Priority target",
+     "testo": "Scegli una figura nemica casuale: ha Robustezza +1. Se viene uccisa ottieni 1D3 crediti. (Non è un oggetto da raccogliere.)",
+     "effetti": {
+      "nemico_casuale_robustezza": 1,
+      "se_ucciso": {
+       "crediti": "1d3"
+      },
+      "manuale": true
+     }
+    },
+    {
+     "da": 41,
+     "a": 50,
+     "id": "deposito_bottino",
+     "nome": "Deposito di bottino",
+     "en": "Loot cache",
+     "testo": "Tira una volta sulla tabella del Bottino (p.131).",
+     "effetti": {
+      "oggetti": [
+       "bottino"
+      ]
+     }
+    },
+    {
+     "da": 51,
+     "a": 60,
+     "id": "pezzi_luccicanti",
+     "nome": "Pezzi luccicanti",
+     "en": "Shiny bits",
+     "testo": "Ottieni 1 credito.",
+     "effetti": {
+      "crediti": 1
+     }
+    },
+    {
+     "da": 61,
+     "a": 70,
+     "id": "pezzi_molto_luccicanti",
+     "nome": "Pezzi molto luccicanti",
+     "en": "Really shiny bits",
+     "testo": "Ottieni 2 crediti.",
+     "effetti": {
+      "crediti": 2
+     }
+    },
+    {
+     "da": 71,
+     "a": 80,
+     "id": "persona_interesse",
+     "nome": "Persona d'interesse",
+     "en": "Person of interest",
+     "testo": "Ottieni +1 punto Storia.",
+     "effetti": {
+      "punti_storia": 1
+     }
+    },
+    {
+     "da": 81,
+     "a": 90,
+     "id": "oggetto_singolare",
+     "nome": "Oggetto singolare",
+     "en": "Peculiar item",
+     "testo": "Ottieni +2 XP (al personaggio che lo raccoglie).",
+     "effetti": {
+      "xp": 2
+     }
+    },
+    {
+     "da": 91,
+     "a": 100,
+     "id": "oggetto_curioso",
+     "nome": "Oggetto curioso",
+     "en": "Curious item",
+     "testo": "Tira 1D6: con 1-4 può essere venduto per 1 credito; con 5-6 tira sulla tabella del Bottino (p.131).",
+     "effetti": {
+      "prova": {
+       "dado": "1d6",
+       "soglia": 5,
+       "successo": {
+        "oggetti": [
+         "bottino"
+        ]
+       },
+       "fallimento": {
+        "crediti": 1
+       }
+      }
+     }
+    }
+   ]
+  },
+  "rivale": {
+   "_dado": "d100",
+   "righe": [
+    {
+     "da": 1,
+     "a": 40,
+     "id": "niente",
+     "nome": "Niente di speciale",
+     "en": "Nothing special",
+     "testo": "Nessun effetto.",
+     "effetti": {}
+    },
+    {
+     "da": 41,
+     "a": 50,
+     "id": "documentazione",
+     "nome": "Documentazione",
+     "en": "Documentation",
+     "testo": "Ottieni una Diceria di missione.",
+     "effetti": {
+      "dicerie": 1
+     }
+    },
+    {
+     "da": 51,
+     "a": 60,
+     "id": "bersaglio_prioritario",
+     "nome": "Bersaglio prioritario",
+     "en": "Priority target",
+     "testo": "Scegli una figura nemica casuale: ha Robustezza +1. Se viene uccisa ottieni 1D3 crediti. (Non è un oggetto da raccogliere.)",
+     "effetti": {
+      "nemico_casuale_robustezza": 1,
+      "se_ucciso": {
+       "crediti": "1d3"
+      },
+      "manuale": true
+     }
+    },
+    {
+     "da": 61,
+     "a": 70,
+     "id": "deposito_bottino",
+     "nome": "Deposito di bottino",
+     "en": "Loot cache",
+     "testo": "Tira una volta sulla tabella del Bottino (p.131).",
+     "effetti": {
+      "oggetti": [
+       "bottino"
+      ]
+     }
+    },
+    {
+     "da": 71,
+     "a": 75,
+     "id": "pezzi_luccicanti",
+     "nome": "Pezzi luccicanti",
+     "en": "Shiny bits",
+     "testo": "Ottieni 1 credito.",
+     "effetti": {
+      "crediti": 1
+     }
+    },
+    {
+     "da": 76,
+     "a": 80,
+     "id": "pezzi_molto_luccicanti",
+     "nome": "Pezzi molto luccicanti",
+     "en": "Really shiny bits",
+     "testo": "Ottieni 2 crediti.",
+     "effetti": {
+      "crediti": 2
+     }
+    },
+    {
+     "da": 81,
+     "a": 90,
+     "id": "persona_interesse",
+     "nome": "Persona d'interesse",
+     "en": "Person of interest",
+     "testo": "Ottieni +1 punto Storia.",
+     "effetti": {
+      "punti_storia": 1
+     }
+    },
+    {
+     "da": 91,
+     "a": 95,
+     "id": "oggetto_singolare",
+     "nome": "Oggetto singolare",
+     "en": "Peculiar item",
+     "testo": "Ottieni +2 XP (al personaggio che lo raccoglie).",
+     "effetti": {
+      "xp": 2
+     }
+    },
+    {
+     "da": 96,
+     "a": 100,
+     "id": "oggetto_curioso",
+     "nome": "Oggetto curioso",
+     "en": "Curious item",
+     "testo": "Tira 1D6: con 1-4 può essere venduto per 1 credito; con 5-6 tira sulla tabella del Bottino (p.131).",
+     "effetti": {
+      "prova": {
+       "dado": "1d6",
+       "soglia": 5,
+       "successo": {
+        "oggetti": [
+         "bottino"
+        ]
+       },
+       "fallimento": {
+        "crediti": 1
+       }
+      }
+     }
+    }
+   ]
+  },
+  "missione": {
+   "_dado": "d100",
+   "righe": [
+    {
+     "da": 1,
+     "a": 10,
+     "id": "niente",
+     "nome": "Niente di speciale",
+     "en": "Nothing special",
+     "testo": "Nessun effetto.",
+     "effetti": {}
+    },
+    {
+     "da": 11,
+     "a": 25,
+     "id": "documentazione",
+     "nome": "Documentazione",
+     "en": "Documentation",
+     "testo": "Ottieni una Diceria di missione.",
+     "effetti": {
+      "dicerie": 1
+     }
+    },
+    {
+     "da": 26,
+     "a": 35,
+     "id": "bersaglio_prioritario",
+     "nome": "Bersaglio prioritario",
+     "en": "Priority target",
+     "testo": "Scegli una figura nemica casuale: ha Robustezza +1. Se viene uccisa ottieni 1D3 crediti. (Non è un oggetto da raccogliere.)",
+     "effetti": {
+      "nemico_casuale_robustezza": 1,
+      "se_ucciso": {
+       "crediti": "1d3"
+      },
+      "manuale": true
+     }
+    },
+    {
+     "da": 36,
+     "a": 50,
+     "id": "deposito_bottino",
+     "nome": "Deposito di bottino",
+     "en": "Loot cache",
+     "testo": "Tira una volta sulla tabella del Bottino (p.131).",
+     "effetti": {
+      "oggetti": [
+       "bottino"
+      ]
+     }
+    },
+    {
+     "da": 51,
+     "a": 55,
+     "id": "pezzi_luccicanti",
+     "nome": "Pezzi luccicanti",
+     "en": "Shiny bits",
+     "testo": "Ottieni 1 credito.",
+     "effetti": {
+      "crediti": 1
+     }
+    },
+    {
+     "da": 56,
+     "a": 65,
+     "id": "pezzi_molto_luccicanti",
+     "nome": "Pezzi molto luccicanti",
+     "en": "Really shiny bits",
+     "testo": "Ottieni 2 crediti.",
+     "effetti": {
+      "crediti": 2
+     }
+    },
+    {
+     "da": 66,
+     "a": 80,
+     "id": "persona_interesse",
+     "nome": "Persona d'interesse",
+     "en": "Person of interest",
+     "testo": "Ottieni +1 punto Storia.",
+     "effetti": {
+      "punti_storia": 1
+     }
+    },
+    {
+     "da": 81,
+     "a": 90,
+     "id": "oggetto_singolare",
+     "nome": "Oggetto singolare",
+     "en": "Peculiar item",
+     "testo": "Ottieni +2 XP (al personaggio che lo raccoglie).",
+     "effetti": {
+      "xp": 2
+     }
+    },
+    {
+     "da": 91,
+     "a": 100,
+     "id": "oggetto_curioso",
+     "nome": "Oggetto curioso",
+     "en": "Curious item",
+     "testo": "Tira 1D6: con 1-4 può essere venduto per 1 credito; con 5-6 tira sulla tabella del Bottino (p.131).",
+     "effetti": {
+      "prova": {
+       "dado": "1d6",
+       "soglia": 5,
+       "successo": {
+        "oggetti": [
+         "bottino"
+        ]
+       },
+       "fallimento": {
+        "crediti": 1
+       }
+      }
+     }
+    }
+   ]
+  }
+ },
+ "obiettivi": {
+  "_nota": "Determine the Objective (p.89-92). Le missioni Opportunità, Patrono e Missione (Quest) tirano l'obiettivo; Rivale tira il tipo di attacco; Invasione ha regole fisse.",
+  "regole": [
+   "Per Vincere la battaglia devi raggiungere l'obiettivo (anche se poi vieni cacciato dal campo, salvo diversa indicazione dell'obiettivo).",
+   "Se è la battaglia finale di una Missione (Quest), l'obiettivo è sempre Respingere (Fight Off) e il numero dei nemici è +1."
+  ],
+  "opportunita": {
+   "_dado": "d10",
+   "righe": [
+    {
+     "da": 1,
+     "a": 2,
+     "obiettivo": "attraversare"
+    },
+    {
+     "da": 3,
+     "a": 4,
+     "obiettivo": "consegnare"
+    },
+    {
+     "da": 5,
+     "a": 6,
+     "obiettivo": "accedere"
+    },
+    {
+     "da": 7,
+     "a": 8,
+     "obiettivo": "pattugliare"
+    },
+    {
+     "da": 9,
+     "a": 10,
+     "obiettivo": "respingere"
+    }
+   ]
+  },
+  "patrono": {
+   "_dado": "d10",
+   "righe": [
+    {
+     "da": 1,
+     "a": 2,
+     "obiettivo": "consegnare"
+    },
+    {
+     "da": 3,
+     "a": 3,
+     "obiettivo": "eliminare"
+    },
+    {
+     "da": 4,
+     "a": 5,
+     "obiettivo": "attraversare"
+    },
+    {
+     "da": 6,
+     "a": 7,
+     "obiettivo": "assicurare"
+    },
+    {
+     "da": 8,
+     "a": 8,
+     "obiettivo": "proteggere"
+    },
+    {
+     "da": 9,
+     "a": 10,
+     "obiettivo": "respingere"
+    }
+   ]
+  },
+  "missione": {
+   "_dado": "d10",
+   "righe": [
+    {
+     "da": 1,
+     "a": 2,
+     "obiettivo": "attraversare"
+    },
+    {
+     "da": 3,
+     "a": 4,
+     "obiettivo": "perquisire"
+    },
+    {
+     "da": 5,
+     "a": 6,
+     "obiettivo": "difendere"
+    },
+    {
+     "da": 7,
+     "a": 8,
+     "obiettivo": "acquisire"
+    },
+    {
+     "da": 9,
+     "a": 10,
+     "obiettivo": "respingere"
+    }
+   ]
+  },
+  "missione_finale": {
+   "obiettivo": "respingere",
+   "nemici_mod": 1
+  },
+  "rivale": {
+   "_dado": "d10",
+   "testo": "Se sei attaccato da un Rivale tira il tipo di attacco; se sei tu ad averlo rintracciato combatti sempre una Resa dei conti. Contro i Rivali non c'è condizione di Vittoria, ma se Tieni il Campo hai più probabilità di liberartene per sempre. Se fuggi prima che siano passati 4 round, un membro casuale perde un oggetto casuale dell'equipaggiamento.",
+   "se_rintracciato": "resa_dei_conti",
+   "fuga_prima_round": 4,
+   "fuga_effetti": {
+    "perde_oggetto": 1
+   },
+   "righe": [
+    {
+     "da": 1,
+     "a": 1,
+     "obiettivo": "imboscata"
+    },
+    {
+     "da": 2,
+     "a": 3,
+     "obiettivo": "rinforzi_amici"
+    },
+    {
+     "da": 4,
+     "a": 7,
+     "obiettivo": "resa_dei_conti"
+    },
+    {
+     "da": 8,
+     "a": 8,
+     "obiettivo": "assalto"
+    },
+    {
+     "da": 9,
+     "a": 10,
+     "obiettivo": "incursione"
+    }
+   ]
+  },
+  "invasione": {
+   "obiettivo": "invasione"
+  }
+ },
+ "tipi_obiettivo": {
+  "accedere": {
+   "nome": "Accedere",
+   "en": "Access",
+   "testo": "Devi raggiungere una console al centro esatto del campo e ottenere l'accesso: 1D6+Acume, serve 6+. Ogni tentativo richiede un'Azione di combattimento; fino a due personaggi per round possono tentare. I Senz'anima (Soulless) possono tentare stando entro 6\". Ingegneri e Bot hanno +1 extra al tiro. Un 1 naturale significa che il sistema si protegge: un secondo 1 naturale durante la battaglia fa fallire la missione (il sistema si blocca). Solo gli Ingegneri ignorano gli 1 naturali. Ottenuto l'accesso, Vinci. Se scacci tutti i nemici devi comunque tirare per l'accesso, ma puoi usare qualsiasi membro rimasto.",
+   "parametri": {
+    "posizione": "centro",
+    "dado": "1d6",
+    "stat": "acume",
+    "soglia": 6,
+    "tentativi_per_round": 2,
+    "bonus": {
+     "ingegnere": 1,
+     "bot": 1
+    },
+    "senzanima_distanza": 6,
+    "fallisce_al_secondo_1": true
+   }
+  },
+  "acquisire": {
+   "nome": "Acquisire",
+   "en": "Acquire",
+   "testo": "Un oggetto necessario alla Missione è al centro del tavolo. Un membro dell'equipaggio deve muoversi a contatto, spendere un'Azione di combattimento e poi uscire dal tavolo. Se il portatore diventa una perdita tira 1D6: con 1 l'oggetto è distrutto, altrimenti può essere raccolto spendendo un'Azione di combattimento nel punto in cui è caduto. Se scacci il nemico puoi raccoglierlo con calma.",
+   "parametri": {
+    "posizione": "centro",
+    "uscita": true,
+    "distrutto_su": 1
+   }
+  },
+  "difendere": {
+   "nome": "Difendere",
+   "en": "Defend",
+   "testo": "L'obiettivo è scacciare il nemico: per Vincere devi Tenere il Campo. Se l'IA nemica è normalmente Cauta, Difensiva o Tattica diventa Aggressiva. Aggiungi +1 al numero dei nemici.",
+   "parametri": {
+    "tenere_campo": true,
+    "nemici_mod": 1,
+    "ia_forzata": {
+     "cauto": "aggressivo",
+     "difensivo": "aggressivo",
+     "tattico": "aggressivo"
+    }
+   }
+  },
+  "consegnare": {
+   "nome": "Consegnare",
+   "en": "Deliver",
+   "testo": "Un membro a tua scelta porta un pacco che va consegnato al centro esatto del tavolo (segnalo con un marcatore o un elemento di terreno). Depositarlo richiede un'Azione di combattimento. Se il portatore diventa una perdita tira 1D6: con 1 il pacco è distrutto, altrimenti può essere raccolto spendendo un'Azione di combattimento nel punto in cui è caduto. Se scacci tutti i nemici Vinci purché il pacco sia integro.",
+   "parametri": {
+    "posizione": "centro",
+    "distrutto_su": 1
+   }
+  },
+  "eliminare": {
+   "nome": "Eliminare",
+   "en": "Eliminate",
+   "testo": "Scegli una figura nemica casuale come bersaglio: se viene uccisa Vinci. Se il bersaglio dovesse Fuggire (p.114), mettigli accanto un segnalino e lascialo dov'è: nel round successivo non può muoversi ma può sparare e combattere normalmente. Se non lo uccidi in quest'ultimo round, scappa e la missione è fallita.",
+   "parametri": {
+    "bersaglio": "nemico_casuale"
+   }
+  },
+  "respingere": {
+   "nome": "Respingere",
+   "en": "Fight Off",
+   "testo": "Nessun obiettivo oltre a scacciare il nemico: per Vincere devi Tenere il Campo.",
+   "parametri": {
+    "tenere_campo": true
+   }
+  },
+  "attraversare": {
+   "nome": "Attraversare",
+   "en": "Move Through",
+   "testo": "Vinci se almeno 2 membri dell'equipaggio escono dal bordo del campo avversario. Se scacci tutti i nemici Vinci purché ti restino almeno 2 membri.",
+   "parametri": {
+    "uscite_bordo_nemico": 2
+   }
+  },
+  "pattugliare": {
+   "nome": "Pattugliare",
+   "en": "Patrol",
+   "testo": "Conta gli elementi di terreno grandi (o gruppi equivalenti) sul tavolo e scegline 3 a caso. Durante la battaglia un membro dell'equipaggio deve terminare un movimento entro 2\" da ciascuno. Controllati tutti e 3, Vinci. Se scacci il nemico puoi farlo con calma.",
+   "parametri": {
+    "elementi": 3,
+    "distanza": 2
+   }
+  },
+  "proteggere": {
+   "nome": "Proteggere",
+   "en": "Protect",
+   "testo": "Ti accompagna un VIP (Reazioni 1, Velocità 4\", Combattimento +0, Robustezza 3), disarmato: non può mai iniziare una Rissa ma si difende normalmente e non può ricevere equipaggiamento. Il VIP si schiera ad almeno 12\" dal centro del tavolo; il nemico si schiera a 12\" dal centro nel proprio lato. Il VIP conta come un membro del tuo equipaggio. Se il VIP passa un round intero entro 3\" dal centro, Vinci; se ci riesci entro i primi 4 round guadagni 2 crediti extra di paga.",
+   "parametri": {
+    "vip": {
+     "nome": "VIP",
+     "en": "VIP",
+     "reazioni": 1,
+     "velocita": 4,
+     "combattimento": 0,
+     "robustezza": 3,
+     "armi": [],
+     "testo": "Disarmato; non può mai iniziare una Rissa ma si difende normalmente; non può ricevere equipaggiamento. Conta come un membro del tuo equipaggio."
+    },
+    "vip_distanza_min_centro": 12,
+    "nemico_distanza_centro": 12,
+    "distanza_centro": 3,
+    "bonus_entro_round": 4,
+    "bonus": {
+     "crediti": 2
+    }
+   }
+  },
+  "assicurare": {
+   "nome": "Assicurare",
+   "en": "Secure",
+   "testo": "Devi terminare 2 round consecutivi con membri dell'equipaggio entro 2\" dal centro del tavolo. Un membro con un nemico entro 6\" non conta. Fatto questo, Vinci. Se scacci l'avversario puoi completarlo con calma.",
+   "parametri": {
+    "round_consecutivi": 2,
+    "distanza_centro": 2,
+    "nemico_entro_annulla": 6
+   }
+  },
+  "perquisire": {
+   "nome": "Perquisire",
+   "en": "Search",
+   "testo": "Metti un segnalino su ogni elemento di terreno medio o grande. Un personaggio a contatto, dentro o sopra l'elemento può perquisirlo con un'Azione di combattimento: tira 1D6, con 5+ trova ciò che cercavi e Vinci. Se il tiro fallisce in tutti i luoghi, l'oggetto non è sul campo e la missione non può essere Vinta. Se scacci il nemico, conta gli elementi rimasti e tira tutti i dadi insieme.",
+   "parametri": {
+    "dado": "1d6",
+    "soglia": 5
+   }
+  },
+  "imboscata": {
+   "nome": "Imboscata",
+   "en": "Ambush",
+   "tipo": "attacco_rivale",
+   "testo": "Puoi schierare un membro in meno del normale (5 in una campagna tipica) e non puoi tirare per Prendere l'Iniziativa.",
+   "parametri": {
+    "membri_mod": -1,
+    "niente_iniziativa": true
+   }
+  },
+  "rinforzi_amici": {
+   "nome": "Ha portato gli amici",
+   "en": "Brought friends",
+   "tipo": "attacco_rivale",
+   "testo": "Aggiungi 1 nemico.",
+   "parametri": {
+    "nemici_mod": 1
+   }
+  },
+  "resa_dei_conti": {
+   "nome": "Resa dei conti",
+   "en": "Showdown",
+   "tipo": "attacco_rivale",
+   "testo": "Uno scontro diretto, senza modifiche.",
+   "parametri": {}
+  },
+  "assalto": {
+   "nome": "Assalto",
+   "en": "Assault",
+   "tipo": "attacco_rivale",
+   "testo": "Aggiungi un nemico. Il tuo equipaggio deve schierarsi tutto dentro o accanto a un edificio. Se non Tieni il Campo perdi 1D3 crediti.",
+   "parametri": {
+    "nemici_mod": 1,
+    "schieramento": "edificio",
+    "se_non_tieni_campo": {
+     "crediti": "-1d3"
+    }
+   }
+  },
+  "incursione": {
+   "nome": "Incursione",
+   "en": "Raid",
+   "tipo": "attacco_rivale",
+   "testo": "Se non Tieni il Campo la tua nave subisce 1D6+1 danni allo Scafo. Se hai un modellino di astronave, mettilo sul tavolo come promemoria di cosa stai difendendo.",
+   "parametri": {
+    "se_non_tieni_campo": {
+     "scafo": "-1d6-1"
+    }
+   }
+  },
+  "invasione": {
+   "nome": "Battaglia d'invasione",
+   "en": "Invasion Battle",
+   "tipo": "invasione",
+   "testo": "Devi resistere alle forze attaccanti mentre la guerra infuria. I nemici d'Invasione hanno sempre 2 figure in più. Devi resistere 6 round, poi puoi fuggire o combattere finché non Tieni il Campo. Non c'è condizione di Vittoria. Ogni figura che lascia il tavolo prima del Round 6 diventa una perdita. Niente condizioni di schieramento, Luoghi notevoli né Individui Unici (salvo Follia).",
+   "parametri": {
+    "nemici_mod": 2,
+    "round_minimi": 6,
+    "uscita_prima_perdita": true
+   }
+  }
+ },
+ "numero_nemici": {
+  "_nota": "Number of Opponents (p.92-93).",
+  "testo": "Equipaggio di campagna 6: tira 2D6 e tieni il più alto. Equipaggio 5: tira 1D6. Equipaggio 4: tira 2D6 e tieni il più basso. Aggiungi il modificatore Numeri del nemico. Se schieri 2 o più figure in meno della dimensione standard della campagna (di solito 6), sottrai 1. Difficoltà Facile: se il totale a questo punto è 5+, togli 1 nemico normale. Difficoltà Impegnativa o superiore: se uno dei dadi fa 1 o 2, ritiralo prima di scegliere il più alto. Difficoltà Hardcore o Follia: +1 al numero finale.",
+  "dado_per_equipaggio": {
+   "6": {
+    "dado": "2d6",
+    "tieni": "alto"
+   },
+   "5": {
+    "dado": "1d6"
+   },
+   "4": {
+    "dado": "2d6",
+    "tieni": "basso"
+   }
+  },
+  "modificatore_nemico": "numeri",
+  "schierati_sotto_standard": {
+   "differenza_min": 2,
+   "mod": -1
+  },
+  "difficolta": {
+   "facile": {
+    "se_totale_min": 5,
+    "mod": -1
+   },
+   "impegnativo": {
+    "ritira_dadi": [
+     1,
+     2
+    ]
+   },
+   "hardcore": {
+    "ritira_dadi": [
+     1,
+     2
+    ],
+    "mod": 1
+   },
+   "follia": {
+    "ritira_dadi": [
+     1,
+     2
+    ],
+    "mod": 1,
+    "specialisti_extra": 1
+   }
+  },
+  "altri_modificatori": [
+   {
+    "fonte": "obiettivo difendere",
+    "mod": 1
+   },
+   {
+    "fonte": "battaglia finale di Missione",
+    "mod": 1
+   },
+   {
+    "fonte": "attacco rivale: ha portato gli amici",
+    "mod": 1
+   },
+   {
+    "fonte": "attacco rivale: assalto",
+    "mod": 1
+   },
+   {
+    "fonte": "battaglia d'invasione",
+    "mod": 2
+   },
+   {
+    "fonte": "condizione scontro ridotto",
+    "mod": -1,
+    "mod_se_superiori": -2
+   },
+   {
+    "fonte": "elementi criminali che ti odiano (Rivali)",
+    "mod": 1
+   },
+   {
+    "fonte": "tutori dell'ordine come Rivali",
+    "mod": 2
+   },
+   {
+    "fonte": "soldati rinnegati come Rivali",
+    "mod": 1
+   },
+   {
+    "fonte": "parti interessate in missione (Quest): ritira una volta ogni dado che fa 1",
+    "ritira_dadi": [
+     1
+    ]
+   }
+  ]
+ },
+ "categorie": {
+  "_nota": "Enemy Encounter Category Table (p.94). Per Rivale e Invasione di solito si sa già chi si combatte: scegli la voce più adatta; se non sei sicuro o hai un Rivale inatteso tira due volte e scegli la più interessante (colonna 'rivale' = Unknown Rival). Una volta stabilito, un Rivale resta sempre dello stesso tipo. Regola opzionale Tabelle nemici personalizzate: togli fino a 3 voci da ogni tabella e riempi i posti vuoti con duplicati di voci esistenti.",
+  "_dado": "d100",
+  "elenco": {
+   "elementi_criminali": {
+    "nome": "Elementi criminali",
+    "en": "Criminal Elements",
+    "testo": "Al setup tira 1D6: con 1-3 ricevi quel numero di crediti di taglia se Tieni il Campo. Quando tiri per vedere se un gruppo criminale sconfitto diventa Rivale tira 2D6: un 1 su un dado = diventano Rivali; se entrambi i dadi fanno 1 ti odiano: diventano Rivali E il loro numero è +1 in tutte le battaglie.",
+    "speciali": {
+     "taglia": {
+      "dado": "1d6",
+      "max": 3,
+      "se_tieni_campo": true
+     },
+     "rivale_dado": "2d6",
+     "odio_doppio_1": {
+      "numeri": 1
+     }
+    }
+   },
+   "forza_mercenaria": {
+    "nome": "Forza mercenaria",
+    "en": "Hired Muscle",
+    "testo": "Professionisti pagati: hai -1 a ogni tentativo di Prendere l'Iniziativa, cumulativo con i modificatori delle singole voci.",
+    "speciali": {
+     "iniziativa_giocatore": -1
+    }
+   },
+   "parti_interessate": {
+    "nome": "Parti interessate",
+    "en": "Interested Parties",
+    "testo": "+1 al tiro per gli Individui Unici. Nelle missioni Quest, quando tiri il numero dei nemici, ritira una volta ogni dado che fa 1.",
+    "speciali": {
+     "individui_unici_mod": 1,
+     "quest_ritira_1": true
+    }
+   },
+   "minacce_vaganti": {
+    "nome": "Minacce vaganti",
+    "en": "Roving Threats",
+    "testo": "I nemici di questa lista non diventano mai Rivali e non sono mai accompagnati da Individui Unici, salvo in difficoltà Follia. Gli oggetti di valore trovati sono di solito resti di un equipaggio sfortunato.",
+    "speciali": {
+     "mai_rivali": true,
+     "niente_unici": true
+    }
+   }
+  },
+  "opportunita": {
+   "_dado": "d100",
+   "righe": [
+    {
+     "da": 1,
+     "a": 30,
+     "categoria": "elementi_criminali"
+    },
+    {
+     "da": 31,
+     "a": 60,
+     "categoria": "forza_mercenaria"
+    },
+    {
+     "da": 61,
+     "a": 80,
+     "categoria": "parti_interessate"
+    },
+    {
+     "da": 81,
+     "a": 100,
+     "categoria": "minacce_vaganti"
+    }
+   ]
+  },
+  "patrono": {
+   "_dado": "d100",
+   "righe": [
+    {
+     "da": 1,
+     "a": 25,
+     "categoria": "elementi_criminali"
+    },
+    {
+     "da": 26,
+     "a": 60,
+     "categoria": "forza_mercenaria"
+    },
+    {
+     "da": 61,
+     "a": 75,
+     "categoria": "parti_interessate"
+    },
+    {
+     "da": 76,
+     "a": 100,
+     "categoria": "minacce_vaganti"
+    }
+   ]
+  },
+  "missione": {
+   "_dado": "d100",
+   "righe": [
+    {
+     "da": 1,
+     "a": 15,
+     "categoria": "elementi_criminali"
+    },
+    {
+     "da": 16,
+     "a": 40,
+     "categoria": "forza_mercenaria"
+    },
+    {
+     "da": 41,
+     "a": 70,
+     "categoria": "parti_interessate"
+    },
+    {
+     "da": 71,
+     "a": 100,
+     "categoria": "minacce_vaganti"
+    }
+   ]
+  },
+  "rivale": {
+   "_dado": "d100",
+   "righe": [
+    {
+     "da": 1,
+     "a": 50,
+     "categoria": "elementi_criminali"
+    },
+    {
+     "da": 51,
+     "a": 80,
+     "categoria": "forza_mercenaria"
+    },
+    {
+     "da": 81,
+     "a": 100,
+     "categoria": "parti_interessate"
+    }
+   ]
+  }
+ },
+ "tabelle_nemici": {
+  "elementi_criminali": {
+   "_dado": "d100",
+   "righe": [
+    {
+     "da": 1,
+     "a": 10,
+     "nemico": "ganger",
+     "nome": "Gangster",
+     "en": "Gangers"
+    },
+    {
+     "da": 11,
+     "a": 19,
+     "nemico": "teppisti",
+     "nome": "Teppisti",
+     "en": "Punks"
+    },
+    {
+     "da": 20,
+     "a": 27,
+     "nemico": "predoni",
+     "nome": "Predoni",
+     "en": "Raiders"
+    },
+    {
+     "da": 28,
+     "a": 34,
+     "nemico": "cultisti",
+     "nome": "Cultisti",
+     "en": "Cultists"
+    },
+    {
+     "da": 35,
+     "a": 43,
+     "nemico": "psicopatici",
+     "nome": "Psicopatici",
+     "en": "Psychos"
+    },
+    {
+     "da": 44,
+     "a": 48,
+     "nemico": "banda_viziati",
+     "nome": "Banda di viziati",
+     "en": "Brat Gang"
+    },
+    {
+     "da": 49,
+     "a": 51,
+     "nemico": "rinnegati_genetici",
+     "nome": "Rinnegati genetici",
+     "en": "Gene Renegades"
+    },
+    {
+     "da": 52,
+     "a": 57,
+     "nemico": "anarchici",
+     "nome": "Anarchici",
+     "en": "Anarchists"
+    },
+    {
+     "da": 58,
+     "a": 64,
+     "nemico": "pirati",
+     "nome": "Pirati",
+     "en": "Pirates"
+    },
+    {
+     "da": 65,
+     "a": 71,
+     "nemico": "fuorilegge_kerin",
+     "nome": "Fuorilegge K'Erin",
+     "en": "K'Erin Outlaws"
+    },
+    {
+     "da": 72,
+     "a": 79,
+     "nemico": "briganti_skulker",
+     "nome": "Briganti Skulker",
+     "en": "Skulker Brigands"
+    },
+    {
+     "da": 80,
+     "a": 83,
+     "nemico": "gangster_tech",
+     "nome": "Gangster tecnologici",
+     "en": "Tech Gangers"
+    },
+    {
+     "da": 84,
+     "a": 90,
+     "nemico": "feccia_spazioporto",
+     "nome": "Feccia dello spazioporto",
+     "en": "Starport Scum"
+    },
+    {
+     "da": 91,
+     "a": 94,
+     "nemico": "banda_hulker",
+     "nome": "Banda di Hulker",
+     "en": "Hulker Gang"
+    },
+    {
+     "da": 95,
+     "a": 100,
+     "nemico": "pistoleri",
+     "nome": "Pistoleri",
+     "en": "Gun Slingers"
+    }
+   ]
+  },
+  "forza_mercenaria": {
+   "_dado": "d100",
+   "righe": [
+    {
+     "da": 1,
+     "a": 14,
+     "nemico": "mercenari_ignoti",
+     "nome": "Mercenari sconosciuti",
+     "en": "Unknown Mercs"
+    },
+    {
+     "da": 15,
+     "a": 26,
+     "nemico": "tutori_ordine",
+     "nome": "Tutori dell'ordine",
+     "en": "Enforcers"
+    },
+    {
+     "da": 27,
+     "a": 34,
+     "nemico": "truppe_gilda",
+     "nome": "Truppe della gilda",
+     "en": "Guild Troops"
+    },
+    {
+     "da": 35,
+     "a": 39,
+     "nemico": "roidganger",
+     "nome": "Roidganger",
+     "en": "Roidgangers"
+    },
+    {
+     "da": 40,
+     "a": 42,
+     "nemico": "squadra_operazioni_nere",
+     "nome": "Squadra operazioni nere",
+     "en": "Black Ops Team"
+    },
+    {
+     "da": 43,
+     "a": 46,
+     "nemico": "robot_guerra",
+     "nome": "Robot da guerra",
+     "en": "War Bots"
+    },
+    {
+     "da": 47,
+     "a": 50,
+     "nemico": "agenti_segreti",
+     "nome": "Agenti segreti",
+     "en": "Secret Agents"
+    },
+    {
+     "da": 51,
+     "a": 53,
+     "nemico": "assassini",
+     "nome": "Assassini",
+     "en": "Assassins"
+    },
+    {
+     "da": 54,
+     "a": 59,
+     "nemico": "mercenari_ferali",
+     "nome": "Mercenari ferali",
+     "en": "Feral Mercenaries"
+    },
+    {
+     "da": 60,
+     "a": 64,
+     "nemico": "mercenari_skulker",
+     "nome": "Mercenari Skulker",
+     "en": "Skulker Mercenaries"
+    },
+    {
+     "da": 65,
+     "a": 74,
+     "nemico": "sicurezza_aziendale",
+     "nome": "Sicurezza aziendale",
+     "en": "Corporate Security"
+    },
+    {
+     "da": 75,
+     "a": 79,
+     "nemico": "fanti_unity",
+     "nome": "Fanti dell'Unità",
+     "en": "Unity Grunts"
+    },
+    {
+     "da": 80,
+     "a": 85,
+     "nemico": "robot_sicurezza",
+     "nome": "Robot di sicurezza",
+     "en": "Security Bots"
+    },
+    {
+     "da": 86,
+     "a": 90,
+     "nemico": "mercenari_drago_nero",
+     "nome": "Mercenari Drago Nero",
+     "en": "Black Dragon Mercs"
+    },
+    {
+     "da": 91,
+     "a": 95,
+     "nemico": "mercenari_lucertola_furiosa",
+     "nome": "Mercenari Lucertola Furiosa",
+     "en": "Rage Lizard Mercs"
+    },
+    {
+     "da": 96,
+     "a": 100,
+     "nemico": "mercenari_tempesta_sangue",
+     "nome": "Mercenari Tempesta di Sangue",
+     "en": "Blood Storm Mercs"
+    }
+   ]
+  },
+  "parti_interessate": {
+   "_dado": "d100",
+   "righe": [
+    {
+     "da": 1,
+     "a": 6,
+     "nemico": "soldati_rinnegati",
+     "nome": "Soldati rinnegati",
+     "en": "Renegade Soldiers"
+    },
+    {
+     "da": 7,
+     "a": 13,
+     "nemico": "cacciatori_taglie",
+     "nome": "Cacciatori di taglie",
+     "en": "Bounty Hunters"
+    },
+    {
+     "da": 14,
+     "a": 18,
+     "nemico": "abbandonati",
+     "nome": "Abbandonati",
+     "en": "Abandoned"
+    },
+    {
+     "da": 19,
+     "a": 27,
+     "nemico": "vigilanti",
+     "nome": "Vigilanti",
+     "en": "Vigilantes"
+    },
+    {
+     "da": 28,
+     "a": 35,
+     "nemico": "isolazionisti",
+     "nome": "Isolazionisti",
+     "en": "Isolationists"
+    },
+    {
+     "da": 36,
+     "a": 41,
+     "nemico": "zeloti",
+     "nome": "Zeloti",
+     "en": "Zealots"
+    },
+    {
+     "da": 42,
+     "a": 48,
+     "nemico": "mutanti",
+     "nome": "Mutanti",
+     "en": "Mutants"
+    },
+    {
+     "da": 49,
+     "a": 52,
+     "nemico": "primitivi",
+     "nome": "Primitivi",
+     "en": "Primitives"
+    },
+    {
+     "da": 53,
+     "a": 56,
+     "nemico": "esuli_precursori",
+     "nome": "Esuli Precursori",
+     "en": "Precursor Exiles"
+    },
+    {
+     "da": 57,
+     "a": 63,
+     "nemico": "coloni_kerin",
+     "nome": "Coloni K'Erin",
+     "en": "K'Erin Colonists"
+    },
+    {
+     "da": 64,
+     "a": 68,
+     "nemico": "squadra_guerra_swift",
+     "nome": "Squadra da guerra Swift",
+     "en": "Swift War Squad"
+    },
+    {
+     "da": 69,
+     "a": 72,
+     "nemico": "task_force_senzanima",
+     "nome": "Task force dei Senz'anima",
+     "en": "Soulless Task Force"
+    },
+    {
+     "da": 73,
+     "a": 76,
+     "nemico": "zeloti_tech",
+     "nome": "Zeloti della tecnologia",
+     "en": "Tech Zealots"
+    },
+    {
+     "da": 77,
+     "a": 83,
+     "nemico": "milizia_coloniale",
+     "nome": "Milizia coloniale",
+     "en": "Colonial Militia"
+    },
+    {
+     "da": 84,
+     "a": 88,
+     "nemico": "nomadi_planetari",
+     "nome": "Nomadi planetari",
+     "en": "Planetary Nomads"
+    },
+    {
+     "da": 89,
+     "a": 100,
+     "nemico": "squadra_recupero",
+     "nome": "Squadra di recupero",
+     "en": "Salvage Team"
+    }
+   ]
+  },
+  "minacce_vaganti": {
+   "_dado": "d100",
+   "righe": [
+    {
+     "da": 1,
+     "a": 4,
+     "nemico": "acquisizione_convertiti",
+     "nome": "Acquisizione dei Convertiti",
+     "en": "Converted Acquisition"
+    },
+    {
+     "da": 5,
+     "a": 12,
+     "nemico": "infiltrati_convertiti",
+     "nome": "Infiltrati dei Convertiti",
+     "en": "Converted Infiltrators"
+    },
+    {
+     "da": 13,
+     "a": 18,
+     "nemico": "predoni_rapitori",
+     "nome": "Predoni Rapitori",
+     "en": "Abductor Raiders"
+    },
+    {
+     "da": 19,
+     "a": 28,
+     "nemico": "covata_sciame",
+     "nome": "Covata dello Sciame",
+     "en": "Swarm Brood"
+    },
+    {
+     "da": 29,
+     "a": 34,
+     "nemico": "robot_impazziti",
+     "nome": "Robot impazziti",
+     "en": "Haywire Robots"
+    },
+    {
+     "da": 35,
+     "a": 44,
+     "nemico": "lucertole_rasoio",
+     "nome": "Lucertole rasoio",
+     "en": "Razor Lizards"
+    },
+    {
+     "da": 45,
+     "a": 56,
+     "nemico": "corridori_sabbie",
+     "nome": "Corridori delle sabbie",
+     "en": "Sand Runners"
+    },
+    {
+     "da": 57,
+     "a": 63,
+     "nemico": "squartatori_vuoto",
+     "nome": "Squartatori del vuoto",
+     "en": "Void Rippers"
+    },
+    {
+     "da": 64,
+     "a": 69,
+     "nemico": "krorg",
+     "nome": "Krorg",
+     "en": "Krorg"
+    },
+    {
+     "da": 70,
+     "a": 78,
+     "nemico": "insetti_giganti",
+     "nome": "Insetti giganti",
+     "en": "Large Bugs"
+    },
+    {
+     "da": 79,
+     "a": 84,
+     "nemico": "inseguitori_carnivori",
+     "nome": "Inseguitori carnivori",
+     "en": "Carnivore Chasers"
+    },
+    {
+     "da": 85,
+     "a": 97,
+     "nemico": "striscianti_condotti",
+     "nome": "Striscianti dei condotti",
+     "en": "Vent Crawlers"
+    },
+    {
+     "da": 98,
+     "a": 100,
+     "nemico": "distorti",
+     "nome": "Distorti",
+     "en": "Distorts"
+    }
+   ]
+  }
+ },
+ "nemici": {
+  "ganger": {
+   "nome": "Gangster",
+   "en": "Gangers",
+   "categoria": "elementi_criminali",
+   "numeri": 2,
+   "panico": [
+    1,
+    2
+   ],
+   "velocita": 4,
+   "combattimento": 0,
+   "robustezza": 3,
+   "ia": "aggressivo",
+   "armi": "1A",
+   "regole": "Se la dà a gambe (Leg it): quando un gangster viene colpito da un tiro, si ritira di 3\" allontanandosi dal tiratore.",
+   "speciali": {
+    "ritirata_se_colpito": 3
+   }
+  },
+  "teppisti": {
+   "nome": "Teppisti",
+   "en": "Punks",
+   "categoria": "elementi_criminali",
+   "numeri": 3,
+   "panico": [
+    1,
+    3
+   ],
+   "velocita": 4,
+   "combattimento": 0,
+   "robustezza": 3,
+   "ia": "aggressivo",
+   "armi": "1A",
+   "regole": "Sbadati (Careless): hai +1 per Prendere l'Iniziativa. Cattivi tiratori (Bad shots): i loro tiri colpiscono solo con un 6 naturale.",
+   "speciali": {
+    "iniziativa_giocatore": 1,
+    "colpisce_solo_6": true
+   }
+  },
+  "predoni": {
+   "nome": "Predoni",
+   "en": "Raiders",
+   "categoria": "elementi_criminali",
+   "numeri": 1,
+   "panico": [
+    1,
+    2
+   ],
+   "velocita": 4,
+   "combattimento": 1,
+   "robustezza": 3,
+   "ia": "aggressivo",
+   "armi": "2A",
+   "regole": "Saccheggiatori (Scavengers): tira due volte sulla tabella dei Ritrovamenti sul campo.",
+   "speciali": {
+    "ritrovamenti_campo": 2
+   }
+  },
+  "cultisti": {
+   "nome": "Cultisti",
+   "en": "Cultists",
+   "categoria": "elementi_criminali",
+   "numeri": 2,
+   "panico": [
+    1,
+    1
+   ],
+   "velocita": 4,
+   "combattimento": 0,
+   "robustezza": 3,
+   "ia": "aggressivo",
+   "armi": "1A",
+   "regole": "Intrigo (Intrigue): dopo la battaglia tira 2D6, +1 se hai ucciso un Luogotenente e/o un Individuo Unico; con 9+ ottieni una Diceria di missione.",
+   "speciali": {
+    "intrigo": {
+     "dado": "2d6",
+     "soglia": 9,
+     "bonus_luogotenente_unico": 1,
+     "effetti": {
+      "dicerie": 1
+     }
+    }
+   }
+  },
+  "psicopatici": {
+   "nome": "Psicopatici",
+   "en": "Psychos",
+   "categoria": "elementi_criminali",
+   "numeri": 2,
+   "panico": [
+    1,
+    1
+   ],
+   "velocita": 6,
+   "combattimento": 0,
+   "robustezza": 4,
+   "ia": "furia",
+   "armi": "1B",
+   "regole": "Cattivi tiratori (Bad shots): i loro tiri colpiscono solo con un 6 naturale.",
+   "speciali": {
+    "colpisce_solo_6": true
+   }
+  },
+  "banda_viziati": {
+   "nome": "Banda di viziati",
+   "en": "Brat Gang",
+   "categoria": "elementi_criminali",
+   "numeri": 2,
+   "panico": [
+    1,
+    3
+   ],
+   "velocita": 5,
+   "combattimento": 0,
+   "robustezza": 4,
+   "ia": "aggressivo",
+   "armi": "2C",
+   "salvezza": 6,
+   "regole": "Sbadati (Careless): hai +1 per Prendere l'Iniziativa. Tiro salvezza 6+.",
+   "speciali": {
+    "iniziativa_giocatore": 1
+   }
+  },
+  "rinnegati_genetici": {
+   "nome": "Rinnegati genetici",
+   "en": "Gene Renegades",
+   "categoria": "elementi_criminali",
+   "numeri": 1,
+   "panico": [
+    1,
+    2
+   ],
+   "velocita": 5,
+   "combattimento": 0,
+   "robustezza": 4,
+   "ia": "cauto",
+   "armi": "1B",
+   "regole": "All'erta (Alert): hai -1 per Prendere l'Iniziativa.",
+   "speciali": {
+    "iniziativa_giocatore": -1
+   }
+  },
+  "anarchici": {
+   "nome": "Anarchici",
+   "en": "Anarchists",
+   "categoria": "elementi_criminali",
+   "numeri": 2,
+   "panico": [
+    1,
+    2
+   ],
+   "velocita": 5,
+   "combattimento": 0,
+   "robustezza": 3,
+   "ia": "aggressivo",
+   "armi": "2B",
+   "regole": "Testardi (Stubborn): ignorano la prima perdita della battaglia quando fanno il test di Morale.",
+   "speciali": {
+    "ignora_prima_perdita": true
+   }
+  },
+  "pirati": {
+   "nome": "Pirati",
+   "en": "Pirates",
+   "categoria": "elementi_criminali",
+   "numeri": 2,
+   "panico": [
+    1,
+    3
+   ],
+   "velocita": 5,
+   "combattimento": 0,
+   "robustezza": 4,
+   "ia": "aggressivo",
+   "armi": "2A",
+   "regole": "Bottino (Loot): ottieni un tiro Bottino extra se Tieni il Campo.",
+   "speciali": {
+    "bottino_extra": 1
+   }
+  },
+  "fuorilegge_kerin": {
+   "nome": "Fuorilegge K'Erin",
+   "en": "K'Erin Outlaws",
+   "categoria": "elementi_criminali",
+   "numeri": 1,
+   "panico": [
+    1,
+    1
+   ],
+   "velocita": 4,
+   "combattimento": 1,
+   "robustezza": 4,
+   "ia": "aggressivo",
+   "armi": "2A",
+   "regole": "Testardi (Stubborn): ignorano la prima perdita della battaglia quando fanno il test di Morale.",
+   "speciali": {
+    "ignora_prima_perdita": true
+   }
+  },
+  "briganti_skulker": {
+   "nome": "Briganti Skulker",
+   "en": "Skulker Brigands",
+   "categoria": "elementi_criminali",
+   "numeri": 3,
+   "panico": [
+    1,
+    2
+   ],
+   "velocita": 6,
+   "combattimento": 0,
+   "robustezza": 3,
+   "ia": "cauto",
+   "armi": "1B",
+   "regole": "All'erta (Alert): hai -1 per Prendere l'Iniziativa. Saccheggiatori (Scavengers): tira due volte sulla tabella dei Ritrovamenti sul campo.",
+   "speciali": {
+    "iniziativa_giocatore": -1,
+    "ritrovamenti_campo": 2
+   }
+  },
+  "gangster_tech": {
+   "nome": "Gangster tecnologici",
+   "en": "Tech Gangers",
+   "categoria": "elementi_criminali",
+   "numeri": 1,
+   "panico": [
+    1,
+    2
+   ],
+   "velocita": 4,
+   "combattimento": 0,
+   "robustezza": 5,
+   "ia": "tattico",
+   "armi": "3C",
+   "salvezza": 6,
+   "regole": "Bottino (Loot): ottieni un tiro Bottino extra se Tieni il Campo. Tiro salvezza 6+.",
+   "speciali": {
+    "bottino_extra": 1
+   }
+  },
+  "feccia_spazioporto": {
+   "nome": "Feccia dello spazioporto",
+   "en": "Starport Scum",
+   "categoria": "elementi_criminali",
+   "numeri": 3,
+   "panico": [
+    1,
+    3
+   ],
+   "velocita": 4,
+   "combattimento": 0,
+   "robustezza": 3,
+   "ia": "difensivo",
+   "armi": "1A",
+   "regole": "Guerrieri del venerdì sera (Friday Night Warriors): quando uno di loro viene ucciso, tutti gli alleati entro 6\" si ritirano di un movimento standard alla loro velocità base, direttamente verso il proprio bordo del campo.",
+   "speciali": {
+    "ritirata_alleati_se_ucciso": 6
+   }
+  },
+  "banda_hulker": {
+   "nome": "Banda di Hulker",
+   "en": "Hulker Gang",
+   "categoria": "elementi_criminali",
+   "numeri": 0,
+   "panico": [
+    1,
+    1
+   ],
+   "velocita": 4,
+   "combattimento": 1,
+   "robustezza": 5,
+   "ia": "aggressivo",
+   "armi": "1A",
+   "regole": "Feroci (Ferocious): +1 ai tiri di Rissa quando sono loro a iniziare il combattimento. Aggressività (Aggro): se colpito da un tiro e sopravvive, si muove subito di 1\" verso il tiratore.",
+   "speciali": {
+    "rissa_iniziata": 1,
+    "avanza_se_colpito": 1
+   }
+  },
+  "pistoleri": {
+   "nome": "Pistoleri",
+   "en": "Gun Slingers",
+   "categoria": "elementi_criminali",
+   "numeri": 1,
+   "panico": [
+    1,
+    2
+   ],
+   "velocita": 4,
+   "combattimento": 1,
+   "robustezza": 3,
+   "ia": "tattico",
+   "armi": "1B",
+   "regole": "Tiro acrobatico (Trick shot): ogni 6 naturale quando sparano concede un tiro aggiuntivo contro lo stesso bersaglio o un altro bersaglio entro 2\".",
+   "speciali": {
+    "tiro_extra_su_6": 2
+   }
+  },
+  "mercenari_ignoti": {
+   "nome": "Mercenari sconosciuti",
+   "en": "Unknown Mercs",
+   "categoria": "forza_mercenaria",
+   "numeri": 0,
+   "panico": [
+    1,
+    2
+   ],
+   "velocita": 5,
+   "combattimento": 1,
+   "robustezza": 4,
+   "ia": "tattico",
+   "armi": "2B",
+   "regole": "Chiamiamola una giornata (Lets just call it a day): se ridotti a 1 o 2 figure, accettano di terminare lo scontro alla fine di qualsiasi round. In tal caso nessuna parte Tiene il Campo.",
+   "speciali": {
+    "tregua_se_figure_max": 2
+   }
+  },
+  "tutori_ordine": {
+   "nome": "Tutori dell'ordine",
+   "en": "Enforcers",
+   "categoria": "forza_mercenaria",
+   "numeri": 0,
+   "panico": [
+    1,
+    2
+   ],
+   "velocita": 4,
+   "combattimento": 1,
+   "robustezza": 4,
+   "ia": "tattico",
+   "armi": "2A",
+   "regole": "Ammazzasbirri (Cop killer): se combatti i Tutori dell'ordine come Rivali, aggiungi +2 al loro numero.",
+   "speciali": {
+    "numeri_come_rivali": 2
+   }
+  },
+  "truppe_gilda": {
+   "nome": "Truppe della gilda",
+   "en": "Guild Troops",
+   "categoria": "forza_mercenaria",
+   "numeri": 0,
+   "panico": [
+    1,
+    2
+   ],
+   "velocita": 4,
+   "combattimento": 1,
+   "robustezza": 4,
+   "ia": "tattico",
+   "armi": "2C",
+   "regole": "Intrigo (Intrigue): dopo la battaglia tira 2D6, +1 se hai ucciso un Luogotenente e/o un Individuo Unico; con 9+ ottieni una Diceria di missione.",
+   "speciali": {
+    "intrigo": {
+     "dado": "2d6",
+     "soglia": 9,
+     "bonus_luogotenente_unico": 1,
+     "effetti": {
+      "dicerie": 1
+     }
+    }
+   }
+  },
+  "roidganger": {
+   "nome": "Roidganger",
+   "en": "Roidgangers",
+   "categoria": "forza_mercenaria",
+   "numeri": 1,
+   "panico": [
+    1,
+    1
+   ],
+   "velocita": 4,
+   "combattimento": 0,
+   "robustezza": 5,
+   "ia": "aggressivo",
+   "armi": "1A",
+   "regole": "Sbadati (Careless): hai +1 per Prendere l'Iniziativa (per un modificatore finale di 0 con la Forza mercenaria).",
+   "speciali": {
+    "iniziativa_giocatore": 1
+   }
+  },
+  "squadra_operazioni_nere": {
+   "nome": "Squadra operazioni nere",
+   "en": "Black Ops Team",
+   "categoria": "forza_mercenaria",
+   "numeri": 0,
+   "panico": [
+    1,
+    1
+   ],
+   "velocita": 6,
+   "combattimento": 2,
+   "robustezza": 5,
+   "ia": "tattico",
+   "armi": "3A",
+   "regole": "Scontro duro (Tough fight): un sopravvissuto casuale guadagna +1 XP.",
+   "speciali": {
+    "xp_casuale": 1
+   }
+  },
+  "robot_guerra": {
+   "nome": "Robot da guerra",
+   "en": "War Bots",
+   "categoria": "forza_mercenaria",
+   "numeri": 0,
+   "panico": [],
+   "velocita": 3,
+   "combattimento": 1,
+   "robustezza": 4,
+   "ia": "aggressivo",
+   "armi": "3C",
+   "_panico_0": true,
+   "salvezza": 5,
+   "regole": "Impavidi (Fearless): mai influenzati dal Morale. Tiro salvezza 5+.",
+   "speciali": {
+    "impavido": true
+   }
+  },
+  "agenti_segreti": {
+   "nome": "Agenti segreti",
+   "en": "Secret Agents",
+   "categoria": "forza_mercenaria",
+   "numeri": 0,
+   "panico": [
+    1,
+    2
+   ],
+   "velocita": 5,
+   "combattimento": 1,
+   "robustezza": 4,
+   "ia": "cauto",
+   "armi": "2C",
+   "regole": "Bottino (Loot): ottieni un tiro Bottino extra se Tieni il Campo. Intrigo (Intrigue): dopo la battaglia tira 2D6, +1 se hai ucciso un Luogotenente e/o un Individuo Unico; con 9+ ottieni una Diceria di missione.",
+   "speciali": {
+    "bottino_extra": 1,
+    "intrigo": {
+     "dado": "2d6",
+     "soglia": 9,
+     "bonus_luogotenente_unico": 1,
+     "effetti": {
+      "dicerie": 1
+     }
+    }
+   }
+  },
+  "assassini": {
+   "nome": "Assassini",
+   "en": "Assassins",
+   "categoria": "forza_mercenaria",
+   "numeri": 0,
+   "panico": [
+    1,
+    1
+   ],
+   "velocita": 6,
+   "combattimento": 2,
+   "robustezza": 3,
+   "ia": "aggressivo",
+   "armi": "1B",
+   "regole": "Raccapriccianti (Gruesome): i personaggi che tirano per le Ferite dopo la battaglia applicano -5 al tiro. Scontro duro (Tough fight): un sopravvissuto casuale guadagna +1 XP.",
+   "speciali": {
+    "ferite_mod": -5,
+    "xp_casuale": 1
+   }
+  },
+  "mercenari_ferali": {
+   "nome": "Mercenari ferali",
+   "en": "Feral Mercenaries",
+   "categoria": "forza_mercenaria",
+   "numeri": 2,
+   "panico": [
+    1,
+    2
+   ],
+   "velocita": 5,
+   "combattimento": 0,
+   "robustezza": 4,
+   "ia": "aggressivo",
+   "armi": "2B",
+   "regole": "Piedi veloci (Quick feet): aggiungono +1\" alla distanza di ogni Scatto.",
+   "speciali": {
+    "scatto_extra": 1
+   }
+  },
+  "mercenari_skulker": {
+   "nome": "Mercenari Skulker",
+   "en": "Skulker Mercenaries",
+   "categoria": "forza_mercenaria",
+   "numeri": 3,
+   "panico": [
+    1,
+    2
+   ],
+   "velocita": 7,
+   "combattimento": 0,
+   "robustezza": 3,
+   "ia": "cauto",
+   "armi": "2C",
+   "regole": "Saccheggiatori (Scavengers): tira due volte sulla tabella dei Ritrovamenti sul campo. All'erta (Alert): hai -1 per Prendere l'Iniziativa (per un totale di -2 con la Forza mercenaria).",
+   "speciali": {
+    "ritrovamenti_campo": 2,
+    "iniziativa_giocatore": -1
+   }
+  },
+  "sicurezza_aziendale": {
+   "nome": "Sicurezza aziendale",
+   "en": "Corporate Security",
+   "categoria": "forza_mercenaria",
+   "numeri": 1,
+   "panico": [
+    1,
+    2
+   ],
+   "velocita": 4,
+   "combattimento": 1,
+   "robustezza": 4,
+   "ia": "difensivo",
+   "armi": "2B",
+   "salvezza": 6,
+   "regole": "Tiro salvezza 6+.",
+   "speciali": {}
+  },
+  "fanti_unity": {
+   "nome": "Fanti dell'Unità",
+   "en": "Unity Grunts",
+   "categoria": "forza_mercenaria",
+   "numeri": 1,
+   "panico": [
+    1,
+    1
+   ],
+   "velocita": 5,
+   "combattimento": 1,
+   "robustezza": 4,
+   "ia": "tattico",
+   "armi": "2C",
+   "salvezza": 6,
+   "regole": "Tiro salvezza 6+.",
+   "speciali": {}
+  },
+  "robot_sicurezza": {
+   "nome": "Robot di sicurezza",
+   "en": "Security Bots",
+   "categoria": "forza_mercenaria",
+   "numeri": 1,
+   "panico": [],
+   "velocita": 3,
+   "combattimento": 0,
+   "robustezza": 5,
+   "ia": "difensivo",
+   "armi": "2A",
+   "_panico_0": true,
+   "salvezza": 6,
+   "regole": "Impavidi (Fearless): mai influenzati dal Morale. Sbadati (Careless): hai +1 per Prendere l'Iniziativa (per un totale di 0). Tiro salvezza 6+.",
+   "speciali": {
+    "impavido": true,
+    "iniziativa_giocatore": 1
+   }
+  },
+  "mercenari_drago_nero": {
+   "nome": "Mercenari Drago Nero",
+   "en": "Black Dragon Mercs",
+   "categoria": "forza_mercenaria",
+   "numeri": 1,
+   "panico": [
+    1,
+    2
+   ],
+   "velocita": 5,
+   "combattimento": 1,
+   "robustezza": 4,
+   "ia": "tattico",
+   "armi": "2C",
+   "regole": "Testardi (Stubborn): ignorano la prima perdita della battaglia quando fanno il test di Morale.",
+   "speciali": {
+    "ignora_prima_perdita": true
+   }
+  },
+  "mercenari_lucertola_furiosa": {
+   "nome": "Mercenari Lucertola Furiosa",
+   "en": "Rage Lizard Mercs",
+   "categoria": "forza_mercenaria",
+   "numeri": 0,
+   "panico": [
+    1,
+    2
+   ],
+   "velocita": 4,
+   "combattimento": 1,
+   "robustezza": 5,
+   "ia": "tattico",
+   "armi": "3B",
+   "regole": "Da vicino (Up close): se un Rage Lizard è entro 1\" da un elemento di terreno, può aggiungere +1 ai tiri di Rissa.",
+   "speciali": {
+    "rissa_vicino_terreno": 1
+   }
+  },
+  "mercenari_tempesta_sangue": {
+   "nome": "Mercenari Tempesta di Sangue",
+   "en": "Blood Storm Mercs",
+   "categoria": "forza_mercenaria",
+   "numeri": 0,
+   "panico": [
+    1,
+    1
+   ],
+   "velocita": 4,
+   "combattimento": 1,
+   "robustezza": 4,
+   "ia": "aggressivo",
+   "armi": "2B",
+   "regole": "Feroci (Ferocious): +1 ai tiri di Rissa quando sono loro a iniziare il combattimento.",
+   "speciali": {
+    "rissa_iniziata": 1
+   }
+  },
+  "soldati_rinnegati": {
+   "nome": "Soldati rinnegati",
+   "en": "Renegade Soldiers",
+   "categoria": "parti_interessate",
+   "numeri": 1,
+   "panico": [
+    1,
+    2
+   ],
+   "velocita": 4,
+   "combattimento": 1,
+   "robustezza": 5,
+   "ia": "tattico",
+   "armi": "2B",
+   "regole": "Rancore (Grudge): se incontrati come Rivali, portano una figura aggiuntiva.",
+   "speciali": {
+    "numeri_come_rivali": 1
+   }
+  },
+  "cacciatori_taglie": {
+   "nome": "Cacciatori di taglie",
+   "en": "Bounty Hunters",
+   "categoria": "parti_interessate",
+   "numeri": 0,
+   "panico": [
+    1,
+    2
+   ],
+   "velocita": 5,
+   "combattimento": 1,
+   "robustezza": 4,
+   "ia": "tattico",
+   "armi": "1B",
+   "regole": "Intrigo (Intrigue): dopo la battaglia tira 2D6, +1 se hai ucciso un Luogotenente e/o un Individuo Unico; con 9+ ottieni una Diceria di missione.",
+   "speciali": {
+    "intrigo": {
+     "dado": "2d6",
+     "soglia": 9,
+     "bonus_luogotenente_unico": 1,
+     "effetti": {
+      "dicerie": 1
+     }
+    }
+   }
+  },
+  "abbandonati": {
+   "nome": "Abbandonati",
+   "en": "Abandoned",
+   "categoria": "parti_interessate",
+   "numeri": 1,
+   "panico": [
+    1,
+    3
+   ],
+   "velocita": 4,
+   "combattimento": 0,
+   "robustezza": 3,
+   "ia": "aggressivo",
+   "armi": "1A",
+   "regole": "Sbadati (Careless): hai +1 per Prendere l'Iniziativa. Codardi (Cowardly): i Luogotenenti sono influenzati dai dadi di Morale.",
+   "speciali": {
+    "iniziativa_giocatore": 1,
+    "luogotenenti_non_impavidi": true
+   }
+  },
+  "vigilanti": {
+   "nome": "Vigilanti",
+   "en": "Vigilantes",
+   "categoria": "parti_interessate",
+   "numeri": 1,
+   "panico": [
+    1,
+    2
+   ],
+   "velocita": 4,
+   "combattimento": 0,
+   "robustezza": 4,
+   "ia": "aggressivo",
+   "armi": "2A",
+   "regole": "Persistenti (Persistent): se incontrati come Rivali, tutti i tiri per rimuoverli dallo stato di Rivale sono a -1.",
+   "speciali": {
+    "rimozione_rivale_mod": -1
+   }
+  },
+  "isolazionisti": {
+   "nome": "Isolazionisti",
+   "en": "Isolationists",
+   "categoria": "parti_interessate",
+   "numeri": 1,
+   "panico": [
+    1,
+    2
+   ],
+   "velocita": 4,
+   "combattimento": 0,
+   "robustezza": 3,
+   "ia": "cauto",
+   "armi": "1A",
+   "regole": "Ostinati (Dogged): se ridotti a 1 o 2 figure diventano Impavidi e non fuggono.",
+   "speciali": {
+    "impavidi_se_figure_max": 2
+   }
+  },
+  "zeloti": {
+   "nome": "Zeloti",
+   "en": "Zealots",
+   "categoria": "parti_interessate",
+   "numeri": 2,
+   "panico": [
+    1,
+    1
+   ],
+   "velocita": 5,
+   "combattimento": 0,
+   "robustezza": 4,
+   "ia": "aggressivo",
+   "armi": "1A",
+   "regole": "Feroci (Ferocious): +1 ai tiri di Rissa quando sono loro a iniziare il combattimento.",
+   "speciali": {
+    "rissa_iniziata": 1
+   }
+  },
+  "mutanti": {
+   "nome": "Mutanti",
+   "en": "Mutants",
+   "categoria": "parti_interessate",
+   "numeri": 3,
+   "panico": [
+    1,
+    3
+   ],
+   "velocita": 4,
+   "combattimento": 0,
+   "robustezza": 5,
+   "ia": "aggressivo",
+   "armi": "1A",
+   "regole": "Codardi (Cowardly): i Luogotenenti sono influenzati dai dadi di Morale.",
+   "speciali": {
+    "luogotenenti_non_impavidi": true
+   }
+  },
+  "primitivi": {
+   "nome": "Primitivi",
+   "en": "Primitives",
+   "categoria": "parti_interessate",
+   "numeri": 2,
+   "panico": [
+    1,
+    2
+   ],
+   "velocita": 6,
+   "combattimento": 1,
+   "robustezza": 3,
+   "ia": "aggressivo",
+   "armi": [
+    "lama"
+   ],
+   "regole": "Medievali (Going medieval): invece delle armi normali ciascuno porta una Lama; gli Specialisti portano un'Arma da mischia brutale.",
+   "speciali": {
+    "armi_specialisti": [
+     "arma_brutale"
+    ]
+   }
+  },
+  "esuli_precursori": {
+   "nome": "Esuli Precursori",
+   "en": "Precursor Exiles",
+   "categoria": "parti_interessate",
+   "numeri": 0,
+   "panico": [
+    1,
+    2
+   ],
+   "velocita": 6,
+   "combattimento": 1,
+   "robustezza": 4,
+   "ia": "tattico",
+   "armi": "3B",
+   "regole": "Preveggenza (Prediction): non puoi Prendere l'Iniziativa.",
+   "speciali": {
+    "niente_iniziativa": true
+   }
+  },
+  "coloni_kerin": {
+   "nome": "Coloni K'Erin",
+   "en": "K'Erin Colonists",
+   "categoria": "parti_interessate",
+   "numeri": 1,
+   "panico": [
+    1,
+    1
+   ],
+   "velocita": 5,
+   "combattimento": 1,
+   "robustezza": 4,
+   "ia": "aggressivo",
+   "armi": "2A",
+   "regole": "Testardi (Stubborn): ignorano la prima perdita della battaglia quando fanno il test di Morale. Minaccia d'invasione (Invasion Threat).",
+   "speciali": {
+    "ignora_prima_perdita": true,
+    "minaccia_invasione": true
+   }
+  },
+  "squadra_guerra_swift": {
+   "nome": "Squadra da guerra Swift",
+   "en": "Swift War Squad",
+   "categoria": "parti_interessate",
+   "numeri": 2,
+   "panico": [
+    1,
+    1
+   ],
+   "velocita": 6,
+   "combattimento": 0,
+   "robustezza": 3,
+   "ia": "aggressivo",
+   "armi": "1B",
+   "regole": "Imprevedibili (Unpredictable): il tiro per Prendere l'Iniziativa non è mai modificato.",
+   "speciali": {
+    "iniziativa_non_modificata": true
+   }
+  },
+  "task_force_senzanima": {
+   "nome": "Task force dei Senz'anima",
+   "en": "Soulless Task Force",
+   "categoria": "parti_interessate",
+   "numeri": 0,
+   "panico": [
+    1,
+    1
+   ],
+   "velocita": 4,
+   "combattimento": 2,
+   "robustezza": 5,
+   "ia": "tattico",
+   "armi": "3C",
+   "salvezza": 6,
+   "regole": "Tiro salvezza 6+.",
+   "speciali": {}
+  },
+  "zeloti_tech": {
+   "nome": "Zeloti della tecnologia",
+   "en": "Tech Zealots",
+   "categoria": "parti_interessate",
+   "numeri": 1,
+   "panico": [
+    1,
+    2
+   ],
+   "velocita": 5,
+   "combattimento": 0,
+   "robustezza": 5,
+   "ia": "aggressivo",
+   "armi": "3C",
+   "salvezza": 6,
+   "regole": "Bottino (Loot): ottieni un tiro Bottino extra se Tieni il Campo. Tiro salvezza 6+.",
+   "speciali": {
+    "bottino_extra": 1
+   }
+  },
+  "milizia_coloniale": {
+   "nome": "Milizia coloniale",
+   "en": "Colonial Militia",
+   "categoria": "parti_interessate",
+   "numeri": 1,
+   "panico": [
+    1,
+    2
+   ],
+   "velocita": 4,
+   "combattimento": 0,
+   "robustezza": 3,
+   "ia": "cauto",
+   "armi": "2B",
+   "regole": "Vantaggio del campo di casa (Home field advantage): contano sempre come in Copertura se sono nel proprio terzo del tavolo e non sono entro 12\" dal tiratore.",
+   "speciali": {
+    "copertura_terzo_proprio_oltre": 12
+   }
+  },
+  "nomadi_planetari": {
+   "nome": "Nomadi planetari",
+   "en": "Planetary Nomads",
+   "categoria": "parti_interessate",
+   "numeri": 2,
+   "panico": [
+    1,
+    2
+   ],
+   "velocita": 6,
+   "combattimento": 0,
+   "robustezza": 3,
+   "ia": "cauto",
+   "armi": "2A",
+   "regole": "All'erta (Alert): hai -1 per Prendere l'Iniziativa.",
+   "speciali": {
+    "iniziativa_giocatore": -1
+   }
+  },
+  "squadra_recupero": {
+   "nome": "Squadra di recupero",
+   "en": "Salvage Team",
+   "categoria": "parti_interessate",
+   "numeri": 1,
+   "panico": [
+    1,
+    3
+   ],
+   "velocita": 4,
+   "combattimento": 0,
+   "robustezza": 4,
+   "ia": "cauto",
+   "armi": "2B",
+   "regole": "Saccheggiatori (Scavengers): tira due volte sulla tabella dei Ritrovamenti sul campo.",
+   "speciali": {
+    "ritrovamenti_campo": 2
+   }
+  },
+  "acquisizione_convertiti": {
+   "nome": "Acquisizione dei Convertiti",
+   "en": "Converted Acquisition",
+   "categoria": "minacce_vaganti",
+   "numeri": 1,
+   "panico": [],
+   "velocita": 4,
+   "combattimento": 0,
+   "robustezza": 5,
+   "ia": "aggressivo",
+   "armi": "2B",
+   "_panico_0": true,
+   "salvezza": 6,
+   "regole": "Sbadati (Careless): hai +1 per Prendere l'Iniziativa. Integrate (Built-in): contano sempre come ferme quando sparano. Minaccia d'invasione (Invasion Threat): il test d'invasione è a +1. Tiro salvezza 6+.",
+   "speciali": {
+    "iniziativa_giocatore": 1,
+    "sempre_fermo_sparo": true,
+    "minaccia_invasione": true,
+    "test_invasione_mod": 1
+   }
+  },
+  "infiltrati_convertiti": {
+   "nome": "Infiltrati dei Convertiti",
+   "en": "Converted Infiltrators",
+   "categoria": "minacce_vaganti",
+   "numeri": 0,
+   "panico": [],
+   "velocita": 4,
+   "combattimento": 0,
+   "robustezza": 4,
+   "ia": "aggressivo",
+   "armi": "1A",
+   "_panico_0": true,
+   "salvezza": 6,
+   "regole": "Minaccia d'invasione (Invasion Threat). Tiro salvezza 6+.",
+   "speciali": {
+    "minaccia_invasione": true
+   }
+  },
+  "predoni_rapitori": {
+   "nome": "Predoni Rapitori",
+   "en": "Abductor Raiders",
+   "categoria": "minacce_vaganti",
+   "numeri": 3,
+   "panico": [
+    1,
+    1
+   ],
+   "velocita": 4,
+   "combattimento": 0,
+   "robustezza": 3,
+   "ia": "aggressivo",
+   "armi": "2A",
+   "regole": "Minaccia d'invasione (Invasion Threat).",
+   "speciali": {
+    "minaccia_invasione": true
+   }
+  },
+  "covata_sciame": {
+   "nome": "Covata dello Sciame",
+   "en": "Swarm Brood",
+   "categoria": "minacce_vaganti",
+   "numeri": 2,
+   "panico": [],
+   "velocita": 6,
+   "combattimento": 1,
+   "robustezza": 4,
+   "ia": "bestia",
+   "armi": [
+    "zanne_grandi"
+   ],
+   "_panico_0": true,
+   "arma_naturale": {
+    "nome": "Artigli",
+    "en": "Claws",
+    "danno": 1,
+    "id": "zanne_grandi"
+   },
+   "regole": "Minaccia d'invasione (Invasion Threat). Cacciatori in branco (Pack hunters): tutte le Risse iniziate dallo Sciame si risolvono alla fine della fase Azioni Nemiche. Lo Sciame cerca sempre di attaccare la preda in gruppo, quando possibile.",
+   "speciali": {
+    "minaccia_invasione": true,
+    "risse_fine_fase_nemica": true,
+    "attacco_di_gruppo": true
+   }
+  },
+  "robot_impazziti": {
+   "nome": "Robot impazziti",
+   "en": "Haywire Robots",
+   "categoria": "minacce_vaganti",
+   "numeri": 2,
+   "panico": [],
+   "velocita": 3,
+   "combattimento": 0,
+   "robustezza": 4,
+   "ia": "furia",
+   "armi": [
+    "zanne_artigli"
+   ],
+   "_panico_0": true,
+   "salvezza": 6,
+   "arma_naturale": {
+    "nome": "Schianto",
+    "en": "Smash",
+    "danno": 0,
+    "id": "zanne_artigli"
+   },
+   "regole": "Sbadati (Careless): hai +1 per Prendere l'Iniziativa. Tiro salvezza 6+.",
+   "speciali": {
+    "iniziativa_giocatore": 1
+   }
+  },
+  "lucertole_rasoio": {
+   "nome": "Lucertole rasoio",
+   "en": "Razor Lizards",
+   "categoria": "minacce_vaganti",
+   "numeri": 2,
+   "panico": [
+    1,
+    2
+   ],
+   "velocita": 6,
+   "combattimento": 1,
+   "robustezza": 3,
+   "ia": "bestia",
+   "armi": [
+    "zanne_artigli"
+   ],
+   "arma_naturale": {
+    "nome": "Zanne",
+    "en": "Fangs",
+    "danno": 0,
+    "id": "zanne_artigli"
+   },
+   "regole": "Zanne ad ago (Needle fangs): i Tiri salvezza dell'armatura sono ignorati.",
+   "speciali": {
+    "ignora_armatura": true
+   }
+  },
+  "corridori_sabbie": {
+   "nome": "Corridori delle sabbie",
+   "en": "Sand Runners",
+   "categoria": "minacce_vaganti",
+   "numeri": 1,
+   "panico": [
+    1,
+    2
+   ],
+   "velocita": 7,
+   "combattimento": 0,
+   "robustezza": 3,
+   "ia": "bestia",
+   "armi": [
+    "zanne_grandi"
+   ],
+   "arma_naturale": {
+    "nome": "Zanne",
+    "en": "Fangs",
+    "danno": 1,
+    "id": "zanne_grandi"
+   },
+   "regole": "Balzo (Leap): se terminano un movimento entro 3\" da un Umano, possono balzare a contatto come Azione gratuita.",
+   "speciali": {
+    "balzo_su_umani": 3
+   }
+  },
+  "squartatori_vuoto": {
+   "nome": "Squartatori del vuoto",
+   "en": "Void Rippers",
+   "categoria": "minacce_vaganti",
+   "numeri": 0,
+   "panico": [
+    1,
+    2
+   ],
+   "velocita": 5,
+   "combattimento": 1,
+   "robustezza": 5,
+   "ia": "furia",
+   "armi": [
+    "zanne_artigli"
+   ],
+   "arma_naturale": {
+    "nome": "Zanne",
+    "en": "Fangs",
+    "danno": 0,
+    "id": "zanne_artigli"
+   },
+   "regole": "Raccapriccianti (Gruesome): i personaggi che tirano per le Ferite dopo la battaglia applicano -5 al tiro.",
+   "speciali": {
+    "ferite_mod": -5
+   }
+  },
+  "krorg": {
+   "nome": "Krorg",
+   "en": "Krorg",
+   "categoria": "minacce_vaganti",
+   "numeri": 0,
+   "panico": [],
+   "velocita": 5,
+   "combattimento": 2,
+   "robustezza": 6,
+   "ia": "furia",
+   "armi": [],
+   "_panico_0": true,
+   "salvezza": 5,
+   "arma_naturale": {
+    "nome": "Artigli",
+    "en": "Claws",
+    "danno": 2,
+    "id": null
+   },
+   "regole": "Feroci (Ferocious): +1 ai tiri di Rissa quando sono loro a iniziare il combattimento. Bersagli facili (Easy targets): +1 quando spari a questo nemico. Scontro duro (Tough fight): un sopravvissuto casuale guadagna +1 XP. Tiro salvezza 5+.",
+   "speciali": {
+    "rissa_iniziata": 1,
+    "bonus_colpire_contro": 1,
+    "xp_casuale": 1
+   }
+  },
+  "insetti_giganti": {
+   "nome": "Insetti giganti",
+   "en": "Large Bugs",
+   "categoria": "minacce_vaganti",
+   "numeri": 2,
+   "panico": [
+    1,
+    1
+   ],
+   "velocita": 5,
+   "combattimento": 1,
+   "robustezza": 5,
+   "ia": "furia",
+   "armi": [
+    "zanne_grandi"
+   ],
+   "arma_naturale": {
+    "nome": "Mandibole",
+    "en": "Mandibles",
+    "danno": 1,
+    "id": "zanne_grandi"
+   },
+   "regole": "Bersagli facili (Easy targets): +1 quando spari a questo nemico. Testardi (Stubborn): ignorano la prima perdita della battaglia quando fanno il test di Morale.",
+   "speciali": {
+    "bonus_colpire_contro": 1,
+    "ignora_prima_perdita": true
+   }
+  },
+  "inseguitori_carnivori": {
+   "nome": "Inseguitori carnivori",
+   "en": "Carnivore Chasers",
+   "categoria": "minacce_vaganti",
+   "numeri": 2,
+   "panico": [
+    1,
+    2
+   ],
+   "velocita": 6,
+   "combattimento": 0,
+   "robustezza": 4,
+   "ia": "bestia",
+   "armi": [
+    "zanne_artigli"
+   ],
+   "arma_naturale": {
+    "nome": "Zanne",
+    "en": "Fangs",
+    "danno": 0,
+    "id": "zanne_artigli"
+   },
+   "regole": "All'erta (Alert): hai -1 per Prendere l'Iniziativa.",
+   "speciali": {
+    "iniziativa_giocatore": -1
+   }
+  },
+  "striscianti_condotti": {
+   "nome": "Striscianti dei condotti",
+   "en": "Vent Crawlers",
+   "categoria": "minacce_vaganti",
+   "numeri": 0,
+   "panico": [],
+   "velocita": 6,
+   "combattimento": 2,
+   "robustezza": 5,
+   "ia": "furia",
+   "armi": [
+    "zanne_artigli"
+   ],
+   "_panico_0": true,
+   "arma_naturale": {
+    "nome": "Artigli",
+    "en": "Claws",
+    "danno": 0,
+    "id": "zanne_artigli"
+   },
+   "regole": "Destino peggiore della morte (Fate worse than death): se il tiro Ferite dopo la battaglia dà la morte, il personaggio non può essere salvato e nessun ritiro è possibile per nessun motivo.",
+   "speciali": {
+    "morte_definitiva": true
+   }
+  },
+  "distorti": {
+   "nome": "Distorti",
+   "en": "Distorts",
+   "categoria": "minacce_vaganti",
+   "numeri": 0,
+   "panico": [],
+   "velocita": 4,
+   "combattimento": 0,
+   "robustezza": 4,
+   "ia": "bestia",
+   "armi": [],
+   "_panico_0": true,
+   "arma_naturale": {
+    "nome": "Tocco",
+    "en": "Touch",
+    "danno": 3,
+    "id": null
+   },
+   "regole": "Testardi (Stubborn): ignorano la prima perdita della battaglia quando fanno il test di Morale. Tremolio (Shimmer): si muovono attraverso terreno e ostacoli solidi. Quando un Distorto viene ucciso tira 1D6: con 5-6 un altro Distorto viene piazzato 1D6\" più lontano.",
+   "speciali": {
+    "ignora_prima_perdita": true,
+    "attraversa_terreno": true,
+    "rigenera": {
+     "dado": "1d6",
+     "soglia": 5,
+     "distanza": "1d6"
+    }
+   }
+  },
+  "unico_picchiatore": {
+   "nome": "Picchiatore nemico",
+   "en": "Enemy Bruiser",
+   "categoria": "individuo_unico",
+   "numeri": 0,
+   "panico": [],
+   "velocita": null,
+   "combattimento": null,
+   "robustezza": null,
+   "ia": "guardiano",
+   "fortuna": 0,
+   "armi": [
+    "artiglio_potenziato"
+   ],
+   "relativo_al_nemico_base": true,
+   "modificatori": {
+    "robustezza": 1
+   },
+   "regole": "Impavido (gli Individui Unici non sono influenzati dal Morale). Usa il profilo del nemico base con Robustezza +1.",
+   "speciali": {
+    "impavido": true
+   }
+  },
+  "unico_pesante": {
+   "nome": "Arma pesante nemica",
+   "en": "Enemy Heavy",
+   "categoria": "individuo_unico",
+   "numeri": 0,
+   "panico": [],
+   "velocita": null,
+   "combattimento": null,
+   "robustezza": null,
+   "ia": "difensivo",
+   "fortuna": 0,
+   "armi": [
+    "mitragliatrice"
+   ],
+   "relativo_al_nemico_base": true,
+   "modificatori": {},
+   "regole": "Impavido (gli Individui Unici non sono influenzati dal Morale). Usa il profilo del nemico base.",
+   "speciali": {
+    "impavido": true
+   }
+  },
+  "unico_capo": {
+   "nome": "Capo nemico",
+   "en": "Enemy Boss",
+   "categoria": "individuo_unico",
+   "numeri": 0,
+   "panico": [],
+   "velocita": null,
+   "combattimento": null,
+   "robustezza": null,
+   "ia": null,
+   "fortuna": 1,
+   "armi": [
+    "cannone_mano",
+    "arma_brutale"
+   ],
+   "relativo_al_nemico_base": true,
+   "modificatori": {
+    "combattimento": 1,
+    "robustezza": 1
+   },
+   "regole": "Impavido (gli Individui Unici non sono influenzati dal Morale). Usa il profilo e l'IA del nemico base con Combattimento +1 e Robustezza +1. Il Capo riduce di 1 il campo di Panico del gruppo, ma quando viene ucciso si deve tirare un dado di Morale extra.",
+   "speciali": {
+    "impavido": true,
+    "panico_gruppo_mod": -1,
+    "morale_extra_se_ucciso": 1
+   }
+  },
+  "unico_killer": {
+   "nome": "Killer a pagamento",
+   "en": "Hired Killer",
+   "categoria": "individuo_unico",
+   "numeri": 0,
+   "panico": [],
+   "velocita": 5,
+   "combattimento": 1,
+   "robustezza": 5,
+   "ia": "aggressivo",
+   "fortuna": 1,
+   "armi": [
+    "pistola_mitragliatrice",
+    "lama"
+   ],
+   "regole": "Impavido (gli Individui Unici non sono influenzati dal Morale).",
+   "speciali": {
+    "impavido": true
+   }
+  },
+  "unico_spia_aziendale": {
+   "nome": "Spia aziendale",
+   "en": "Corporate Spook",
+   "categoria": "individuo_unico",
+   "numeri": 0,
+   "panico": [],
+   "velocita": 5,
+   "combattimento": 1,
+   "robustezza": 4,
+   "ia": "cauto",
+   "fortuna": 1,
+   "armi": [
+    "laser_mano"
+   ],
+   "regole": "Impavido (gli Individui Unici non sono influenzati dal Morale). Se tutti gli altri nemici sono uccisi o Fuggiti, anche la Spia Fugge. Se la Spia viene uccisa ottieni automaticamente un Rivale aziendale.",
+   "speciali": {
+    "impavido": true,
+    "fugge_se_solo": true,
+    "rivale_se_ucciso": "aziendale"
+   }
+  },
+  "unico_segugio_taglie": {
+   "nome": "Segugio di taglie",
+   "en": "Bounty Tracker",
+   "categoria": "individuo_unico",
+   "numeri": 0,
+   "panico": [],
+   "velocita": 5,
+   "combattimento": 1,
+   "robustezza": 5,
+   "ia": "aggressivo",
+   "fortuna": 1,
+   "armi": [
+    "fucile_pompa",
+    "lama"
+   ],
+   "regole": "Impavido (gli Individui Unici non sono influenzati dal Morale).",
+   "speciali": {
+    "impavido": true
+   }
+  },
+  "unico_mercenario_spietato": {
+   "nome": "Mercenario spietato",
+   "en": "Callous Merc",
+   "categoria": "individuo_unico",
+   "numeri": 0,
+   "panico": [],
+   "velocita": 4,
+   "combattimento": 2,
+   "robustezza": 5,
+   "ia": "tattico",
+   "fortuna": 1,
+   "armi": [
+    "laser_fanteria",
+    "lama"
+   ],
+   "regole": "Impavido (gli Individui Unici non sono influenzati dal Morale).",
+   "speciali": {
+    "impavido": true
+   }
+  },
+  "unico_freelance": {
+   "nome": "Freelance",
+   "en": "Freelancer",
+   "categoria": "individuo_unico",
+   "numeri": 0,
+   "panico": [],
+   "velocita": 4,
+   "combattimento": 1,
+   "robustezza": 4,
+   "ia": "tattico",
+   "fortuna": 1,
+   "armi": [
+    "cannone_mano",
+    "lama"
+   ],
+   "regole": "Impavido (gli Individui Unici non sono influenzati dal Morale). Se il Freelance viene ucciso in una Rissa puoi tirare sulla tabella del Bottino (p.131) e usare subito l'oggetto.",
+   "speciali": {
+    "impavido": true,
+    "bottino_se_ucciso_in_rissa": true
+   }
+  },
+  "unico_agente_segreto": {
+   "nome": "Agente segreto",
+   "en": "Secret Agent",
+   "categoria": "individuo_unico",
+   "numeri": 0,
+   "panico": [],
+   "velocita": 6,
+   "combattimento": 2,
+   "robustezza": 4,
+   "ia": "aggressivo",
+   "fortuna": 1,
+   "armi": [
+    "laser_mano",
+    "spada_luce"
+   ],
+   "regole": "Impavido (gli Individui Unici non sono influenzati dal Morale). Bersaglio (Target): scegli a caso un membro dell'equipaggio; l'agente cerca di muoversi verso di lui e attaccarlo, sparando ad altri solo se sono d'intralcio o se il bersaglio prioritario non è visibile. Può sparare al bersaglio prioritario anche se non è il più vicino.",
+   "speciali": {
+    "impavido": true,
+    "bersaglio_prioritario": true
+   }
+  },
+  "unico_hulker_rissaiolo": {
+   "nome": "Hulker rissaiolo",
+   "en": "Hulker Brawler",
+   "categoria": "individuo_unico",
+   "numeri": 0,
+   "panico": [],
+   "velocita": 4,
+   "combattimento": 1,
+   "robustezza": 6,
+   "ia": "aggressivo",
+   "fortuna": 0,
+   "armi": [
+    "cannone_mano",
+    "arma_brutale"
+   ],
+   "regole": "Impavido (gli Individui Unici non sono influenzati dal Morale). Combattente da mischia (Melee fighter): +1 al Combattimento in Rissa.",
+   "speciali": {
+    "impavido": true,
+    "combattimento_rissa": 1
+   }
+  },
+  "unico_pistolero": {
+   "nome": "Pistolero",
+   "en": "Gun Slinger",
+   "categoria": "individuo_unico",
+   "numeri": 0,
+   "panico": [],
+   "velocita": 5,
+   "combattimento": 1,
+   "robustezza": 4,
+   "ia": "tattico",
+   "fortuna": 1,
+   "armi": [
+    "pistola_mitragliatrice"
+   ],
+   "regole": "Impavido (gli Individui Unici non sono influenzati dal Morale). Tiratore scelto (Sharp shooter): +1 al Combattimento quando spara.",
+   "speciali": {
+    "impavido": true,
+    "combattimento_tiro": 1
+   }
+  },
+  "unico_tecnico_ingegnere": {
+   "nome": "Tecnico Ingegnere",
+   "en": "Engineer Tech",
+   "categoria": "individuo_unico",
+   "numeri": 0,
+   "panico": [],
+   "velocita": 6,
+   "combattimento": 1,
+   "robustezza": 4,
+   "ia": "cauto",
+   "fortuna": 1,
+   "armi": [
+    "pistola_blaster"
+   ],
+   "regole": "Impavido (gli Individui Unici non sono influenzati dal Morale).",
+   "speciali": {
+    "impavido": true
+   }
+  },
+  "unico_mutante_picchiatore": {
+   "nome": "Mutante picchiatore",
+   "en": "Mutant Bruiser",
+   "categoria": "individuo_unico",
+   "numeri": 0,
+   "panico": [],
+   "velocita": 4,
+   "combattimento": 1,
+   "robustezza": 5,
+   "ia": "guardiano",
+   "fortuna": 1,
+   "armi": [
+    "fucile_pompa",
+    "arma_brutale"
+   ],
+   "regole": "Impavido (gli Individui Unici non sono influenzati dal Morale). Feroci (Ferocious): +1 ai tiri di Rissa quando sono loro a iniziare il combattimento.",
+   "speciali": {
+    "impavido": true,
+    "rissa_iniziata": 1
+   }
+  },
+  "unico_viandante_precursore": {
+   "nome": "Viandante Precursore",
+   "en": "Precursor Wanderer",
+   "categoria": "individuo_unico",
+   "numeri": 0,
+   "panico": [],
+   "velocita": 7,
+   "combattimento": 2,
+   "robustezza": 4,
+   "ia": "aggressivo",
+   "fortuna": 1,
+   "armi": [
+    "laser_fanteria",
+    "spada_luce"
+   ],
+   "salvezza": 6,
+   "regole": "Impavido (gli Individui Unici non sono influenzati dal Morale). Uno col Flusso (One with the Flow): si muove prima della fase Azioni Rapide. Tiro salvezza 6+.",
+   "speciali": {
+    "impavido": true,
+    "agisce_prima_azioni_rapide": true
+   }
+  },
+  "unico_investigatore_hakshan": {
+   "nome": "Investigatore Hakshan",
+   "en": "Hakshan Investigator",
+   "categoria": "individuo_unico",
+   "numeri": 0,
+   "panico": [],
+   "velocita": 5,
+   "combattimento": 0,
+   "robustezza": 4,
+   "ia": "difensivo",
+   "fortuna": 1,
+   "armi": [
+    "fucile_plasma"
+   ],
+   "regole": "Impavido (gli Individui Unici non sono influenzati dal Morale).",
+   "speciali": {
+    "impavido": true
+   }
+  },
+  "unico_guerriero_kerin": {
+   "nome": "Guerriero K'Erin",
+   "en": "K'Erin Warrior",
+   "categoria": "individuo_unico",
+   "numeri": 0,
+   "panico": [],
+   "velocita": 5,
+   "combattimento": 2,
+   "robustezza": 5,
+   "ia": "aggressivo",
+   "fortuna": 1,
+   "armi": [
+    "pistola_mitragliatrice",
+    "spada_squarcio"
+   ],
+   "regole": "Impavido (gli Individui Unici non sono influenzati dal Morale).",
+   "speciali": {
+    "impavido": true
+   }
+  },
+  "unico_esploratore_nomade": {
+   "nome": "Esploratore nomade",
+   "en": "Nomad Scout",
+   "categoria": "individuo_unico",
+   "numeri": 0,
+   "panico": [],
+   "velocita": 6,
+   "combattimento": 1,
+   "robustezza": 4,
+   "ia": "difensivo",
+   "fortuna": 0,
+   "armi": [
+    "fucile_precisione"
+   ],
+   "regole": "Impavido (gli Individui Unici non sono influenzati dal Morale). Nascosto (Concealed): conta sempre come in Copertura quando gli si spara.",
+   "speciali": {
+    "impavido": true,
+    "sempre_in_copertura": true
+   }
+  },
+  "unico_mercenario_cyborg": {
+   "nome": "Mercenario cyborg",
+   "en": "Cyborg Merc",
+   "categoria": "individuo_unico",
+   "numeri": 0,
+   "panico": [],
+   "velocita": 7,
+   "combattimento": 2,
+   "robustezza": 6,
+   "ia": "tattico",
+   "fortuna": 1,
+   "armi": [
+    "fucile_automatico",
+    "artiglio_potenziato"
+   ],
+   "salvezza": 6,
+   "regole": "Impavido (gli Individui Unici non sono influenzati dal Morale). Tiro salvezza 6+.",
+   "speciali": {
+    "impavido": true
+   }
+  },
+  "unico_psionico_rinnegato": {
+   "nome": "Psionico rinnegato",
+   "en": "Rogue Psionic",
+   "categoria": "individuo_unico",
+   "numeri": 0,
+   "panico": [],
+   "velocita": 4,
+   "combattimento": 0,
+   "robustezza": 4,
+   "ia": "cauto",
+   "fortuna": 3,
+   "armi": [
+    "pistola"
+   ],
+   "regole": "Impavido (gli Individui Unici non sono influenzati dal Morale).",
+   "speciali": {
+    "impavido": true
+   }
+  },
+  "unico_cane_genetico": {
+   "nome": "Cane genetico",
+   "en": "Gene Dog",
+   "categoria": "individuo_unico",
+   "numeri": 0,
+   "panico": [],
+   "velocita": 6,
+   "combattimento": 1,
+   "robustezza": 4,
+   "ia": "guardiano",
+   "fortuna": 0,
+   "armi": [
+    "zanne_artigli"
+   ],
+   "arma_naturale": {
+    "nome": "Zanne",
+    "en": "Fangs",
+    "danno": 0,
+    "id": "zanne_artigli"
+   },
+   "regole": "Impavido (gli Individui Unici non sono influenzati dal Morale). Fedele (Loyal): quando il padrone o il Cane entrano in una Rissa, questa non si risolve finché entrambi non hanno potuto agire. Se il padrone viene ucciso, il Cane resta sul posto ma attacca chiunque si avvicini entro 8\". Se tutti gli altri nemici sono uccisi o Fuggiti, Fugge anche lui. (È comunque Impavido.)",
+   "speciali": {
+    "impavido": true,
+    "fedele": true,
+    "difende_area_se_padrone_ucciso": 8,
+    "fugge_se_solo": true
+   }
+  },
+  "unico_corridore_sabbie": {
+   "nome": "Corridore delle sabbie (compagno)",
+   "en": "Sand Runner",
+   "categoria": "individuo_unico",
+   "numeri": 0,
+   "panico": [],
+   "velocita": 7,
+   "combattimento": 0,
+   "robustezza": 3,
+   "ia": "guardiano",
+   "fortuna": 0,
+   "armi": [
+    "zanne_grandi"
+   ],
+   "arma_naturale": {
+    "nome": "Zanne",
+    "en": "Fangs",
+    "danno": 1,
+    "id": "zanne_grandi"
+   },
+   "regole": "Impavido (gli Individui Unici non sono influenzati dal Morale).",
+   "speciali": {
+    "impavido": true
+   }
+  },
+  "unico_robot_sicurezza_mk2": {
+   "nome": "Robot di sicurezza Mk II",
+   "en": "Mk II Security Bot",
+   "categoria": "individuo_unico",
+   "numeri": 0,
+   "panico": [],
+   "velocita": 4,
+   "combattimento": 2,
+   "robustezza": 5,
+   "ia": "guardiano",
+   "fortuna": 0,
+   "armi": [
+    "fucile_furia"
+   ],
+   "salvezza": 6,
+   "regole": "Impavido (gli Individui Unici non sono influenzati dal Morale). IA di puntamento (Targeting AI): può sparare due volte per round ai due bersagli visibili più vicini; se ne è visibile uno solo, spara una volta sola. Tiro salvezza 6+.",
+   "speciali": {
+    "impavido": true,
+    "due_bersagli": true
+   }
+  }
+ },
+ "armi_nemici": {
+  "_nota": "Armi dei nemici (Enemy Weapons, p.104). Il codice di un nemico (es. '2B') = colonna Arma '2' per le figure base + colonna Specialista 'B' per gli Specialisti. Si tira 1D6 una volta per tutte le figure base e una volta per gli Specialisti.",
+  "_regole": [
+   "Tira una volta 1D6 sulla colonna numerica per tutte le figure base (non Specialisti), poi tira per l'arma degli Specialisti sulla colonna con la lettera.",
+   "I nemici con IA Aggressiva portano una Lama oltre alle armi elencate, a meno che il loro Combattimento sia +0.",
+   "I nemici con IA 'Psycho' portano sempre una Lama oltre alle altre armi (nel libro non esiste un'IA Psycho: vedi note).",
+   "Alcuni nemici hanno un'arma specifica: la portano sempre e non si tira.",
+   "Se sono elencate due armi, la seconda è per gli Specialisti.",
+   "Regola opzionale Armamento Vario: dividi le figure non Specialiste in due gruppi e tira l'arma per ciascun gruppo."
+  ],
+  "1": {
+   "nome": "Arma 1",
+   "en": "Weapon 1",
+   "tipo": "base",
+   "_dado": "d6",
+   "righe": [
+    {
+     "da": 1,
+     "a": 1,
+     "armi": [
+      "pistola_rottami"
+     ]
+    },
+    {
+     "da": 2,
+     "a": 2,
+     "armi": [
+      "pistola"
+     ]
+    },
+    {
+     "da": 3,
+     "a": 3,
+     "armi": [
+      "fucile_coloniale"
+     ]
+    },
+    {
+     "da": 4,
+     "a": 4,
+     "armi": [
+      "fucile_militare"
+     ]
+    },
+    {
+     "da": 5,
+     "a": 5,
+     "armi": [
+      "pistola_rottami",
+      "lama"
+     ]
+    },
+    {
+     "da": 6,
+     "a": 6,
+     "armi": [
+      "fucile_pompa"
+     ]
+    }
+   ]
+  },
+  "2": {
+   "nome": "Arma 2",
+   "en": "Weapon 2",
+   "tipo": "base",
+   "_dado": "d6",
+   "righe": [
+    {
+     "da": 1,
+     "a": 1,
+     "armi": [
+      "fucile_coloniale"
+     ]
+    },
+    {
+     "da": 2,
+     "a": 2,
+     "armi": [
+      "fucile_militare"
+     ]
+    },
+    {
+     "da": 3,
+     "a": 3,
+     "armi": [
+      "fucile_militare"
+     ]
+    },
+    {
+     "da": 4,
+     "a": 4,
+     "armi": [
+      "fucile_militare"
+     ]
+    },
+    {
+     "da": 5,
+     "a": 5,
+     "armi": [
+      "laser_mano"
+     ]
+    },
+    {
+     "da": 6,
+     "a": 6,
+     "armi": [
+      "laser_fanteria"
+     ]
+    }
+   ]
+  },
+  "3": {
+   "nome": "Arma 3",
+   "en": "Weapon 3",
+   "tipo": "base",
+   "_dado": "d6",
+   "righe": [
+    {
+     "da": 1,
+     "a": 1,
+     "armi": [
+      "laser_mano"
+     ]
+    },
+    {
+     "da": 2,
+     "a": 2,
+     "armi": [
+      "laser_mano"
+     ]
+    },
+    {
+     "da": 3,
+     "a": 3,
+     "armi": [
+      "laser_fanteria"
+     ]
+    },
+    {
+     "da": 4,
+     "a": 4,
+     "armi": [
+      "laser_fanteria"
+     ]
+    },
+    {
+     "da": 5,
+     "a": 5,
+     "armi": [
+      "fucile_blaster"
+     ]
+    },
+    {
+     "da": 6,
+     "a": 6,
+     "armi": [
+      "fucile_blaster"
+     ]
+    }
+   ]
+  },
+  "A": {
+   "nome": "Specialista A",
+   "en": "Specialist A",
+   "tipo": "specialista",
+   "_dado": "d6",
+   "righe": [
+    {
+     "da": 1,
+     "a": 1,
+     "armi": [
+      "artiglio_potenziato"
+     ]
+    },
+    {
+     "da": 2,
+     "a": 2,
+     "armi": [
+      "fucile_pompa"
+     ]
+    },
+    {
+     "da": 3,
+     "a": 3,
+     "armi": [
+      "fucile_automatico"
+     ]
+    },
+    {
+     "da": 4,
+     "a": 4,
+     "armi": [
+      "pistola_fuoco"
+     ]
+    },
+    {
+     "da": 5,
+     "a": 5,
+     "armi": [
+      "fucile_caccia"
+     ]
+    },
+    {
+     "da": 6,
+     "a": 6,
+     "armi": [
+      "pistola",
+      "spada_squarcio"
+     ]
+    }
+   ]
+  },
+  "B": {
+   "nome": "Specialista B",
+   "en": "Specialist B",
+   "tipo": "specialista",
+   "_dado": "d6",
+   "righe": [
+    {
+     "da": 1,
+     "a": 1,
+     "armi": [
+      "fucile_precisione"
+     ]
+    },
+    {
+     "da": 2,
+     "a": 2,
+     "armi": [
+      "fucile_automatico"
+     ]
+    },
+    {
+     "da": 3,
+     "a": 3,
+     "armi": [
+      "lanciaproiettili"
+     ]
+    },
+    {
+     "da": 4,
+     "a": 4,
+     "armi": [
+      "lanciafiamme_mano"
+     ]
+    },
+    {
+     "da": 5,
+     "a": 5,
+     "armi": [
+      "mitragliatrice"
+     ]
+    },
+    {
+     "da": 6,
+     "a": 6,
+     "armi": [
+      "mitragliatrice"
+     ]
+    }
+   ]
+  },
+  "C": {
+   "nome": "Specialista C",
+   "en": "Specialist C",
+   "tipo": "specialista",
+   "_dado": "d6",
+   "righe": [
+    {
+     "da": 1,
+     "a": 1,
+     "armi": [
+      "fucile_precisione"
+     ]
+    },
+    {
+     "da": 2,
+     "a": 2,
+     "armi": [
+      "lanciaproiettili"
+     ]
+    },
+    {
+     "da": 3,
+     "a": 3,
+     "armi": [
+      "fucile_furia"
+     ]
+    },
+    {
+     "da": 4,
+     "a": 4,
+     "armi": [
+      "fucile_plasma"
+     ]
+    },
+    {
+     "da": 5,
+     "a": 5,
+     "armi": [
+      "fucile_plasma"
+     ]
+    },
+    {
+     "da": 6,
+     "a": 6,
+     "armi": [
+      "iperblaster"
+     ]
+    }
+   ]
+  },
+  "luogotenente": {
+   "nome": "Luogotenente",
+   "en": "Lieutenant",
+   "tipo": "luogotenente",
+   "testo": "Un Luogotenente porta la sua arma normale (quella delle figure base) più una Lama e ha Combattimento +1. È Impavido. Se i nemici sono animali senza armi, è un capobranco: solo Combattimento +1.",
+   "armi_extra": [
+    "lama"
+   ],
+   "stat": {
+    "combattimento": 1
+   },
+   "impavido": true
+  }
+ },
+ "specialisti_luogotenenti": {
+  "_nota": "Specialists and Lieutenants (p.93). Non sono figure aggiuntive: fanno parte del numero di nemici già generato ma sono armati diversamente.",
+  "specialisti": {
+   "testo": "Con 1-2 nemici nessuno Specialista; con 3-6 uno Specialista; con 7+ due Specialisti. In difficoltà Follia c'è uno Specialista in più. Gli Specialisti tirano l'arma sulla colonna con la lettera del codice armi.",
+   "per_numero": [
+    {
+     "da": 1,
+     "a": 2,
+     "specialisti": 0
+    },
+    {
+     "da": 3,
+     "a": 6,
+     "specialisti": 1
+    },
+    {
+     "da": 7,
+     "a": 99,
+     "specialisti": 2
+    }
+   ],
+   "follia": 1
+  },
+  "luogotenente": {
+   "testo": "Con 4 o più nemici, una figura non Specialista è un Luogotenente: porta una Lama oltre alla sua arma normale e ha Combattimento +1. Tutti i Luogotenenti sono Impavidi (p.114), salvo regola Codardi. Se i nemici sono animali senza armi, il Luogotenente è un capobranco: Combattimento +1 e nient'altro.",
+   "minimo_nemici": 4,
+   "stat": {
+    "combattimento": 1
+   },
+   "armi_extra": [
+    "lama"
+   ],
+   "impavido": true
+  }
+ },
+ "individui_unici": {
+  "_nota": "Individui Unici (p.93-94 e 105-107). Profili completi in `nemici` (categoria individuo_unico). velocita/combattimento/robustezza null + `modificatori` = usa il nemico base con quei modificatori; ia null = stessa IA del nemico principale.",
+  "quando": {
+   "testo": "Tranne che in una battaglia d'Invasione o contro Minacce vaganti, tira 2D6: +1 contro le Parti interessate, +1 in difficoltà Hardcore. Con 9+ il nemico è accompagnato da un Individuo Unico (in aggiunta alle figure normali). In difficoltà Follia (Insanity) un Individuo Unico è sempre presente, anche contro Minacce vaganti: tira 2D6 senza modificatori e con 11-12 gli Individui Unici sono 2.",
+   "dado": "2d6",
+   "soglia": 9,
+   "modificatori": {
+    "parti_interessate": 1,
+    "hardcore": 1
+   },
+   "esclusi": [
+    "invasione",
+    "minacce_vaganti"
+   ],
+   "follia": {
+    "sempre": true,
+    "dado": "2d6",
+    "doppio_da": 11
+   }
+  },
+  "regole": [
+   "Gli Individui Unici sono Impavidi e non sono influenzati dai test di Morale.",
+   "Possono seguire un'IA diversa dal gruppo che accompagnano; il Capo nemico usa l'IA del nemico principale.",
+   "Molti hanno Fortuna.",
+   "Se la figura ha IA Guardiano, è assegnata al Luogotenente se presente, altrimenti a una figura casuale non Specialista."
+  ],
+  "tabella": {
+   "_dado": "d100",
+   "righe": [
+    {
+     "da": 1,
+     "a": 6,
+     "nemico": "unico_picchiatore",
+     "nome": "Picchiatore nemico",
+     "en": "Enemy Bruiser"
+    },
+    {
+     "da": 7,
+     "a": 12,
+     "nemico": "unico_pesante",
+     "nome": "Arma pesante nemica",
+     "en": "Enemy Heavy"
+    },
+    {
+     "da": 13,
+     "a": 17,
+     "nemico": "unico_capo",
+     "nome": "Capo nemico",
+     "en": "Enemy Boss"
+    },
+    {
+     "da": 18,
+     "a": 22,
+     "nemico": "unico_killer",
+     "nome": "Killer a pagamento",
+     "en": "Hired Killer"
+    },
+    {
+     "da": 23,
+     "a": 25,
+     "nemico": "unico_spia_aziendale",
+     "nome": "Spia aziendale",
+     "en": "Corporate Spook"
+    },
+    {
+     "da": 26,
+     "a": 30,
+     "nemico": "unico_segugio_taglie",
+     "nome": "Segugio di taglie",
+     "en": "Bounty Tracker"
+    },
+    {
+     "da": 31,
+     "a": 35,
+     "nemico": "unico_mercenario_spietato",
+     "nome": "Mercenario spietato",
+     "en": "Callous Merc"
+    },
+    {
+     "da": 36,
+     "a": 41,
+     "nemico": "unico_freelance",
+     "nome": "Freelance",
+     "en": "Freelancer"
+    },
+    {
+     "da": 42,
+     "a": 44,
+     "nemico": "unico_agente_segreto",
+     "nome": "Agente segreto",
+     "en": "Secret Agent"
+    },
+    {
+     "da": 45,
+     "a": 48,
+     "nemico": "unico_hulker_rissaiolo",
+     "nome": "Hulker rissaiolo",
+     "en": "Hulker Brawler"
+    },
+    {
+     "da": 49,
+     "a": 53,
+     "nemico": "unico_pistolero",
+     "nome": "Pistolero",
+     "en": "Gun Slinger"
+    },
+    {
+     "da": 54,
+     "a": 56,
+     "nemico": "unico_tecnico_ingegnere",
+     "nome": "Tecnico Ingegnere",
+     "en": "Engineer Tech"
+    },
+    {
+     "da": 57,
+     "a": 61,
+     "nemico": "unico_mutante_picchiatore",
+     "nome": "Mutante picchiatore",
+     "en": "Mutant Bruiser"
+    },
+    {
+     "da": 62,
+     "a": 65,
+     "nemico": "unico_viandante_precursore",
+     "nome": "Viandante Precursore",
+     "en": "Precursor Wanderer"
+    },
+    {
+     "da": 66,
+     "a": 69,
+     "nemico": "unico_investigatore_hakshan",
+     "nome": "Investigatore Hakshan",
+     "en": "Hakshan Investigator"
+    },
+    {
+     "da": 70,
+     "a": 75,
+     "nemico": "unico_guerriero_kerin",
+     "nome": "Guerriero K'Erin",
+     "en": "K'Erin Warrior"
+    },
+    {
+     "da": 76,
+     "a": 79,
+     "nemico": "unico_esploratore_nomade",
+     "nome": "Esploratore nomade",
+     "en": "Nomad Scout"
+    },
+    {
+     "da": 80,
+     "a": 82,
+     "nemico": "unico_mercenario_cyborg",
+     "nome": "Mercenario cyborg",
+     "en": "Cyborg Merc"
+    },
+    {
+     "da": 83,
+     "a": 85,
+     "nemico": "unico_psionico_rinnegato",
+     "nome": "Psionico rinnegato",
+     "en": "Rogue Psionic"
+    },
+    {
+     "da": 86,
+     "a": 91,
+     "nemico": "unico_cane_genetico",
+     "nome": "Cane genetico",
+     "en": "Gene Dog"
+    },
+    {
+     "da": 92,
+     "a": 96,
+     "nemico": "unico_corridore_sabbie",
+     "nome": "Corridore delle sabbie (compagno)",
+     "en": "Sand Runner"
+    },
+    {
+     "da": 97,
+     "a": 100,
+     "nemico": "unico_robot_sicurezza_mk2",
+     "nome": "Robot di sicurezza Mk II",
+     "en": "Mk II Security Bot"
+    }
+   ]
+  }
+ },
+ "comportamenti_ia": {
+  "_nota": "Comportamenti IA dei nemici (Enemy Movement, p.42-43 del libro / pdf p.44-45). Codici delle tabelle dei nemici (p.92): A, C, D, G, R, T, B.",
+  "_codici": {
+   "A": "aggressivo",
+   "C": "cauto",
+   "D": "difensivo",
+   "G": "guardiano",
+   "R": "furia",
+   "T": "tattico",
+   "B": "bestia"
+  },
+  "cauto": {
+   "nome": "Cauto",
+   "en": "Cautious",
+   "codice": "C",
+   "testo": "Cerca di restare in Copertura ogni volta che è possibile. Se ha un avversario in vista e a gittata resta fermo e fa tiri Mirati; altrimenti avanza dentro o dietro gli elementi di terreno cercando di ottenere la Linea di Vista sugli avversari. Cerca di ingaggiare i bersagli il più vicino possibile alla gittata massima e non si avvicina volontariamente a meno di 12\" dagli avversari. Di regola non entra in Rissa. Quando spara da Copertura cerca di Mirare.",
+   "regole": {
+    "resta_in_copertura": true,
+    "mira_se_bersaglio": true,
+    "distanza_minima": 12,
+    "ingaggia_a_gittata_massima": true,
+    "rissa": false,
+    "mira_da_copertura": true
+   }
+  },
+  "aggressivo": {
+   "nome": "Aggressivo",
+   "en": "Aggressive",
+   "codice": "A",
+   "testo": "Con avversari in vista avanza di almeno mezzo movimento verso di loro, cercando di restare in Copertura se possibile. Se non vede nessun avversario, oppure se è entro 12\" da uno, avanza alla massima velocità verso l'avversario più vicino cercando di entrare in Rissa. Non entra in Rissa con un avversario che ha Combattimento più alto. Le figure con armi Pesanti non si muovono se hanno Linea di Vista su un bersaglio. Non Mira mai. Le figure Aggressive portano una Lama in aggiunta alle armi elencate, a meno che il loro Combattimento sia +0.",
+   "regole": {
+    "avanza_min_mezzo_movimento": true,
+    "carica_se_entro": 12,
+    "carica_se_nessuno_in_vista": true,
+    "no_rissa_se_combattimento_avversario_maggiore": true,
+    "pesanti_fermi_se_lds": true,
+    "mira": false,
+    "lama_extra_se_combattimento_maggiore_di_0": true
+   }
+  },
+  "tattico": {
+   "nome": "Tattico",
+   "en": "Tactical",
+   "codice": "T",
+   "testo": "Avanza a mezza velocità mantenendo sempre la Copertura quando possibile; attraversa il terreno aperto a piena velocità se necessario. Cerca di portarsi entro 12\" dagli avversari, poi si muove per aggirarli e ottenere una Linea di Vista libera. Se è entro un movimento dall'avversario e ha Combattimento più alto entra in Rissa, altrimenti spara. Se ha un tiro libero ed è in Copertura resta fermo per Mirare. Cerca di restare entro 3\" da una figura amica quando possibile.",
+   "regole": {
+    "avanza_mezza_velocita": true,
+    "aperto_piena_velocita": true,
+    "distanza_obiettivo": 12,
+    "aggira": true,
+    "rissa_se_combattimento_maggiore_entro_un_movimento": true,
+    "mira_da_copertura": true,
+    "resta_vicino_amici": 3
+   }
+  },
+  "furia": {
+   "nome": "Furia",
+   "en": "Rampaging",
+   "codice": "R",
+   "testo": "Si muove il più velocemente possibile verso l'avversario più vicino e cerca sempre di entrare in Rissa. Le figure in Furia con armi Pesanti restano ferme e sparano se vedono un bersaglio. Non Mira mai. Combatte finché una delle due parti non ha lasciato completamente il tavolo (non si ritira quando raggiungi l'obiettivo).",
+   "regole": {
+    "carica_sempre": true,
+    "pesanti_fermi_se_lds": true,
+    "mira": false,
+    "non_si_arrende": true
+   }
+  },
+  "difensivo": {
+   "nome": "Difensivo",
+   "en": "Defensive",
+   "codice": "D",
+   "testo": "Avanza fino alla gittata delle sue armi ma resta nella propria metà iniziale del tavolo, in Copertura o dietro il terreno ogni volta che è possibile. Una volta in posizione spara da lì, restando fermo per Mirare; si muove per entrare in Rissa se gli avversari entrano nel suo elemento di terreno e ha Combattimento uguale o migliore. Se un elemento di terreno occupato da amici viene raggiunto dalle forze del giocatore, le figure negli elementi adiacenti si muovono per rinforzarlo.",
+   "regole": {
+    "avanza_a_gittata": true,
+    "resta_nella_propria_meta": true,
+    "resta_in_copertura": true,
+    "mira": true,
+    "rissa_se_nel_suo_terreno_e_combattimento_maggiore_uguale": true,
+    "rinforza_adiacenti": true
+   }
+  },
+  "bestia": {
+   "nome": "Bestia",
+   "en": "Beast",
+   "codice": "B",
+   "testo": "Cerca sempre di muoversi il più possibile verso l'avversario più vicino restando in Copertura. Esce dalla Copertura solo se può entrare in Rissa entro due movimenti; altrimenti si muove per interrompere la Linea di Vista e avvicinarsi. Quando possibile resta entro 2\" da una figura amica, attaccando gli stessi bersagli. Combatte finché una delle due parti non ha lasciato completamente il tavolo.",
+   "regole": {
+    "avanza_in_copertura": true,
+    "esce_copertura_se_rissa_entro_movimenti": 2,
+    "resta_vicino_amici": 2,
+    "stesso_bersaglio_amici": true,
+    "non_si_arrende": true
+   }
+  },
+  "guardiano": {
+   "nome": "Guardiano",
+   "en": "Guardian",
+   "codice": "G",
+   "testo": "È assegnato a un'altra figura e deve sempre restare entro 3\" da essa, se possibile. Si muove alla stessa andatura e attacca gli stessi bersagli con gli stessi metodi (sparo / Rissa) quando possibile. Un Individuo Unico con IA Guardiano è assegnato al Luogotenente, se presente, altrimenti a una figura casuale non Specialista.",
+   "regole": {
+    "distanza_protetto": 3,
+    "copia_azioni_protetto": true
+   }
+  },
+  "_regole_generali": {
+   "mira": "Tattici, Cauti e Difensivi cercano di Mirare quando sparano da Copertura; Aggressivi e in Furia non Mirano mai (pdf p.48). Un tiro Mirato ritira una volta gli 1 nei dadi per Colpire.",
+   "ordine_azioni": "Nella fase Azioni Nemiche le figure nemiche agiscono a partire da quelle più vicine al bordo del giocatore, procedendo verso il bordo nemico; a parità si inizia da sinistra (p.113).",
+   "resa_dopo_obiettivo": {
+    "testo": "Se hai raggiunto la condizione di Vittoria, il nemico può arrendersi. Nemici in Furia o Bestia combattono finché una parte non ha lasciato il tavolo. Per gli altri, alla fine del round corrente e di ogni round successivo tira in base al tipo di IA principale: 2D6 per Cauti, Difensivi e Tattici; 1D6 per Aggressivi. Se un dado mostra un 1 naturale il nemico si ritira e la battaglia finisce subito: tu Tieni il Campo (p.114-115).",
+    "dadi": {
+     "cauto": "2d6",
+     "difensivo": "2d6",
+     "tattico": "2d6",
+     "aggressivo": "1d6",
+     "furia": null,
+     "bestia": null
+    }
+   },
+   "morale": "Alla fine di ogni round in cui ha perso figure il nemico tira un dado per ogni figura rimossa per combattimento (non per rischi ambientali). Ogni dado nel campo di Panico fa Fuggire (Bail) una figura, partendo dalle più vicine al bordo nemico; chi fugge non conta come ucciso e non genera altri dadi. Le figure Impavide (Fearless, tra cui tutti i Luogotenenti) vengono saltate. Panico 0 = combattono fino alla morte, a meno che qualcosa alzi il campo a 1+ (p.114).",
+   "cambio_ia_connessione": "Tabella delle Connessioni (pdf p.167): Aggressivo e Bestia diventano Furia; Tattico diventa Aggressivo; Difensivo e Cauto diventano Tattico; gli altri non cambiano."
+  }
+ },
+ "terreno": {
+  "_nota": "Set up the Battlefield (p.108-109). Dimensioni in pollici (= caselle).",
+  "dimensioni_tavolo": [
+   {
+    "id": "2x2",
+    "pollici": [
+     24,
+     24
+    ]
+   },
+   {
+    "id": "2.5x2.5",
+    "pollici": [
+     30,
+     30
+    ]
+   },
+   {
+    "id": "3x3",
+    "pollici": [
+     36,
+     36
+    ]
+   }
+  ],
+  "settori": {
+   "lato": [
+    10,
+    12
+   ],
+   "testo": "Pensa al tavolo diviso in settori di 10-12\" per lato (un 3x3 piedi ha 9 settori)."
+  },
+  "tipi": {
+   "grande": {
+    "nome": "Elementi grandi",
+    "en": "Large Things",
+    "testo": "Un singolo grande elemento (collina, grande parabola, navetta, grande edificio, bosco) o un gruppo di elementi minori (deposito di casse e barili, cespugli sparsi). Deve riempire gran parte del settore lasciando spazio per muoversi, bloccare la vista, offrire una posizione da cui combattere o su cui arrampicarsi, e fare da centro visivo e tema."
+   },
+   "piccolo": {
+    "nome": "Elementi piccoli",
+    "en": "Small Things",
+    "testo": "Elementi singoli più piccoli (massi, piccoli edifici, container) o un piccolo gruppo di 2-3 barili, cespugli, alberi o rocce. Offrono di solito una posizione di Copertura mentre ci si muove o si avanza verso un obiettivo."
+   },
+   "lineare": {
+    "nome": "Elementi lineari",
+    "en": "Linear Things",
+    "testo": "Elemento stretto lungo 4\"-8\" (barricata, recinzione, muro, siepe), oppure due pezzi con un varco o a L. Possono bloccare la Linea di Vista ma soprattutto danno Copertura e ostacolano il movimento; dividono il campo in zone naturali da difendere.",
+    "lunghezza": [
+     4,
+     8
+    ]
+   }
+  },
+  "set_standard": {
+   "2x2": {
+    "grande": 2,
+    "piccolo": 4,
+    "lineare": 2
+   },
+   "2.5x2.5": {
+    "grande": 2,
+    "piccolo": 5,
+    "lineare": 4
+   },
+   "3x3": {
+    "grande": 3,
+    "piccolo": 6,
+    "lineare": 3
+   }
+  },
+  "requisiti": [
+   {
+    "testo": "Almeno 2 elementi su cui ci si può arrampicare (strutture, speroni rocciosi con piattaforme).",
+    "arrampicabili": 2
+   },
+   {
+    "testo": "Almeno 1 elemento rialzato che offre posizioni di tiro sopraelevate (es. una collina).",
+    "rialzati": 1
+   },
+   {
+    "testo": "Almeno 1 elemento in cui si può entrare (bosco, cumulo di macerie).",
+    "accessibili": 1
+   }
+  ],
+  "piazzamento": [
+   "Metti un elemento di terreno al centro del tavolo: molte missioni richiedono di raggiungere il centro.",
+   "Evita di mettere terreni grandi e scenografici sui bordi: non verrebbero usati.",
+   "Gli elementi piccoli (rocce, barili) funzionano meglio raggruppati.",
+   "Distribuisci gli elementi uniformemente: niente grandi spazi aperti suicidi da attraversare; tra un elemento e l'altro 1-2 movimenti di un personaggio medio.",
+   "Alla fine controlla il tavolo e sposta o scambia pezzi per evitare zone di tiro ovvie o corridoi aperti da bordo a bordo.",
+   "Elementi correlati (fattoria e recinzioni) vanno vicini; si può tenere gli edifici su un lato e la vegetazione sull'altro."
+  ]
+ },
+ "schieramento": {
+  "_nota": "Establish Your Battlefield Edge / Setting up the Figures (p.110) e Seize the Initiative (p.112).",
+  "bordi": "Scegli a caso da quale bordo del campo entri; il nemico ha sempre il bordo opposto.",
+  "ordine": "Schiera prima il nemico, poi le tue forze.",
+  "distanza_minima": 18,
+  "testo": "All'inizio nessuna figura delle due parti può essere entro 18\" da una figura avversaria.",
+  "formazioni": {
+   "aggressivo": {
+    "testo": "Un unico gruppo compatto con 1\" tra le figure.",
+    "gruppi": 1,
+    "spaziatura": 1
+   },
+   "furia": {
+    "testo": "Un unico gruppo compatto con 1\" tra le figure.",
+    "gruppi": 1,
+    "spaziatura": 1
+   },
+   "tattico": {
+    "testo": "Divisi equamente in 3 squadre poste a 8\" l'una dall'altra; membri a 1-2\" secondo il terreno.",
+    "gruppi": 3,
+    "distanza_gruppi": 8,
+    "spaziatura": [
+     1,
+     2
+    ]
+   },
+   "difensivo": {
+    "testo": "Divisi equamente in 3 squadre poste a 8\" l'una dall'altra; membri a 1-2\" secondo il terreno.",
+    "gruppi": 3,
+    "distanza_gruppi": 8,
+    "spaziatura": [
+     1,
+     2
+    ]
+   },
+   "cauto": {
+    "testo": "Due gruppi a 6\" l'uno dall'altro; membri a 1,5-2\".",
+    "gruppi": 2,
+    "distanza_gruppi": 6,
+    "spaziatura": [
+     1.5,
+     2
+    ]
+   },
+   "bestia": {
+    "testo": "A coppie: dividi il tavolo in 3 parti circa uguali e metti una coppia in ciascuna, ben distanziate; 2\" tra le figure della coppia. Un'eventuale figura dispari si schiera da sola.",
+    "coppie": true,
+    "settori": 3,
+    "spaziatura": 2
+   },
+   "guardiano": {
+    "testo": "Entro 3\" dalla figura a cui è assegnato (interpretazione: il libro non lo specifica).",
+    "distanza_protetto": 3
+   }
+  },
+  "casi_speciali": [
+   "Proteggere: il VIP si schiera ad almeno 12\" dal centro; il nemico a 12\" dal centro nel suo lato.",
+   "Assalto (attacco rivale): tutto l'equipaggio dentro o accanto a un edificio.",
+   "Imboscata (attacco rivale): un membro in meno e niente Iniziativa.",
+   "In ritardo (condizione): 2 membri casuali entrano più tardi dal tuo bordo."
+  ],
+  "prendere_iniziativa": {
+   "testo": "Dopo lo schieramento e prima del primo round puoi tentare di Prendere l'Iniziativa: tira 2D6 + l'Acume più alto dell'equipaggio. +1 se sei in inferiorità numerica; -1 contro la Forza mercenaria; -2 in Hardcore; -3 in Follia; più i modificatori del nemico. Se l'equipaggio include un Ferale puoi ignorare le penalità imposte dai nemici. Con 10+ ogni personaggio può fare un Movimento normale o sparare prima dell'inizio (i tiri colpiscono solo con un 6 naturale).",
+   "dado": "2d6",
+   "stat": "acume_max",
+   "soglia": 10,
+   "modificatori": {
+    "inferiorita_numerica": 1,
+    "forza_mercenaria": -1,
+    "hardcore": -2,
+    "follia": -3
+   },
+   "ferale_ignora_penalita_nemici": true
+  }
+ },
+ "eventi_battaglia": {
+  "_nota": "Battle Events (opzionali, p.116-117).",
+  "quando": "Regola opzionale. Tira una volta alla fine del Round 2 e una seconda volta alla fine del Round 4; nessun altro evento. Se i due eventi sono incompatibili o insensati insieme, scarta il secondo senza effetto.",
+  "round": [
+   2,
+   4
+  ],
+  "opzionale": true,
+  "_dado": "d100",
+  "righe": [
+   {
+    "da": 1,
+    "a": 5,
+    "id": "sforzi_rinnovati",
+    "nome": "Sforzi rinnovati",
+    "en": "Renewed efforts",
+    "testo": "Il nemico si impegna a respingerti. Per il resto della battaglia, dopo che tutte le figure nemiche hanno agito, scegli una figura nemica casuale che può subito fare un secondo Movimento e una seconda Azione di combattimento.",
+    "effetti": {
+     "nemico_azione_extra_ogni_round": 1,
+     "manuale": true
+    }
+   },
+   {
+    "da": 6,
+    "a": 9,
+    "id": "rinforzi_nemici",
+    "nome": "Rinforzi nemici",
+    "en": "Enemy reinforcements",
+    "testo": "Arrivano 2 figure nemiche aggiuntive al centro del bordo nemico. Una è armata come Specialista (se applicabile al tipo di nemico).",
+    "effetti": {
+     "rinforzi": 2,
+     "rinforzi_specialisti": 1,
+     "posizione": "centro_bordo_nemico",
+     "manuale": true
+    }
+   },
+   {
+    "da": 10,
+    "a": 13,
+    "id": "cambio_piani",
+    "nome": "Cambio di piani",
+    "en": "Change of plans",
+    "testo": "Il nemico passa all'IA Cauta per il resto della battaglia; se era già Cauto passa a Tattica. I nemici senza attacchi a distanza non sono influenzati.",
+    "effetti": {
+     "ia_cambia": {
+      "tutti": "cauto",
+      "cauto": "tattico"
+     },
+     "esclusi_senza_armi_distanza": true,
+     "manuale": true
+    }
+   },
+   {
+    "da": 14,
+    "a": 16,
+    "id": "scoraggiati",
+    "nome": "Scoraggiati",
+    "en": "Lost heart",
+    "testo": "Il nemico ne ha abbastanza: alla fine del prossimo round lascia il campo.",
+    "effetti": {
+     "nemico_si_ritira_fine_round": 1,
+     "manuale": true
+    }
+   },
+   {
+    "da": 17,
+    "a": 20,
+    "id": "colto_il_momento",
+    "nome": "Colto il momento",
+    "en": "Seized the moment",
+    "testo": "Scegli un membro dell'equipaggio: nel prossimo round può muovere e agire sia nella fase Azioni Rapide sia in quella Lente.",
+    "effetti": {
+     "membro_scelto_doppia_fase": 1,
+     "manuale": true
+    }
+   },
+   {
+    "da": 21,
+    "a": 26,
+    "id": "bestiacce",
+    "nome": "Bestiacce!",
+    "en": "Critters!",
+    "testo": "Metti 1D3 Striscianti dei condotti (p.102) al centro del tavolo e muovi ciascuno di 1D6\" in direzione casuale. All'inizio della fase Azioni Nemiche si muovono verso la figura più vicina e la attaccano, di qualunque parte sia. Se stai già combattendo Striscianti, fanno parte della covata nemica.",
+    "effetti": {
+     "mostri": {
+      "nemico": "striscianti_condotti",
+      "numero": "1d3",
+      "posizione": "centro",
+      "spostamento": "1d6",
+      "ostili_a_tutti": true
+     },
+     "manuale": true
+    }
+   },
+   {
+    "da": 27,
+    "a": 30,
+    "id": "guasto_munizioni",
+    "nome": "Guasto alle munizioni",
+    "en": "Ammo fault",
+    "testo": "Scegli una figura casuale del tuo equipaggio. Se ha sparato nell'ultimo round, quell'arma non può più essere usata per il resto della battaglia; altrimenti scegli a caso un'arma che porta, che potrà sparare una sola volta in questa battaglia.",
+    "effetti": {
+     "guasto_arma_membro_casuale": true,
+     "manuale": true
+    }
+   },
+   {
+    "da": 31,
+    "a": 34,
+    "id": "cambio_visibilita",
+    "nome": "Cambio di visibilità",
+    "en": "Visibility change",
+    "testo": "Se la visibilità è ridotta, aumenta la distanza visiva di +1D6\". Se è illimitata, riducila a 1D6+6\".",
+    "effetti": {
+     "visibilita_se_ridotta": "+1d6",
+     "visibilita_se_illimitata": "1d6+6",
+     "manuale": true
+    }
+   },
+   {
+    "da": 35,
+    "a": 38,
+    "id": "piu_duro_del_previsto",
+    "nome": "Più duro del previsto",
+    "en": "Tougher than expected",
+    "testo": "Scegli una figura nemica casuale: riceve +1 Robustezza (massimo 6) e perde tutti i segnalini Stordito.",
+    "effetti": {
+     "nemico_casuale_robustezza": 1,
+     "robustezza_max": 6,
+     "rimuovi_storditi": true,
+     "manuale": true
+    }
+   },
+   {
+    "da": 39,
+    "a": 42,
+    "id": "tiro_istintivo",
+    "nome": "Tiro istintivo",
+    "en": "Snap shot",
+    "testo": "Scegli una figura del tuo equipaggio: può sparare subito con un'arma. Se è una Pistola colpisce automaticamente, altrimenti tira per Colpire normalmente.",
+    "effetti": {
+     "tiro_immediato": true,
+     "pistola_colpisce_automaticamente": true,
+     "manuale": true
+    }
+   },
+   {
+    "da": 43,
+    "a": 46,
+    "id": "piano_astuto",
+    "nome": "Piano astuto",
+    "en": "Cunning plan",
+    "testo": "Nel prossimo round non tirare l'Iniziativa: ogni membro dell'equipaggio agisce nella fase Azioni Rapide o Lente a tua scelta.",
+    "effetti": {
+     "scelta_fase_libera_round": 1,
+     "manuale": true
+    }
+   },
+   {
+    "da": 47,
+    "a": 50,
+    "id": "possibili_rinforzi",
+    "nome": "Possibili rinforzi",
+    "en": "Possible reinforcements",
+    "testo": "Metti 3 segnalini equidistanti lungo il bordo nemico. All'inizio della fase Azioni Nemiche del prossimo round scegli un segnalino casuale e tira 1D6: con 5-6 vi appare una nuova figura nemica base, altrimenti il segnalino viene rimosso. Tira per un segnalino ogni round finché non sono finiti. Se un membro dell'equipaggio arriva entro 3\" da un segnalino, questo è rimosso subito.",
+    "effetti": {
+     "segnalini_rinforzo": 3,
+     "dado": "1d6",
+     "soglia": 5,
+     "rimozione_entro": 3,
+     "manuale": true
+    }
+   },
+   {
+    "da": 51,
+    "a": 54,
+    "id": "tempo_scade",
+    "nome": "Il tempo sta per scadere",
+    "en": "Clock is running out",
+    "testo": "Alla fine del prossimo round e di ogni round successivo tira 1D6: con 6 la partita finisce subito e non puoi completare alcun obiettivo. Non Tieni il Campo a meno di aver eliminato tutti i nemici prima.",
+    "effetti": {
+     "fine_partita": {
+      "dado": "1d6",
+      "soglia": 6
+     },
+     "manuale": true
+    }
+   },
+   {
+    "da": 55,
+    "a": 60,
+    "id": "rischio_ambientale",
+    "nome": "Rischio ambientale",
+    "en": "Environmental hazard",
+    "testo": "Scegli un elemento di terreno casuale. Ogni figura dentro, sopra o entro 1\" deve tirare 1D6+Acume e ottenere 5+ (i nemici tirano 1D6 e devono fare 4+), altrimenti subisce un Colpo con Danno +1 che ignora i Tiri salvezza dell'armatura. Dopo, l'elemento è sicuro.",
+    "effetti": {
+     "rischio": {
+      "distanza": 1,
+      "dado": "1d6",
+      "stat": "acume",
+      "soglia": 5,
+      "soglia_nemici": 4,
+      "danno": 1,
+      "ignora_armatura": true
+     },
+     "manuale": true
+    }
+   },
+   {
+    "da": 61,
+    "a": 65,
+    "id": "piano_disperato",
+    "nome": "Un piano disperato",
+    "en": "A desperate plan",
+    "testo": "Un membro casuale dell'equipaggio non può agire nel prossimo round, ma scegli un'altra figura a piacere che può agire sia nelle Azioni Rapide sia nelle Lente.",
+    "effetti": {
+     "membro_casuale_salta_round": 1,
+     "membro_scelto_doppia_fase": 1,
+     "manuale": true
+    }
+   },
+   {
+    "da": 66,
+    "a": 70,
+    "id": "momento_esitazione",
+    "nome": "Un momento di esitazione",
+    "en": "A moment of hesitation",
+    "testo": "Nel prossimo round scegli una sola figura che agisce nelle Azioni Rapide (se nella squadra ci sono Ferali devi scegliere un Ferale). Tutte le altre agiscono nelle Azioni Lente.",
+    "effetti": {
+     "solo_un_rapido": true,
+     "preferenza_ferale": true,
+     "manuale": true
+    }
+   },
+   {
+    "da": 71,
+    "a": 73,
+    "id": "granata_sfuggita",
+    "nome": "Granata sfuggita",
+    "en": "Fumbled grenade",
+    "testo": "A un nemico casuale sfugge una granata: corre 6\" in direzione casuale ed è Stordito. Ogni figura, equipaggio e nemici, entro 4\" dalla posizione iniziale corre subito 4\" in direzione opposta. Poi la granata esplode senza danni. Se il nemico è di un tipo che non usa granate non succede nulla.",
+    "effetti": {
+     "granata": {
+      "corsa": 6,
+      "raggio": 4,
+      "fuga": 4
+     },
+     "manuale": true
+    }
+   },
+   {
+    "da": 74,
+    "a": 77,
+    "id": "rinforzi_amici",
+    "nome": "Rinforzi",
+    "en": "Back up",
+    "testo": "Se hai membri dell'equipaggio di riserva che non partecipano alla battaglia, uno può arrivare: piazzalo al centro del tuo bordo.",
+    "effetti": {
+     "rinforzo_equipaggio": 1,
+     "manuale": true
+    }
+   },
+   {
+    "da": 78,
+    "a": 80,
+    "id": "vip_nemico",
+    "nome": "VIP nemico",
+    "en": "Enemy VIP",
+    "testo": "Un Individuo Unico si unisce subito alle forze nemiche: piazzalo al centro del loro bordo.",
+    "effetti": {
+     "individuo_unico": 1,
+     "posizione": "centro_bordo_nemico",
+     "manuale": true
+    }
+   },
+   {
+    "da": 81,
+    "a": 85,
+    "id": "banco_nebbia",
+    "nome": "Banco di nebbia",
+    "en": "Fog cloud",
+    "testo": "Una densa nebbia avvolge il centro del tavolo per il resto della battaglia: si estende 6\" in ogni direzione e blocca la visibilità oltre 2\".",
+    "effetti": {
+     "nebbia": {
+      "raggio": 6,
+      "visibilita": 2
+     },
+     "manuale": true
+    }
+   },
+   {
+    "da": 86,
+    "a": 89,
+    "id": "perso",
+    "nome": "Perso!",
+    "en": "Lost!",
+    "testo": "Un membro casuale si perde e salta il resto della battaglia: rimuovilo dal campo. Ritorna sano e salvo dopo, un po' imbarazzato. Ignora l'evento se sei attualmente in inferiorità numerica.",
+    "effetti": {
+     "membro_casuale_rimosso": 1,
+     "ignora_se_inferiori": true,
+     "manuale": true
+    }
+   },
+   {
+    "da": 90,
+    "a": 93,
+    "id": "ho_trovato_qualcosa",
+    "nome": "Ho trovato qualcosa!",
+    "en": "I found something!",
+    "testo": "Scegli un membro casuale e metti un segnalino a 1D6\" da lui in direzione casuale; il nemico lo ignora. Se un membro va a contatto e spende un'Azione non di combattimento, tira per un oggetto del Bottino (p.131) e usalo subito.",
+    "effetti": {
+     "segnalino": {
+      "distanza": "1d6",
+      "effetti": {
+       "oggetti": [
+        "bottino"
+       ]
+      }
+     },
+     "manuale": true
+    }
+   },
+   {
+    "da": 94,
+    "a": 97,
+    "id": "sembra_prezioso",
+    "nome": "Sembra prezioso",
+    "en": "Looks valuable",
+    "testo": "Scegli un membro casuale e metti un segnalino a 1D6\" da lui in direzione casuale; il nemico lo ignora. Se un membro va a contatto e spende un'Azione non di combattimento, ottieni 1D3 crediti.",
+    "effetti": {
+     "segnalino": {
+      "distanza": "1d6",
+      "effetti": {
+       "crediti": "1d3"
+      }
+     },
+     "manuale": true
+    }
+   },
+   {
+    "da": 98,
+    "a": 100,
+    "id": "vado_a_vedere",
+    "nome": "Vuoi che vada a controllare?",
+    "en": "You want me to check that out?",
+    "testo": "Scegli un membro casuale: può decidere di andare a controllare qualcosa che giura di aver visto. Se lo fa viene rimosso dalla battaglia e, finita la battaglia, tira una volta sulla tabella del Bottino (p.131). Se rinunci non puoi mandare un altro personaggio e l'occasione è persa.",
+    "effetti": {
+     "scelte": [
+      {
+       "testo": "Va a controllare: esce dalla battaglia, poi un tiro sul Bottino.",
+       "effetti": {
+        "oggetti": [
+         "bottino"
+        ]
+       }
+      },
+      {
+       "testo": "Resta: nessun effetto.",
+       "effetti": {}
+      }
+     ],
+     "manuale": true
+    }
+   }
+  ]
+ }
+}

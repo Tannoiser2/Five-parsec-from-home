@@ -1,0 +1,61 @@
+{
+  "_nota": "Appendice VIII «Neutral Characters», pp. 172-173 del regolamento (pagine PDF 174-175). Profili di Personaggi Neutrali (PN). `armi` = lista di id di armi.json; `armi_tiro` = tabella d6 per l'arma (righe da/a con `armi`); `acume_speciale` = Acume alternativo per compiti specifici. Le Reazioni servono solo quando il PN si unisce all'equipaggio.",
+  "regole": {
+    "descrizione": "Profili della gente comune che si trova in uno spazioporto, un laboratorio di ricerca, un bar di periferia e simili; servono per scenari speciali, partite con Game Master e situazioni analoghe. Si chiamano Personaggi Neutrali (PN).",
+    "richiesta_aiuto": {
+      "testo": "Tutti hanno di meglio da fare che lasciarsi coinvolgere in avventure spaziali moralmente dubbie. Se un giocatore chiede aiuto a un PN, di solito serve un tiro 1D6+Acume di 5+. Il GM può applicare un modificatore di +/-1 secondo le circostanze. Un 6 naturale significa che il PN è così entusiasta della vita d'avventura che chiederà di unirsi permanentemente all'equipaggio come personaggio giocante, ammesso che sopravviva all'impresa.",
+      "effetti": {"prova": {"stat": "acume", "soglia": 5, "dado": "1d6", "mod_gm": [-1, 1], "successo": {"pn_aiuta": true}, "fallimento": {}, "naturale_6": {"pn_si_unisce_permanente_se_sopravvive": true}}}
+    },
+    "fase_neutrale": {
+      "testo": "Se una battaglia comprende personaggi neutrali oltre ai nemici, si aggiunge una Fase Neutrale dopo la Fase Lenta.",
+      "dopo_fase": "lenta"
+    },
+    "reazioni": "Il valore di Reazioni è fornito per i personaggi che si uniscono all'equipaggio temporaneamente o permanentemente."
+  },
+  "personaggi": [
+    {"id": "passante", "nome": "Passante", "en": "Bystander", "reazioni": 1, "velocita": 3, "combattimento": 0, "robustezza": 3, "acume": 0,
+     "comportamento": "Un civile qualsiasi coinvolto negli eventi.",
+     "armi_tiro": {"_dado": "d6", "righe": [{"da": 1, "a": 5, "armi": []}, {"da": 6, "a": 6, "armi": ["pistola_tascabile"]}]}},
+    {"id": "teppista", "nome": "Teppista di strada", "en": "Street punk", "reazioni": 1, "velocita": 4, "combattimento": 0, "robustezza": 3, "acume": 0,
+     "comportamento": "Duro di periferia che non vede l'ora di mettersi alla prova.",
+     "armi_tiro": {"_dado": "d6", "righe": [{"da": 1, "a": 2, "armi": []}, {"da": 3, "a": 4, "armi": ["lama"]}, {"da": 5, "a": 6, "armi": ["pistola_rottami"]}]}},
+    {"id": "gangster", "nome": "Gangster", "en": "Gangster", "reazioni": 1, "velocita": 4, "combattimento": 0, "robustezza": 4, "acume": 0,
+     "comportamento": "Criminale incallito o esattore della mala.",
+     "armi": ["pistola"]},
+    {"id": "impiegato_corporativo", "nome": "Rampante aziendale", "en": "Corporate slick", "reazioni": 1, "velocita": 3, "combattimento": 0, "robustezza": 3, "acume": 1,
+     "comportamento": "«Se gioco bene le mie carte, tra 3 anni potrei essere assistente senior del vicepresidente e poi…»",
+     "armi_tiro": {"_dado": "d6", "righe": [{"da": 1, "a": 5, "armi": []}, {"da": 6, "a": 6, "armi": ["pistola_tascabile"]}]}},
+    {"id": "bottegaio", "nome": "Bottegaio navigato", "en": "Hardened shopkeep", "reazioni": 1, "velocita": 4, "combattimento": 0, "robustezza": 3, "acume": 0,
+     "comportamento": "Non gestisci un chiosco di noodles in uno spazioporto della Frontiera senza imparare qualcosa.",
+     "armi_tiro": {"_dado": "d6", "righe": [{"da": 1, "a": 2, "armi": ["pistola"]}, {"da": 3, "a": 4, "armi": ["cannone_mano"]}, {"da": 5, "a": 6, "armi": ["fucile_pompa"]}]}},
+    {"id": "colono", "nome": "Colono temprato", "en": "Hardened colonist", "reazioni": 1, "velocita": 5, "combattimento": 0, "robustezza": 3, "acume": 0,
+     "comportamento": "Sopravvissuti tosti, inclini a farsi mangiare dalle forme di vita aliene.",
+     "armi": ["fucile_coloniale"]},
+    {"id": "robot_servizio", "nome": "Robot di servizio", "en": "Service Bot", "reazioni": 1, "velocita": 3, "combattimento": 0, "robustezza": 4, "acume": 0, "acume_speciale": 2,
+     "comportamento": "Tipico robot da lavoro con circuiti di emulazione IA semi-autonoma.",
+     "armi": [],
+     "regole": ["Nessuna arma, ma i colpi disarmati contano come arma da Mischia con Danno +0.", "+2 Acume quando svolge un compito per cui è stato costruito (altrimenti +0)."],
+     "attacco_disarmato": {"danno": 0, "mischia": true}},
+    {"id": "scienziato", "nome": "Scienziato", "en": "Scientist", "reazioni": 1, "velocita": 4, "combattimento": 0, "robustezza": 3, "acume": 2,
+     "comportamento": "Abitanti dei laboratori di ricerca corporativi o dell'Unità. Di solito non fanno nulla di illegale.",
+     "armi": []},
+    {"id": "tecnico", "nome": "Tecnico", "en": "Technician", "reazioni": 1, "velocita": 4, "combattimento": 0, "robustezza": 3, "acume": 1,
+     "comportamento": "Ogni struttura capace di gestire astronavi richiede un piccolo esercito di personale tecnico.",
+     "armi": [],
+     "regole": ["Chiave inglese (Danno +0, Mischia)."],
+     "arma_propria": {"id": "chiave_inglese", "nome": "Chiave inglese", "en": "Wrench", "danno": 0, "mischia": true}},
+    {"id": "portuale", "nome": "Scaricatore portuale", "en": "Dock worker", "reazioni": 1, "velocita": 4, "combattimento": 0, "robustezza": 4, "acume": 0,
+     "comportamento": "Lavoratore grosso e robusto, incline alla militanza sindacale e alle cattive abitudini.",
+     "armi": [],
+     "regole": ["Nessuna arma se le cose vanno bene; Fucile coloniale se ci sono agitazioni sindacali."],
+     "armi_condizionali": {"agitazioni_sindacali": ["fucile_coloniale"]}},
+    {"id": "guardia_sicurezza", "nome": "Guardia di sicurezza", "en": "Security guard", "reazioni": 2, "velocita": 4, "combattimento": 0, "robustezza": 4, "acume": 0,
+     "comportamento": "Tipica sicurezza a noleggio per strutture a basso rischio.",
+     "armi": ["pistola"]},
+    {"id": "tutore_ordine", "nome": "Agente d'assalto", "en": "Enforcer", "reazioni": 2, "velocita": 5, "combattimento": 1, "robustezza": 4, "acume": 0,
+     "comportamento": "I pezzi grossi che gestiscono sommosse e criminali pericolosi, e fanno da prima linea di difesa in caso di invasione.",
+     "armi": [],
+     "regole": ["Metà con Fucile a pompa, metà con Pistola."],
+     "armi_gruppo": {"meta": [["fucile_pompa"], ["pistola"]]}}
+  ]
+}

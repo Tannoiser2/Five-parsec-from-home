@@ -1,0 +1,337 @@
+{
+  "_nota": "Fase post-battaglia (Five Parsecs from Home 3a ed., pp. 119-130 del libro = pagine PDF 121-132; esempio p. PDF 137). Chiavi extra rispetto a LEGGIMI_DATI: 'turni_recupero' (dadi o intero: turni in Infermeria / di riparazione), 'morte' (true: personaggio morto/distrutto), 'rimosso' (true: morto o tolto dalla campagna), 'danneggia_equip' ('tutto' = tutto l'equipaggiamento portato è danneggiato, 'casuale' = un oggetto portato a caso è danneggiato), 'perde_tutto' (true: tutti gli oggetti portati persi per sempre), 'tiro_tabella' (riferimento a un'altra tabella da tirare, es. 'bottino.consumabili', 'bottino', 'commercio', 'esplorazione', 'motivazione'), 'se_minaccia_invasione' (effetti sostitutivi se il nemico è una Minaccia d'Invasione), 'prova_invasione' (bonus al prossimo tiro d'Invasione), 'mod_tiro_invasione' (modificatore persistente ai tiri d'Invasione sul pianeta), 'crediti_costo' (crediti da pagare per ottenere l'effetto), 'scafo' positivo = riparazione. Per 'stat' si usa anche 'fortuna'. 'prova' senza 'stat' = tiro secco del dado. Notazione '2d6kh1' = tira 2d6 e tieni il più alto. Altre chiavi specifiche (nuovo_membro, xp_tutti, xp_capitano, se_infermeria/altrimenti, se_specie, se_motivazione, se_nessun_rivale, se_nessun_debito, esclusi, scelta_multipla, scelta_stat, *_turni ecc.) sono elencate in note_post_battaglia.md.",
+  "sequenza": [
+    {"id": "rivali", "nome": "Risolvi lo stato dei Rivali", "en": "Resolve Rival Status", "testo": "Se avete Tenuto il Campo contro nemici che non sono Rivali, tirate 1d6: con 1 diventano vostri Rivali su questo pianeta. Se avete Tenuto il Campo contro un Rivale esistente, tirate 1d6 (+1 se lo avete Rintracciato, +1 se avete ucciso un Individuo Unico): con 4+ lo togliete dalla lista. Saltate questo passo dopo battaglie d'Invasione o contro Minacce Vaganti."},
+    {"id": "patroni", "nome": "Risolvi lo stato dei Patroni", "en": "Resolve Patron Status", "testo": "Se avete completato con successo una missione di un Patrono, potete aggiungerlo ai contatti su questo pianeta, salvo che fosse un Contratto Una Tantum. Viaggiando verso un nuovo pianeta tutti i Patroni diventano indisponibili, tranne quelli Persistenti."},
+    {"id": "missioni", "nome": "Progresso della Missione", "en": "Determine Quest Progress", "testo": "Se la battaglia faceva parte di una Missione (Quest), tirate 1d6 +1 per ogni Diceria accumulata in questa Missione, -2 se non avete Vinto. Vedi sezione 'missioni'."},
+    {"id": "paga", "nome": "Ricevi la paga", "en": "Get Paid", "testo": "Guadagnate 1d6 crediti (paga, bottino, taglie o recupero). Vedi sezione 'paga' per i modificatori."},
+    {"id": "ritrovamenti", "nome": "Ritrovamenti sul campo", "en": "Battlefield Finds", "testo": "Se avete Tenuto il Campo, tirate 1d100 una volta sulla tabella dei Ritrovamenti, anche senza aver completato l'obiettivo. Non dopo una battaglia d'Invasione."},
+    {"id": "invasione", "nome": "Controlla l'Invasione!", "en": "Check for Invasion!", "testo": "Se il nemico era una Minaccia d'Invasione, tirate 2d6 con i modificatori: con 9+ il mondo sta per essere invaso."},
+    {"id": "bottino", "nome": "Raccogli il bottino", "en": "Gather the Loot", "testo": "Tirate una volta sulla Tabella del Bottino (p.131 del libro; vedi il file delle tabelle Bottino). Alcune circostanze danno tiri extra. Dopo la fase finale di una Missione tirate tre volte e tenete tutti gli oggetti. Nessun bottino dopo una battaglia d'Invasione. Se il nemico non porterebbe nulla di valore, si suppone che l'oggetto venga dal suo covo, trovato per strada o barattato.", "rimando": "bottino"},
+    {"id": "ferite", "nome": "Ferite e recupero", "en": "Determine Injuries and Recovery", "testo": "Ogni personaggio diventato vittima (casualty) tira sulla Tabella delle Ferite (Bot e Senz'anima usano la Tabella Danni dei Bot). Chi è stato solo messo KO (3 risultati Stordito simultanei) non tira. Vedi sezione 'ferite'."},
+    {"id": "esperienza", "nome": "Esperienza e miglioramenti", "en": "Experience and Character Upgrades", "testo": "Ogni personaggio che ha partecipato guadagna XP; poi si possono spendere XP per aumentare le statistiche. Vedi sezioni 'esperienza' e 'aumenti'."},
+    {"id": "addestramento", "nome": "Investi in Addestramento Avanzato", "en": "Invest in Advanced Training", "testo": "Un membro dell'equipaggio può chiedere l'ammissione a un corso (tassa 1 credito, 2d6 4+). Vedi sezione 'addestramento_avanzato'."},
+    {"id": "acquisti", "nome": "Acquista oggetti", "en": "Purchase Items", "testo": "Comprate tiri sulle tabelle base, armi economiche, vendete oggetti, comprate una nave o potenziamenti. Vedi sezione 'acquisti'."},
+    {"id": "evento_campagna", "nome": "Tira un Evento di Campagna", "en": "Roll for a Campaign Event", "testo": "Tirate 1d100 sulla Tabella degli Eventi di Campagna e applicate subito il risultato. Se non ha senso, adattatelo o ignoratelo."},
+    {"id": "evento_personaggio", "nome": "Tira un Evento del Personaggio", "en": "Roll for a Character Event", "testo": "Scegliete a caso un personaggio dell'equipaggio che non sia Bot né Senz'anima (anche se in Infermeria) e tirate 1d100 sulla Tabella degli Eventi del Personaggio. Se è un Precursore potete tirare due volte e scegliere. Applicate subito; se non ha senso adattatelo o ignoratelo; se è del tutto inapplicabile date +1 XP al personaggio."},
+    {"id": "guerra_galattica", "nome": "Progresso della Guerra Galattica", "en": "Check for Galactic War Progress", "testo": "Per ogni pianeta Invaso che state tracciando, tirate 2d6 sulla tabella della Guerra Galattica."}
+  ],
+  "rivali": {
+    "_nota": "Passo 1. Si salta per battaglie d'Invasione o contro nemici della sottotabella Minacce Vaganti (Roving Threats).",
+    "nuovo_rivale": {
+      "condizione": "Nemico non Rivale e avete Tenuto il Campo",
+      "dado": "1d6",
+      "testo": "Con 1 il tipo di nemico appena affrontato diventa vostro Rivale (annotatelo per questo pianeta). Con qualsiasi altro risultato vi lasciano in pace ('gli affari sono affari').",
+      "righe": [
+        {"da": 1, "a": 1, "nome": "Diventano Rivali", "en": "Become Rivals", "effetti": {"rivale": 1}},
+        {"da": 2, "a": 6, "nome": "Vi lasciano in pace", "en": "Leave you alone", "effetti": {}}
+      ]
+    },
+    "rivale_esistente": {
+      "condizione": "Avete affrontato un Rivale esistente e Tenuto il Campo",
+      "dado": "1d6",
+      "modificatori": [
+        {"testo": "Lo avete Rintracciato (Track) durante i Compiti dell'equipaggio (Fase Mondo, p.76)", "valore": 1},
+        {"testo": "Avete ucciso un Individuo Unico in battaglia", "valore": 1}
+      ],
+      "soglia": 4,
+      "testo": "Con 4+ (modificato) ne hanno avuto abbastanza: togliete il Rivale dalla lista.",
+      "successo": {"rivale": -1}
+    }
+  },
+  "patroni": {
+    "testo": "Se avete avuto successo in una missione per un Patrono, potete aggiungerlo ai vostri contatti su questo pianeta, a meno che il lavoro fosse un Contratto Una Tantum (One-time Contract). Quando viaggiate verso un nuovo pianeta, tutti i Patroni diventano indisponibili, tranne quelli Persistenti (Persistent).",
+    "aggiungi_se_successo": true,
+    "eccezione": "contratto_una_tantum",
+    "su_viaggio": "tutti indisponibili tranne i Persistenti"
+  },
+  "missioni": {
+    "condizione": "La battaglia faceva parte di una Missione (Quest)",
+    "dado": "1d6",
+    "modificatori": [
+      {"testo": "+1 per ogni Diceria di Missione accumulata durante questa Missione", "valore_per_diceria": 1},
+      {"testo": "Non avete Vinto la battaglia", "valore": -2}
+    ],
+    "tabella": {
+      "_dado": "1d6 modificato",
+      "righe": [
+        {"da": -99, "a": 3, "nome": "Vicolo cieco", "en": "Dead end", "testo": "Il luogo era un vicolo cieco: la Missione continua.", "effetti": {}},
+        {"da": 4, "a": 6, "nome": "Un passo avanti", "en": "A step closer", "testo": "Siete un passo più vicini: ottenete una Diceria di Missione.", "effetti": {"dicerie": 1}},
+        {"da": 7, "a": 99, "nome": "Conclusione", "en": "Conclusion of the Quest", "testo": "Siete alla conclusione: la prossima volta che perseguite la Missione sarà il finale. Sarà sempre uno Scontro Diretto (Straight-up Fight), con +1 al numero di nemici, e i nemici saranno Impavidi (Fearless).", "effetti": {"missione_finale": true}}
+      ]
+    },
+    "altro_mondo": {
+      "condizione": "Tiro modificato di 4 o più",
+      "dado": "1d6",
+      "testo": "Tirate un altro d6 senza modificatori: con 5-6 il passo successivo è su un altro mondo e dovete viaggiare prima di poter proseguire la Missione. Non serve farlo subito: le Missioni vi aspettano.",
+      "soglia": 5
+    }
+  },
+  "paga": {
+    "base": "1d6",
+    "testo": "Guadagnate 1d6 crediti di paga, bottino, taglie o recupero.",
+    "regole": [
+      {"id": "finale_missione", "testo": "Se avete concluso la missione finale di una Missione (Quest), tirate il dado due volte, tenete il migliore e aggiungete +1."},
+      {"id": "invasione", "testo": "Dopo una battaglia d'Invasione non ricevete alcun pagamento.", "crediti": 0},
+      {"id": "facile", "testo": "+1 se la campagna è in modalità Facile.", "valore": 1},
+      {"id": "vittoria", "testo": "Se avete Vinto completando l'obiettivo, ogni risultato di 1 o 2 vale 3. Le missioni contro Rivali non danno questo bonus.", "minimo_dado": 3},
+      {"id": "patrono", "testo": "Per un lavoro di un Patrono aggiungete il bonus di Paga alla Paga di Rischio (Danger Pay). Alcuni Patroni concedono Benefici aggiuntivi al completamento."}
+    ]
+  },
+  "ritrovamenti": {
+    "_dado": "d100",
+    "condizione": "Avete Tenuto il Campo; non dopo una battaglia d'Invasione. Si tira anche se l'obiettivo è fallito o assente, in aggiunta al Bottino.",
+    "regola_armi": "Salvo quanto indicato da questa tabella NON potete prendere le armi dei nemici caduti (le trascinano via, sono bloccate geneticamente o distrutte).",
+    "righe": [
+      {"da": 1, "a": 15, "nome": "Arma", "en": "Weapon", "testo": "Scegliete a caso un nemico ucciso (non fuggito/Bailed) nella battaglia: potete tenere le armi che portava.", "effetti": {"manuale": true}},
+      {"da": 16, "a": 25, "nome": "Beni utilizzabili", "en": "Usable goods", "testo": "Tirate sulla Tabella dei Consumabili del capitolo Bottino: ricevete 1 dose dell'oggetto indicato.", "effetti": {"tiro_tabella": "bottino.consumabili"}},
+      {"da": 26, "a": 35, "nome": "Chiavetta dati curiosa / Prove d'Invasione", "en": "Curious data stick / Invasion Evidence", "testo": "Ottenete una Diceria di Missione. Se il nemico è una Minaccia d'Invasione trovate invece Prove d'Invasione: +1 credito e +1 al tiro per l'Invasione al passo successivo.", "effetti": {"dicerie": 1}, "se_minaccia_invasione": {"crediti": 1, "prova_invasione": 1}},
+      {"da": 36, "a": 45, "nome": "Componente di nave", "en": "Starship part", "testo": "Vale 2 crediti, utilizzabile solo per installare un Componente della Nave (p.60).", "effetti": {"oggetti": ["componente_nave"]}},
+      {"da": 46, "a": 60, "nome": "Ninnolo personale", "en": "Personal trinket", "testo": "Su ogni pianeta che visiterete in futuro tirate 2d6: con 9+ trovate il proprietario e ricevete un tiro sul Bottino come ricompensa.", "effetti": {"oggetti": ["ninnolo_personale"]}},
+      {"da": 61, "a": 75, "nome": "Rottami", "en": "Debris", "testo": "Valgono 1d3 crediti al mercato dei rottami.", "effetti": {"crediti": "1d3"}},
+      {"da": 76, "a": 90, "nome": "Informazioni vitali / Prove d'Invasione", "en": "Vital info / Invasion Evidence", "testo": "Consegnando l'informazione ottenete automaticamente un Patrono Corporativo su questo mondo. Se il nemico è una Minaccia d'Invasione trovate invece Prove d'Invasione: +1 credito e +1 al tiro per l'Invasione al passo successivo.", "effetti": {"patrono": 1}, "se_minaccia_invasione": {"crediti": 1, "prova_invasione": 1}},
+      {"da": 91, "a": 100, "nome": "Niente di valore", "en": "Nothing of value", "testo": "...proprio niente!", "effetti": {}}
+    ]
+  },
+  "invasione": {
+    "condizione": "Il nemico appena affrontato è una Minaccia d'Invasione (indicato nel suo profilo nel capitolo Battaglia)",
+    "dado": "2d6",
+    "modificatori": [
+      {"id": "prove", "testo": "Avete ottenuto Prove d'Invasione al passo precedente", "valore": 1},
+      {"id": "campo", "testo": "Avete Tenuto il Campo", "valore": -1},
+      {"id": "hardcore", "testo": "Difficoltà Hardcore", "valore": 2},
+      {"id": "follia", "testo": "Difficoltà Follia (Insanity)", "valore": 3},
+      {"id": "voci_guerra", "testo": "Evento di Campagna 'voci di guerra' (82-84), finché restate sul pianeta", "valore": 2},
+      {"id": "unity_vittoriosa", "testo": "Pianeta liberato dalla Guerra Galattica (Unity Vittoriosa): tutti i futuri tiri di Minaccia d'Invasione", "valore": -2}
+    ],
+    "soglia": 9,
+    "successo": "Il mondo sta per essere Invaso! Il prossimo turno di campagna dovete seguire il passo Fuga dall'Invasione (Flee Invasion, p.69)."
+  },
+  "ferite": {
+    "_dado": "d100",
+    "regole": [
+      "Tira chi è diventato vittima (casualty) in battaglia. Chi è stato solo messo KO (3 Stordito simultanei) non tira.",
+      "Bot e Senz'anima (Soulless) usano la Tabella Danni dei Bot.",
+      "Se un personaggio con Fortuna verrebbe ucciso da questa tabella, sopravvive miracolosamente ma perde subito TUTTI i punti Fortuna (può guadagnarne altri in futuro). Altrimenti i punti Fortuna spesi si recuperano automaticamente.",
+      "L'equipaggiamento danneggiato non si può usare finché non viene Riparato (p.78).",
+      "Corso Scuola di Medicina: un membro non ferito può far tirare due volte un ferito tenendo il risultato migliore."
+    ],
+    "righe": [
+      {"da": 1, "a": 5, "nome": "Fine raccapricciante", "en": "Gruesome fate", "testo": "Morto, e tutto l'equipaggiamento portato è danneggiato.", "effetti": {"morte": true, "danneggia_equip": "tutto"}},
+      {"da": 6, "a": 15, "nome": "Morte o ferita permanente", "en": "Death or permanent injury", "testo": "Morto, o rimosso dalla campagna.", "effetti": {"morte": true, "rimosso": true}},
+      {"da": 16, "a": 16, "nome": "Fuga miracolosa", "en": "Miraculous escape", "testo": "Il personaggio sopravvive e riceve +1 Fortuna, ma tutti gli oggetti che portava sono persi per sempre.", "effetti": {"stat": {"fortuna": 1}, "perde_tutto": true}},
+      {"da": 17, "a": 30, "nome": "Perdita di equipaggiamento", "en": "Equipment loss", "testo": "Un oggetto portato a caso è danneggiato.", "effetti": {"danneggia_equip": "casuale"}},
+      {"da": 31, "a": 45, "nome": "Ferita invalidante", "en": "Crippling wound", "testo": "Serve subito un intervento chirurgico da 1d6 crediti, altrimenti -1 permanente alla più alta tra Velocità e Robustezza. 1d6 turni in Infermeria.", "effetti": {"turni_recupero": "1d6", "scelte": [
+        {"testo": "Paga l'intervento chirurgico (1d6 crediti)", "effetti": {"crediti": "-1d6"}},
+        {"testo": "Rifiuta: -1 permanente alla più alta tra Velocità e Robustezza", "effetti": {"stat_piu_alta": {"tra": ["velocita", "robustezza"], "valore": -1}}}
+      ]}},
+      {"da": 46, "a": 54, "nome": "Ferita grave", "en": "Serious injury", "testo": "Nessun effetto a lungo termine. 1d3+1 turni in Infermeria.", "effetti": {"turni_recupero": "1d3+1"}},
+      {"da": 55, "a": 80, "nome": "Ferite lievi", "en": "Minor injuries", "testo": "Nessun effetto a lungo termine. 1 turno in Infermeria.", "effetti": {"turni_recupero": 1}},
+      {"da": 81, "a": 95, "nome": "Messo KO", "en": "Knocked out", "testo": "Nessun effetto a lungo termine.", "effetti": {}},
+      {"da": 96, "a": 100, "nome": "Scuola della vita", "en": "School of hard knocks", "testo": "Guadagna 1 XP.", "effetti": {"xp": 1}}
+    ]
+  },
+  "ferite_bot": {
+    "_dado": "d100",
+    "regole": [
+      "Usata da Bot e Senz'anima diventati vittime. 'turni_recupero' qui è il tempo di riparazione (Repair Time).",
+      "Corso Tecnico dei Bot: si può tirare due volte e tenere il risultato migliore."
+    ],
+    "righe": [
+      {"da": 1, "a": 5, "nome": "Annientato", "en": "Obliterated", "testo": "Distrutto, e tutto l'equipaggiamento portato è danneggiato.", "effetti": {"morte": true, "danneggia_equip": "tutto"}},
+      {"da": 6, "a": 15, "nome": "Distrutto", "en": "Destroyed", "testo": "Distrutto.", "effetti": {"morte": true}},
+      {"da": 16, "a": 30, "nome": "Perdita di equipaggiamento", "en": "Equipment loss", "testo": "Un oggetto portato a caso è danneggiato. Tempo di riparazione 0.", "effetti": {"danneggia_equip": "casuale", "turni_recupero": 0}},
+      {"da": 31, "a": 45, "nome": "Danni gravi", "en": "Severe damage", "testo": "Nessun effetto a lungo termine. 1d6 turni di riparazione.", "effetti": {"turni_recupero": "1d6"}},
+      {"da": 46, "a": 65, "nome": "Danni lievi", "en": "Minor damage", "testo": "Nessun effetto a lungo termine. 1 turno di riparazione.", "effetti": {"turni_recupero": 1}},
+      {"da": 66, "a": 100, "nome": "Solo qualche ammaccatura", "en": "Just a few dents", "testo": "Nessun effetto a lungo termine.", "effetti": {}}
+    ]
+  },
+  "esperienza": {
+    "regole": [
+      "Ogni personaggio che ha partecipato alla battaglia guadagna XP. 'Sopravvissuto' = non è diventato vittima (casualty).",
+      "I Bot non ricevono XP. I Senz'anima usano il normale sistema di XP.",
+      "Chi fugge dal campo di battaglia nei primi 2 round non riceve XP.",
+      "Le voci si sommano: una sola tra ferito / sopravvissuto non vinto / sopravvissuto e vinto, più i bonus applicabili.",
+      "Dopo aver guadagnato XP si possono spendere per i Miglioramenti (vedi 'aumenti')."
+    ],
+    "tabella": {
+      "ferito": 1,
+      "sopravvissuto_non_vinto": 2,
+      "sopravvissuto_vinto": 3,
+      "primo_a_infliggere_vittima": 1,
+      "ucciso_individuo_unico": 1,
+      "modalita_facile": 1,
+      "completata_fase_finale_missione": 1
+    },
+    "etichette": {
+      "ferito": {"nome": "È diventato vittima", "en": "Became a casualty"},
+      "sopravvissuto_non_vinto": {"nome": "Sopravvissuto, ma senza Vittoria", "en": "Survived, but did not Win"},
+      "sopravvissuto_vinto": {"nome": "Sopravvissuto e Vittoria", "en": "Survived and Won"},
+      "primo_a_infliggere_vittima": {"nome": "Primo personaggio a mettere fuori combattimento un nemico", "en": "First character to inflict a casualty"},
+      "ucciso_individuo_unico": {"nome": "Ha ucciso un Individuo Unico", "en": "Killed Unique Individual"},
+      "modalita_facile": {"nome": "Campagna in modalità Facile", "en": "Campaign is on Easy mode"},
+      "completata_fase_finale_missione": {"nome": "L'equipaggio ha completato la fase finale di una Missione", "en": "Crew completed the final stage of a Quest"}
+    }
+  },
+  "aumenti": {
+    "testo": "Spendendo il costo indicato in XP si aumenta di +1 la statistica. Nessuna statistica può superare il massimo.",
+    "statistiche": {
+      "reazioni": {"en": "Reactions", "costo_xp": 7, "massimo": 6},
+      "combattimento": {"en": "Combat Skill", "costo_xp": 7, "massimo": 5},
+      "velocita": {"en": "Speed", "costo_xp": 5, "massimo": 8},
+      "acume": {"en": "Savvy", "costo_xp": 5, "massimo": 5},
+      "robustezza": {"en": "Toughness", "costo_xp": 6, "massimo": 6},
+      "fortuna": {"en": "Luck", "costo_xp": 10, "massimo": 1, "massimo_umani": 3}
+    },
+    "restrizioni": [
+      {"id": "ingegnere_robustezza", "testo": "Gli Ingegneri non possono portare la Robustezza oltre 4.", "specie": "ingegnere", "stat": "robustezza", "massimo": 4},
+      {"id": "bot_crediti", "testo": "I Bot possono installare potenziamenti a qualsiasi statistica pagando in crediti l'equivalente del costo in XP. Ogni statistica può essere potenziata una sola volta. Con un Tecnico dei Bot ogni potenziamento costa 1 credito in meno.", "specie": "bot", "valuta": "crediti", "una_volta_per_stat": true},
+      {"id": "senzanima", "testo": "I Senz'anima usano il normale processo con gli XP e non possono comprare potenziamenti da Bot.", "specie": "senzanima"}
+    ]
+  },
+  "addestramento_avanzato": {
+    "regole": [
+      "Scegliete un membro dell'equipaggio, pagate la tassa d'iscrizione di 1 credito e tirate 2d6: serve 4+ per essere ammessi (Addestramento da Broker: +1). Se fallisce si può riprovare in seguito. Un solo tentativo per turno di campagna.",
+      "Scelto il corso, pagatene il costo con XP non spesi, crediti o una combinazione (es. Pilota costo 20: 8 XP + 12 crediti).",
+      "Il personaggio può usare l'addestramento dal turno di campagna successivo.",
+      "Chi è in Infermeria può seguire il corso, ma non può usarne i benefici finché è in Infermeria.",
+      "Ogni membro può avere un solo corso in tutta la carriera, e non si può beneficiare di più di un membro con lo stesso addestramento (ma si possono averne più d'uno in squadra come riserva).",
+      "I Bot possono installare un modulo di addestramento, pagando solo in crediti."
+    ],
+    "iscrizione": {"tassa_crediti": 1, "dado": "2d6", "soglia": 4, "tentativi_per_turno": 1},
+    "corsi": [
+      {"id": "pilota", "nome": "Addestramento da Pilota", "en": "Pilot Training", "costo": 20, "testo": "Quando un evento di Viaggio Stellare richiede una prova di Acume, tirate 2d6, tenete il dado migliore e aggiungete +2.", "manuale": true},
+      {"id": "meccanico", "nome": "Addestramento da Meccanico", "en": "Mechanic training", "costo": 15, "testo": "Se la nave ha bisogno di Riparazioni, riparate +1 Punto Scafo ogni turno di campagna (cioè 2 punti per turno). Gli Ingegneri contano doppi gli XP spesi per questo corso.", "effetti": {"riparazione_scafo_extra": 1}, "xp_doppi_per": "ingegnere"},
+      {"id": "medicina", "nome": "Scuola di Medicina", "en": "Medical school", "costo": 20, "testo": "Dopo ogni battaglia potete designare un ferito che tirerà due volte sulla Tabella delle Ferite, tenendo il risultato migliore. Questo membro deve aver partecipato alla battaglia e non essere diventato vittima. Se la nave ha una Navetta (Shuttle), l'evacuazione è abbastanza rapida da poter usare l'abilità anche se non ha partecipato alla battaglia.", "manuale": true},
+      {"id": "mercante", "nome": "Scuola Mercantile", "en": "Merchant school", "costo": 10, "testo": "Quando questo membro Commercia, potete ritirare un tiro di Commercio per turno di campagna. Il nuovo tiro va accettato e, se offre la scelta di comprare un oggetto, dovete comprarlo. Potete fare tutti i tiri di Commercio prima di scegliere quale ritirare.", "manuale": true},
+      {"id": "sicurezza", "nome": "Addestramento di Sicurezza", "en": "Security training", "costo": 10, "testo": "Se questo membro fa parte della squadra in battaglia, +1 al tiro per Prendere l'Iniziativa. I Ferali pagano questo corso 2 in meno.", "effetti": {"iniziativa": 1}, "sconto": {"specie": "ferale", "valore": 2}},
+      {"id": "broker", "nome": "Addestramento da Broker", "en": "Broker training", "costo": 15, "testo": "+1 ai tiri per ottenere licenze, per le domande di Addestramento Avanzato e per la ricerca di Patroni.", "effetti": {"mod_licenze": 1, "mod_addestramento": 1, "mod_ricerca_patroni": 1}},
+      {"id": "tecnico_bot", "nome": "Tecnico dei Bot", "en": "Bot technician", "costo": 10, "testo": "Tutti i potenziamenti dei Bot costano 1 credito in meno. Se un Bot o un Senz'anima deve tirare per una ferita post-battaglia, tirate due volte e tenete il migliore.", "effetti": {"sconto_potenziamenti_bot": 1}, "manuale": true}
+    ]
+  },
+  "acquisti": {
+    "regole": [
+      {"id": "tiro_tabella", "testo": "Pagate 3 crediti per un tiro sulla Tabella Armi Militari, Equipaggiamento o Gadget (capitolo Creazione, pp.28-29). Si possono comprare più tiri per turno.", "costo": 3, "tabelle": ["arma_militare", "equip", "gadget"], "illimitato": true},
+      {"id": "armi_economiche", "testo": "Si possono comprare quante Pistole, Lame, Fucili Coloniali o Fucili a Pompa si vuole a 1 credito l'uno.", "costo": 1, "oggetti": ["pistola", "lama", "fucile_coloniale", "fucile_pompa"]},
+      {"id": "vendita", "testo": "Si possono vendere fino a 3 oggetti non danneggiati, guadagnando 1 credito ciascuno.", "prezzo": 1, "max_oggetti": 3, "solo_integri": true},
+      {"id": "nave", "testo": "Se siete senza nave potete acquistarne una (capitolo 'La vostra astronave'). In questo passo si possono comprare anche Potenziamenti della Nave.", "manuale": true}
+    ]
+  },
+  "eventi_campagna": {
+    "_dado": "d100",
+    "regola": "Applicate subito il risultato. Se l'evento non ha senso, adattatelo o ignoratelo.",
+    "righe": [
+      {"da": 1, "a": 3, "nome": "Un dottore amichevole", "en": "You've met a friendly doc who doesn't ask too many questions", "testo": "Scegliete fino a due membri in Infermeria e riducete di un turno il tempo di recupero di ciascuno. Se guariscono, agiscono normalmente dal prossimo turno.", "effetti": {"recupero": 1, "bersagli": 2}},
+      {"da": 4, "a": 8, "nome": "Supporto vitale da aggiornare", "en": "The life support system on the ship needs upgrading badly", "testo": "L'aggiornamento costa 1d6 crediti (-1 al tiro se l'equipaggio ha un Ingegnere). La nave non può volare finché non pagate.", "effetti": {"crediti": "-1d6", "mod_ingegnere": 1, "blocca_nave_finche_pagato": true}},
+      {"da": 9, "a": 12, "nome": "Un nuovo alleato", "en": "A chance meeting turns into a new ally", "testo": "Create un nuovo personaggio e aggiungetelo all'equipaggio, OPPURE +1 punto Storia. Potete decidere dopo aver creato il personaggio.", "effetti": {"scelte": [
+        {"testo": "Nuovo membro dell'equipaggio", "effetti": {"nuovo_membro": true}},
+        {"testo": "+1 punto Storia", "effetti": {"punti_storia": 1}}
+      ]}},
+      {"da": 13, "a": 16, "nome": "Amici tra la gente del posto", "en": "You've made friends among the locals", "testo": "+1 punto Storia.", "effetti": {"punti_storia": 1}},
+      {"da": 17, "a": 20, "nome": "Avete risposto male alle persone sbagliate", "en": "You managed to mouth off to the wrong people", "testo": "Aggiungete un Rivale.", "effetti": {"rivale": 1}},
+      {"da": 21, "a": 23, "nome": "Una vecchia nemesi vi ha trovato", "en": "An old nemesis has tracked you down", "testo": "Scegliete un Rivale precedente o generatene uno nuovo. Vi seguirà di pianeta in pianeta finché non viene risolto e ha +1 al tiro per il numero di nemici in battaglia.", "effetti": {"manuale": true}},
+      {"da": 24, "a": 26, "nome": "Un tipo losco vi offre un affare", "en": "A shady character offers you a deal", "testo": "Dategli un qualsiasi oggetto dell'equipaggiamento, poi tirate sulla Tabella del Commercio (p.79).", "effetti": {"scelte": [
+        {"testo": "Cedi un oggetto e tira sul Commercio", "effetti": {"cedi_oggetto": 1, "tiro_tabella": "commercio"}},
+        {"testo": "Rifiuta", "effetti": {}}
+      ]}},
+      {"da": 27, "a": 30, "nome": "Vendete un carico", "en": "You sell off some cargo you acquired on the last planet", "testo": "Guadagnate 1d6 crediti.", "effetti": {"crediti": "1d6"}},
+      {"da": 31, "a": 35, "nome": "Qualcuno ha sentito qualcosa di interessante", "en": "One of the crew overheard something interesting", "testo": "Aggiungete 1 Diceria.", "effetti": {"dicerie": 1}},
+      {"da": 36, "a": 38, "nome": "Vecchi 'affari' sistemati", "en": "You've managed to settle some old business", "testo": "Se ne avete, potete togliere un Rivale a scelta. Se non avete Rivali, il capitano guadagna +1 XP.", "effetti": {"rivale": -1, "se_nessun_rivale": {"xp_capitano": 1}}},
+      {"da": 39, "a": 41, "nome": "Un ammiratore vuole unirsi a voi", "en": "An admirer wants to come along", "testo": "Ottenete un nuovo membro, se volete. Ha solo il profilo base senza tiri extra e non porta equipaggiamento. Se l'equipaggio ha membri Ferali, anche il nuovo è Ferale.", "effetti": {"scelte": [
+        {"testo": "Accetta il nuovo membro (profilo base, senza equipaggiamento)", "effetti": {"nuovo_membro": "base"}},
+        {"testo": "Rifiuta", "effetti": {}}
+      ]}},
+      {"da": 42, "a": 44, "nome": "Un mercante alieno offre uno strano dispositivo", "en": "An alien merchant offers you some strange device", "testo": "Se volete comprarlo pagate 4 crediti e tirate sulla Tabella del Bottino.", "effetti": {"scelte": [
+        {"testo": "Compra (4 crediti)", "effetti": {"crediti": -4, "oggetti": ["bottino"]}},
+        {"testo": "Rifiuta", "effetti": {}}
+      ]}},
+      {"da": 45, "a": 48, "nome": "Malfunzionamento dell'equipaggiamento", "en": "Equipment malfunction", "testo": "Se ci sono oggetti nella Scorta (Stash), uno a caso è danneggiato e va Riparato.", "effetti": {"danneggia_equip": "scorta_casuale"}},
+      {"da": 49, "a": 51, "nome": "Una brutta reputazione", "en": "You've earned a bit of a bad reputation", "testo": "Se conoscete Patroni su questo mondo, uno a caso non lavorerà più con voi. Se non ne avete, pazienza.", "effetti": {"patrono": -1}},
+      {"da": 52, "a": 56, "nome": "Il fisco si interessa a voi", "en": "The tax man is taking an interest in your business conduct", "testo": "Tirate 2d6 e pagate in crediti il dado più alto. Se non avete crediti a sufficienza la nave è sequestrata finché non pagate.", "effetti": {"crediti": "-2d6kh1", "manuale": true}},
+      {"da": 57, "a": 59, "nome": "Un nuovo capo", "en": "The crew has decided it's time for a new person to be in charge", "testo": "Scegliete un membro come nuovo capitano: riceve subito 3 XP. Tirate 1d6: con 1 il vecchio capitano lascia la campagna per sempre portando con sé gli oggetti che ha addosso. Se nell'equipaggio ci sono K'Erin, va scelto uno di loro o se ne andranno.", "effetti": {"manuale": true}},
+      {"da": 60, "a": 63, "nome": "Contatti d'affari", "en": "You've made some business contacts", "testo": "Aggiungete un nuovo Patrono.", "effetti": {"patrono": 1}},
+      {"da": 64, "a": 66, "nome": "Un'occasione per imparare", "en": "Recent events made for a good learning opportunity", "testo": "Ogni membro dell'equipaggio riceve +1 XP.", "effetti": {"xp_tutti": 1}},
+      {"da": 67, "a": 70, "nome": "Regolatore gravitazionale disallineato", "en": "During routine maintenance, the gravitational adjuster got knocked out of alignment", "testo": "La nave subisce 1d6 danni allo Scafo.", "effetti": {"scafo": "-1d6"}},
+      {"da": 71, "a": 74, "nome": "Una serata di bevute e film", "en": "The crew spends a night drinking, watching movies, and playing cards", "testo": "+1 punto Storia.", "effetti": {"punti_storia": 1}},
+      {"da": 75, "a": 78, "nome": "Un vecchio trafficante d'armi", "en": "You meet up with an old arms dealer contact who owes you a deal", "testo": "Aggiungete 3 armi a scelta tra: Cannoni a Mano, Fucili Militari, Fucili a Pompa, Pistole Mitragliatrici.", "effetti": {"scelta_multipla": {"numero": 3, "ripetibili": true, "oggetti": ["cannone_mano", "fucile_militare", "fucile_pompa", "pistola_mitragliatrice"]}}},
+      {"da": 79, "a": 81, "nome": "Rinegoziate vecchi debiti", "en": "You renegotiate some old debts", "testo": "Se avete un debito, riducetelo di 1d6+1 crediti. Se non dovete nulla, guadagnate 2 crediti per la prudenza.", "effetti": {"debito": "-1d6-1", "se_nessun_debito": {"crediti": 2}}},
+      {"da": 82, "a": 84, "nome": "Voci di guerra", "en": "The sector news networks are awash with rumors of war", "testo": "Finché restate su questo pianeta, ogni tiro per l'Invasione è a +2.", "effetti": {"mod_tiro_invasione": 2}},
+      {"da": 85, "a": 87, "nome": "Un po' di tempo libero", "en": "A bit of time on your hands", "testo": "Scegliete a caso due membri: ognuno tira sulla Tabella dell'Esplorazione (p.80).", "effetti": {"tiro_tabella": "esplorazione", "bersagli_casuali": 2}},
+      {"da": 88, "a": 91, "nome": "Notati da chi era meglio evitare", "en": "You got noticed by someone you'd rather avoid", "testo": "Aggiungete un Rivale. Se siete in una Missione, il prossimo turno di campagna è automaticamente una battaglia contro il nuovo Rivale, con +1 al numero di nemici.", "effetti": {"rivale": 1, "manuale": true}},
+      {"da": 92, "a": 94, "nome": "È ora di andare!", "en": "It's time to go!", "testo": "Qualunque cosa abbiate fatto, per ogni turno di campagna che restate su questo pianeta dovete aggiungere un Rivale.", "effetti": {"rivale_per_turno_sul_pianeta": 1}},
+      {"da": 95, "a": 97, "nome": "Divieto di partenza", "en": "Unity government says no ships are authorized to leave", "testo": "Non potete lasciare il pianeta per i prossimi due turni di campagna.", "effetti": {"blocca_partenza_turni": 2}},
+      {"da": 98, "a": 100, "nome": "Sarà una bella storia", "en": "In hindsight, it'll make a great story", "testo": "Scegliete un membro che è stato vittima nell'ultima battaglia: riceve +1 Fortuna. Se nessuno è stato ferito, +1 punto Storia.", "effetti": {"scelte": [
+        {"testo": "+1 Fortuna a un membro ferito nell'ultima battaglia", "effetti": {"stat": {"fortuna": 1}}},
+        {"testo": "Nessun ferito: +1 punto Storia", "effetti": {"punti_storia": 1}}
+      ]}}
+    ]
+  },
+  "eventi_personaggio": {
+    "_dado": "d100",
+    "regola": "Personaggio casuale non Bot e non Senz'anima (anche in Infermeria); i Precursori tirano due volte e scelgono. Se l'evento è del tutto inapplicabile: +1 XP al personaggio.",
+    "righe": [
+      {"da": 1, "a": 3, "nome": "La violenza ti deprime", "en": "All this endless violence is depressing you", "testo": "Il personaggio rifiuta di partecipare a qualsiasi battaglia nel prossimo turno di campagna (tranne una battaglia d'Invasione). +1 punto Storia. I K'Erin non sono influenzati.", "effetti": {"punti_storia": 1, "salta_battaglia_turni": 1}, "esclusi": ["kerin"]},
+      {"da": 4, "a": 6, "nome": "Affari altrove", "en": "You have some business to attend to elsewhere", "testo": "Il personaggio è indisponibile per i prossimi due turni: non richiede Mantenimento e non può essere bersaglio di eventi. Al ritorno riceve 1d6 XP e un tiro sul Bottino. Se è uno Swift non torna più, ma viene sostituito da un nuovo personaggio Swift creato normalmente.", "effetti": {"assente_turni": 2, "al_ritorno": {"xp": "1d6", "oggetti": ["bottino"]}, "manuale": true}},
+      {"da": 7, "a": 10, "nome": "Amici del posto", "en": "You make some local friends", "testo": "+1 XP.", "effetti": {"xp": 1}},
+      {"da": 11, "a": 12, "nome": "È ora di andarsene?", "en": "You are starting to wonder if it is time to move on", "testo": "Se il personaggio è in Infermeria tira 1d6: se il risultato è uguale o inferiore ai turni di recupero rimanenti, lascia l'equipaggio.", "effetti": {"manuale": true}},
+      {"da": 13, "a": 15, "nome": "Una lettera da casa", "en": "You get a letter from home", "testo": "+1 XP. Tirate 1d6: con 5-6 ricevete subito una Missione (Quest).", "effetti": {"xp": 1, "prova": {"soglia": 5, "dado": "1d6", "successo": {"missione": 1}, "fallimento": {}}}},
+      {"da": 16, "a": 19, "nome": "Litigio con l'equipaggio", "en": "You argue with the rest of the crew", "testo": "Nel prossimo turno di campagna il membro rifiuta di svolgere compiti, ma combatte normalmente.", "effetti": {"niente_compiti_turni": 1}},
+      {"da": 20, "a": 23, "nome": "Rissa con un compagno", "en": "You get in a scrap with another crew member", "testo": "Scegliete a caso un altro membro e tirate 1d6+Combattimento per entrambi: il punteggio più basso passa un turno in Infermeria; in caso di pareggio entrambi. Se nell'equipaggio c'è un K'Erin, dovete combattere con lui.", "effetti": {"manuale": true}},
+      {"da": 24, "a": 26, "nome": "Il cibo locale ti fa bene", "en": "The local food is sitting well with you", "testo": "Se in Infermeria, riduce di un turno il recupero; altrimenti +1 XP. Gli Ingegneri non ne beneficiano.", "effetti": {"se_infermeria": {"recupero": 1}, "altrimenti": {"xp": 1}}, "esclusi": ["ingegnere"]},
+      {"da": 27, "a": 29, "nome": "Non sei più la stessa persona", "en": "You are not sure you are really the same person any longer", "testo": "Tirate sulla Tabella delle Motivazioni (p.26) e cambiate motivazione. Non si ricevono oggetti né risorse, ma +1 XP per ogni +1 alle statistiche che la nuova motivazione darebbe. Se esce la motivazione attuale, il personaggio diventa sicuro di sé: +1 punto Storia.", "effetti": {"tiro_tabella": "motivazione", "manuale": true}},
+      {"da": 30, "a": 33, "nome": "Cambio di look", "en": "It is time for a make-over", "testo": "Il personaggio cambia vestiti, acconciatura o altro. Solo estetico; se potete riflettetelo sulla miniatura.", "effetti": {}},
+      {"da": 34, "a": 38, "nome": "Senti qualcosa di utile", "en": "Overhear something useful", "testo": "Guadagnate 1 Diceria di Missione.", "effetti": {"dicerie": 1}},
+      {"da": 39, "a": 41, "nome": "Un guadagno extra", "en": "Earn a little on the side", "testo": "+2 crediti.", "effetti": {"crediti": 2}},
+      {"da": 42, "a": 45, "nome": "Una chiacchierata a cuore aperto", "en": "Have a heart to heart talk with a crew member", "testo": "Scegliete un membro a caso: entrambi guadagnano +1 XP.", "effetti": {"xp": 1, "xp_casuale": 1}},
+      {"da": 46, "a": 48, "nome": "L'esercizio non è mai tempo perso", "en": "Time spent exercising is never wasted", "testo": "+2 XP.", "effetti": {"xp": 2}},
+      {"da": 49, "a": 51, "nome": "Un hobby insolito", "en": "You pick up an unusual hobby", "testo": "+1 punto Storia, e il personaggio non parla d'altro. Se è Swift o Precursore guadagna anche +2 XP.", "effetti": {"punti_storia": 1, "se_specie": {"specie": ["swift", "precursore"], "effetti": {"xp": 2}}}},
+      {"da": 52, "a": 55, "nome": "Le cicatrici raccontano", "en": "The scars tell the story", "testo": "Se il personaggio è stato ferito in qualsiasi modo nello scorso turno o in questo, +2 XP.", "effetti": {"se_ferito_recente": {"xp": 2}}},
+      {"da": 56, "a": 59, "nome": "Riflessioni sulle avventure", "en": "You've had time to reflect on your adventures", "testo": "+1d3 XP.", "effetti": {"xp": "1d3"}},
+      {"da": 60, "a": 62, "nome": "Una vera svolta personale", "en": "You've made a real personal breakthrough", "testo": "Scegliete una statistica non ancora aumentata rispetto al valore iniziale con cui il personaggio è entrato in campagna: aumenta subito di +1.", "effetti": {"scelta_stat": {"valore": 1, "solo_non_aumentate": true}}},
+      {"da": 63, "a": 66, "nome": "Ferito lavorando sulla nave", "en": "You get hurt while working on the ship", "testo": "Un turno in Infermeria, e la nave subisce 1 danno allo Scafo.", "effetti": {"turni_recupero": 1, "scafo": "-1"}},
+      {"da": 67, "a": 68, "nome": "Il vero amore", "en": "You have finally found true love in this bleak universe", "testo": "Se la motivazione del personaggio era Vero Amore, +1d6 XP. In ogni caso +1 punto Storia.", "effetti": {"punti_storia": 1, "se_motivazione": {"motivazione": "vero_amore", "effetti": {"xp": "1d6"}}}},
+      {"da": 69, "a": 71, "nome": "Un nemico personale", "en": "A personal enemy has tracked you down", "testo": "Aggiungete un Rivale. Se questo personaggio lascia l'equipaggio, anche il Rivale se ne va.", "effetti": {"rivale": 1, "rivale_legato_al_personaggio": true}},
+      {"da": 72, "a": 75, "nome": "Un regalo", "en": "Someone has sent you a gift", "testo": "Un tiro sulla Tabella del Bottino.", "effetti": {"oggetti": ["bottino"]}},
+      {"da": 76, "a": 78, "nome": "Ti senti benissimo", "en": "You feel great. Eating well must be paying off", "testo": "Annotate sulla scheda: la prossima volta che il personaggio dovrebbe tirare sulla Tabella delle Ferite, il tiro è ignorato. Gli Ingegneri non ne beneficiano.", "effetti": {"ignora_prossima_ferita": true}, "esclusi": ["ingegnere"]},
+      {"da": 79, "a": 82, "nome": "Conosci qualcuno che conosce qualcuno", "en": "You know someone who knows someone", "testo": "Aggiungete un Patrono.", "effetti": {"patrono": 1}},
+      {"da": 83, "a": 84, "nome": "Un'esistenza fortunata", "en": "Maybe you are leading a charmed existence?", "testo": "+1 Fortuna.", "effetti": {"stat": {"fortuna": 1}}},
+      {"da": 85, "a": 87, "nome": "Duro lavoro", "en": "You've put in a lot of hard work around here", "testo": "Riparate 2 danni allo Scafo oppure Riparate un oggetto danneggiato dell'inventario. Gli Ingegneri possono fare entrambe le cose.", "effetti": {"scelte": [
+        {"testo": "Ripara 2 danni allo Scafo", "effetti": {"scafo": "+2"}},
+        {"testo": "Ripara un oggetto danneggiato", "effetti": {"ripara_oggetto": 1}},
+        {"testo": "Entrambe (solo Ingegneri)", "solo_specie": "ingegnere", "effetti": {"scafo": "+2", "ripara_oggetto": 1}}
+      ]}},
+      {"da": 88, "a": 91, "nome": "Non li fanno più come una volta", "en": "They don't make them like they used to", "testo": "Un oggetto a caso portato dal personaggio è danneggiato e va Riparato prima di riusarlo. Gli Ingegneri non sono colpiti.", "effetti": {"danneggia_equip": "casuale"}, "esclusi": ["ingegnere"]},
+      {"da": 92, "a": 94, "nome": "Dov'è finito?", "en": "Where did it go?", "testo": "Un oggetto a caso portato dal personaggio va perso. Al prossimo Evento del Personaggio tirate anche 1d6+Acume: con 5+ l'oggetto ricompare, altrimenti è perso per sempre.", "effetti": {"perde_oggetto": 1, "manuale": true}},
+      {"da": 95, "a": 97, "nome": "Malinconia e disperazione", "en": "A deep feeling of melancholy and despair is afflicting you", "testo": "Il personaggio non guadagna XP nel prossimo turno di campagna. I K'Erin non sono influenzati.", "effetti": {"niente_xp_turni": 1}, "esclusi": ["kerin"]},
+      {"da": 98, "a": 100, "nome": "Tanto tempo libero", "en": "You've had a lot of time to burn", "testo": "Nel prossimo turno di campagna il personaggio può compiere un'azione aggiuntiva, anche se è in Infermeria.", "effetti": {"azione_extra_turni": 1}}
+    ]
+  },
+  "guerra_galattica": {
+    "condizione": "State tracciando pianeti precedentemente Invasi: tirate 2d6 per ciascuno.",
+    "_dado": "2d6",
+    "modificatori": [
+      {"testo": "+1 cumulativo per ogni precedente risultato 'Guadagnare terreno' su quel pianeta", "valore": 1, "cumulativo": true}
+    ],
+    "righe": [
+      {"da": 2, "a": 4, "nome": "Perso per Unity", "en": "Lost to Unity", "testo": "Il pianeta è perso a favore degli invasori e non può più essere visitato.", "effetti": {"pianeta_perso": true}},
+      {"da": 5, "a": 7, "nome": "Conteso", "en": "Contested", "testo": "Nessun progresso.", "effetti": {}},
+      {"da": 8, "a": 9, "nome": "Guadagnare terreno", "en": "Making Ground", "testo": "+1 a tutti i futuri tiri su questa tabella.", "effetti": {"mod_guerra": 1}},
+      {"da": 10, "a": 99, "nome": "Unity vittoriosa", "en": "Unity Victorious", "testo": "Il pianeta può di nuovo essere visitato. Per la maggiore presenza di truppe, tutti i futuri tiri di Minaccia d'Invasione su questo mondo sono a -2.", "effetti": {"pianeta_liberato": true, "mod_tiro_invasione": -2}}
+    ]
+  },
+  "esempio": {
+    "_nota": "Riassunto dell'esempio di p.135 del libro (PDF 137), utile come test.",
+    "passi": [
+      "Rivali: nemico non Rivale, d6 = 2 -> nessun nuovo Rivale.",
+      "Nessuna missione di Patrono o Quest: passi saltati.",
+      "Paga: Vittoria, 1d6 = 4 crediti; la Soffiata (Hot Tip) vale altri 3 crediti.",
+      "Ritrovamenti (Tenuto il Campo): d100 = 82 -> Informazioni vitali: Patrono Corporativo.",
+      "Nessuna Minaccia d'Invasione: niente tiro.",
+      "Bottino: 68 Cianfrusaglie, poi 83 Oggetti per la nave, poi 22 Documento falso.",
+      "Ferite: Shi 49 = Ferita grave (1d3+1 -> 3 turni in Infermeria); Simon 91 = Messo KO, nessun effetto.",
+      "XP: i due feriti 1 XP, gli altri 3 XP; Tank primo a infliggere una vittima +1, spende 6 XP per +1 Robustezza.",
+      "Acquisti: 2 Lame e 1 Pistola per 3 crediti.",
+      "Evento di campagna 74: serata di film e bevute, +1 punto Storia. Evento del personaggio (Twitch) 37: una Diceria."
+    ]
+  }
+}

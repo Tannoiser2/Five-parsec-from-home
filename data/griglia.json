@@ -1,0 +1,64 @@
+{
+  "_nota": "Appendice II «Playing on a Grid», pp. 147-148 del regolamento (pagine PDF 149-150). Regole per giocare su mappe a caselle (1 casella = 1 pollice). Chiavi specifiche: `pollici_per_casella`, `costo_diagonale`, `figure_per_casella`, `attraversa_alleati`, `arretramento_mischia`; `direzioni_casuali` è una tabella d8 (con d10 si ritira 9 e 0). Il testo della p.147 su terminologia/conversione da edizioni precedenti appartiene all'Appendice I e non è incluso.",
+  "introduzione": {
+    "testo": "Le mappe a griglia sono diffuse nei giochi di ruolo, e adattare piante, tappetini e tessere al gioco con miniature è semplice. Queste sono linee guida; il buon senso risolve la maggior parte dei dubbi che emergono durante il gioco.",
+    "griglia_facoltativa": "Si può anche ignorare la griglia e misurare e muoversi normalmente sulle piante: in tal caso non serve alcun adattamento, le tessere o la mappa sono solo terreno."
+  },
+  "movimento": {
+    "nome": "Muoversi sulla griglia",
+    "en": "Moving and Measuring on Grids",
+    "testo": "A tutti gli effetti, muoversi di una casella costa 1\" di movimento: un personaggio con Velocità 5\" può muoversi di 5 caselle. Non c'è differenza tra mosse ortogonali e diagonali: ogni passo conta 1\". Le figure possono muoversi in diagonale «in mezzo» a due caselle occupate da terreno (passare d'angolo tra due ostacoli).",
+    "pollici_per_casella": 1,
+    "costo_ortogonale": 1,
+    "costo_diagonale": 1,
+    "diagonale_tra_ostacoli": true
+  },
+  "misure": {
+    "nome": "Misurare sulla griglia",
+    "en": "Measuring",
+    "testo": "Tutte le misure (gittate, distanze delle regole) si fanno contando il percorso più breve possibile fino alla casella bersaglio compresa. Con diagonale = 1, la distanza tra due caselle è max(|dx|, |dy|) (distanza di Chebyshev).",
+    "metodo": "percorso_piu_breve_inclusa_casella_bersaglio",
+    "formula": "max(abs(dx), abs(dy))"
+  },
+  "piazzamento": {
+    "nome": "Piazzare le miniature",
+    "en": "Placing Miniatures",
+    "testo": "In genere ogni casella contiene una sola figura. Poiché la maggior parte delle figure non occupa l'intera casella, ci si può muovere attraverso caselle occupate da figure amiche, ma non si può terminare il movimento con due figure nella stessa casella. Nota: è una piccola modifica rispetto alle regole standard, che non permettono alle figure di sovrapporsi o attraversarsi.",
+    "figure_per_casella": 1,
+    "attraversa_alleati": true,
+    "attraversa_nemici": false,
+    "termina_su_occupata": false
+  },
+  "linea_di_vista": {
+    "nome": "Linea di vista sulla griglia",
+    "en": "Lines of Sight on Grids",
+    "testo": "La Linea di Vista si traccia con una linea tra i centri approssimativi delle due caselle. Può servire un po' di flessibilità per evitare situazioni assurde. Una casella che contiene una figura non può essere vista né attraversata dal fuoco da nessuna delle due parti (le figure interposte bloccano la vista e il tiro).",
+    "metodo": "centro_a_centro",
+    "figure_bloccano": true
+  },
+  "mischia": {
+    "nome": "Mischia sulla griglia",
+    "en": "Brawling Combat on Grids",
+    "testo": "Per entrare in Mischia, la figura che si muove deve trovarsi in una casella adiacente (anche in diagonale) a quella del bersaglio. Con figure più grandi si può piazzare l'attaccante a cavallo del confine tra le due caselle. Chi perde la mischia viene respinto di 1 casella.",
+    "richiede_adiacenza": true,
+    "adiacenza_diagonale": true,
+    "arretramento_mischia": 1
+  },
+  "direzioni_casuali": {
+    "nome": "Direzioni casuali",
+    "en": "Random Directions",
+    "testo": "Per determinare una direzione casuale si tira 1D8 oppure 1D10 ritirando 9 e 0.",
+    "_dado": "d8",
+    "alternativa": "d10, ritira 9 e 0 (10)",
+    "righe": [
+      {"da": 1, "a": 1, "nome": "Nord-Ovest", "en": "North West", "dx": -1, "dy": -1},
+      {"da": 2, "a": 2, "nome": "Nord", "en": "North", "dx": 0, "dy": -1},
+      {"da": 3, "a": 3, "nome": "Nord-Est", "en": "North East", "dx": 1, "dy": -1},
+      {"da": 4, "a": 4, "nome": "Est", "en": "East", "dx": 1, "dy": 0},
+      {"da": 5, "a": 5, "nome": "Sud-Est", "en": "South East", "dx": 1, "dy": 1},
+      {"da": 6, "a": 6, "nome": "Sud", "en": "South", "dx": 0, "dy": 1},
+      {"da": 7, "a": 7, "nome": "Sud-Ovest", "en": "South West", "dx": -1, "dy": 1},
+      {"da": 8, "a": 8, "nome": "Ovest", "en": "West", "dx": -1, "dy": 0}
+    ]
+  }
+}

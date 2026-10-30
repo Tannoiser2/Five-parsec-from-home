@@ -1,0 +1,804 @@
+{
+ "_nota": "Profili delle specie e dei tipi di equipaggio (Five Parsecs from Home 3a ed., pp.12-23 stampate = file PDF 14-25). Statistiche: reazioni, velocita (pollici=caselle), combattimento, robustezza, acume. Campi opzionali: fortuna (Fortuna iniziale, se >0), fortuna_max (massimo di Fortuna: 3 solo per gli Umani e i Personaggi strani 'come Umano', 1 per gli alieni, 0 per Bot ed Emo-soppressi), robustezza_max, salvezza (tiro salvezza armatura N+), robot (true per i Bot). Nei bonus: tabelle_creazione=false significa nessun tiro su Background/Motivazione/Classe; background_fisso/motivazione_fissa/motivazione_extra/sostituzioni_classe usano il campo 'en' delle righe di creazione.json; recruit/find_patron sono i compiti di campagna Reclutare/Cercare un Patrono; ignora_tratti usa i nomi inglesi minuscoli dei tratti delle armi.",
+ "tipo_equipaggio": {
+  "_dado": "d100",
+  "righe": [
+   {
+    "da": 1,
+    "a": 60,
+    "tipo": "umano",
+    "nome": "Umano",
+    "en": "Baseline Human"
+   },
+   {
+    "da": 61,
+    "a": 80,
+    "tipo": "alieno_primario",
+    "nome": "Alieno primario",
+    "en": "Primary Alien"
+   },
+   {
+    "da": 81,
+    "a": 90,
+    "tipo": "bot",
+    "nome": "Bot",
+    "en": "Bot"
+   },
+   {
+    "da": 91,
+    "a": 100,
+    "tipo": "strano",
+    "nome": "Personaggio strano",
+    "en": "Strange Character"
+   }
+  ]
+ },
+ "alieni_primari": {
+  "_dado": "d100",
+  "righe": [
+   {
+    "da": 1,
+    "a": 20,
+    "specie": "engineer"
+   },
+   {
+    "da": 21,
+    "a": 40,
+    "specie": "kerin"
+   },
+   {
+    "da": 41,
+    "a": 55,
+    "specie": "soulless"
+   },
+   {
+    "da": 56,
+    "a": 70,
+    "specie": "precursor"
+   },
+   {
+    "da": 71,
+    "a": 90,
+    "specie": "feral"
+   },
+   {
+    "da": 91,
+    "a": 100,
+    "specie": "swift"
+   }
+  ]
+ },
+ "personaggi_strani": {
+  "_dado": "d100",
+  "righe": [
+   {
+    "da": 1,
+    "a": 2,
+    "specie": "deconvertito"
+   },
+   {
+    "da": 3,
+    "a": 8,
+    "specie": "agente_unity"
+   },
+   {
+    "da": 9,
+    "a": 17,
+    "specie": "passato_misterioso"
+   },
+   {
+    "da": 18,
+    "a": 22,
+    "specie": "hakshan"
+   },
+   {
+    "da": 23,
+    "a": 27,
+    "specie": "stalker"
+   },
+   {
+    "da": 28,
+    "a": 34,
+    "specie": "hulker"
+   },
+   {
+    "da": 35,
+    "a": 41,
+    "specie": "recluta_speranzosa"
+   },
+   {
+    "da": 42,
+    "a": 47,
+    "specie": "elevato_genetico"
+   },
+   {
+    "da": 48,
+    "a": 53,
+    "specie": "mutante"
+   },
+   {
+    "da": 54,
+    "a": 58,
+    "specie": "bot_assalto"
+   },
+   {
+    "da": 59,
+    "a": 62,
+    "specie": "manipolatore"
+   },
+   {
+    "da": 63,
+    "a": 67,
+    "specie": "primitivo"
+   },
+   {
+    "da": 68,
+    "a": 73,
+    "specie": "feeler"
+   },
+   {
+    "da": 74,
+    "a": 79,
+    "specie": "emo_soppresso"
+   },
+   {
+    "da": 80,
+    "a": 85,
+    "specie": "alieno_minore"
+   },
+   {
+    "da": 86,
+    "a": 87,
+    "specie": "viaggiatore"
+   },
+   {
+    "da": 88,
+    "a": 93,
+    "specie": "empatico"
+   },
+   {
+    "da": 94,
+    "a": 100,
+    "specie": "bio_potenziato"
+   }
+  ]
+ },
+ "regole_creazione": {
+  "_nota": "pp.12-14 e 24 stampate (file 14-16, 26); dimensione equipaggio da p.63 (file 65-66).",
+  "statistiche_iniziali_massime": {
+   "_nota": "Valori base di un nuovo personaggio e massimi per un Umano. La Fortuna massima è 1 (3 per gli Umani), vedi p.123.",
+   "iniziali": {
+    "reazioni": 1,
+    "velocita": 4,
+    "combattimento": 0,
+    "robustezza": 3,
+    "acume": 0,
+    "fortuna": 0
+   },
+   "massime": {
+    "reazioni": 6,
+    "velocita": 8,
+    "combattimento": 5,
+    "robustezza": 6,
+    "acume": 5,
+    "fortuna": 1,
+    "fortuna_umani": 3
+   }
+  },
+  "dimensione_equipaggio": {
+   "predefinita": 6,
+   "opzioni": [
+    6,
+    5,
+    4
+   ],
+   "testo": "L'equipaggio standard è di 6 personaggi, che è anche il massimo schierabile in battaglia. Si può scegliere 5 o 4 (p.63): cambia anche il numero di nemici."
+  },
+  "metodi": [
+   {
+    "id": "principiante",
+    "nome": "Metodo per principianti",
+    "en": "First-timer Method",
+    "testo": "Inizia con 6 personaggi Umani (o usa l'equipaggio d'esempio)."
+   },
+   {
+    "id": "standard",
+    "nome": "Metodo standard",
+    "en": "Standard Method",
+    "testo": "6 personaggi: 3 sempre Umani; 2 a scelta Umani o Alieni primari; 1 a scelta Umano o Bot. Con un equipaggio ridotto si possono comunque scegliere fino a 1 Bot e 2 Alieni primari.",
+    "composizione": {
+     "umani": 3,
+     "umano_o_alieno_primario": 2,
+     "umano_o_bot": 1
+    },
+    "ridotto_max": {
+     "bot": 1,
+     "alieni_primari": 2
+    }
+   },
+   {
+    "id": "miniature",
+    "nome": "Metodo delle miniature",
+    "en": "Miniatures Method",
+    "testo": "Scegli 6 miniature e i tipi di equipaggio corrispondenti (qualsiasi combinazione di Umani, Alieni primari e Bot); i tiri di Background/Motivazione/Classe si fanno normalmente."
+   },
+   {
+    "id": "casuale",
+    "nome": "Metodo casuale",
+    "en": "Random Method",
+    "testo": "6 personaggi, per ciascuno si tira sulla tabella Tipo di equipaggio (e sulle sottotabelle). Tutto è generato a caso."
+   }
+  ],
+  "passi": [
+   {
+    "passo": 1,
+    "testo": "(Metodo casuale) Tira d100 sul Tipo di equipaggio; se esce Alieno primario o Personaggio strano tira sulla sottotabella relativa."
+   },
+   {
+    "passo": 2,
+    "testo": "Annota il profilo base e le regole speciali. Se è un Bot hai finito: vai al passo 4."
+   },
+   {
+    "passo": 3,
+    "testo": "Umani e Alieni primari tirano una volta su Background, Motivazione e Classe, applicando modifiche alle caratteristiche e risorse. I Personaggi strani seguono le eccezioni indicate nella loro voce (tabelle predeterminate non si tirano)."
+   },
+   {
+    "passo": 4,
+    "testo": "Dai un nome al personaggio e scegli la miniatura."
+   },
+   {
+    "passo": 5,
+    "testo": "Creati tutti i personaggi, scegli il Leader; poi tira l'equipaggiamento dell'equipaggio (creazione.json, equipaggiamento_iniziale), la nave (nave.json) e i dettagli di colore."
+   }
+  ],
+  "leader": {
+   "fortuna": 1,
+   "testo": "Creati tutti i personaggi, scegline uno come Leader: riceve 1 punto Fortuna e non lascerà mai l'equipaggio per eventi casuali (ma può morire). Si può scegliere un Bot come Leader, ma in tal caso non riceve la Fortuna.",
+   "no_fortuna_se_robot": true
+  },
+  "risorse_comuni": "Crediti, Dicerie, Patroni e punti Storia ottenuti alla creazione sono in comune per tutto l'equipaggio, non legati al singolo personaggio. Gli oggetti dei tiri iniziali si possono ridistribuire o vendere.",
+  "patroni_iniziali": "Un Patrono iniziale è sempre locale al mondo di partenza: nel primo turno di campagna si genera il Patrono come se lo si conoscesse da sempre (p.77).",
+  "rivali_iniziali": "Ogni Rivale iniziale si tira sulla tabella Rivali sconosciuti del capitolo Battaglia (p.94).",
+  "punti_storia_iniziali": "Non specificati in queste pagine: si determinano nella preparazione della campagna (p.63 e segg.); i punti Storia dalle tabelle di creazione si aggiungono a quel valore."
+ },
+ "specie": {
+  "umano": {
+   "nome": "Umano",
+   "en": "Baseline Human",
+   "pedina": "umano",
+   "reazioni": 1,
+   "velocita": 4,
+   "combattimento": 0,
+   "robustezza": 3,
+   "acume": 0,
+   "fortuna_max": 3,
+   "regole": "Persone comuni. Unico vantaggio: sono l'unico tipo di personaggio che può avere più di 1 punto Fortuna (massimo 3). Tirano una volta su Background, Motivazione e Classe.",
+   "bonus": {
+    "tabelle_creazione": true
+   }
+  },
+  "bot": {
+   "nome": "Bot",
+   "en": "Standard Bot",
+   "pedina": "bot",
+   "reazioni": 2,
+   "velocita": 4,
+   "combattimento": 1,
+   "robustezza": 4,
+   "acume": 2,
+   "salvezza": 6,
+   "robot": true,
+   "fortuna_max": 0,
+   "regole": "Non tira sulle tabelle di creazione: inizia con il profilo base. Usa una tabella delle Ferite propria (capitolo campagna). Tiro salvezza armatura 6+ per la struttura metallica. Non guadagna Esperienza: si migliora spendendo crediti (crediti pari al costo in XP, ogni caratteristica migliorabile una sola volta). Non può usare impianti né consumabili in battaglia. Non può mai essere soggetto di un Evento del personaggio: se un evento sceglie un membro a caso, i Bot sono esclusi dal tiro. Se scelto come Leader non riceve il punto Fortuna.",
+   "bonus": {
+    "tabelle_creazione": false,
+    "ferite_bot": true,
+    "no_xp": true,
+    "upgrade_crediti": true,
+    "no_impianti": true,
+    "no_consumabili": true,
+    "no_eventi_personaggio": true
+   }
+  },
+  "engineer": {
+   "nome": "Engineer",
+   "en": "Engineer",
+   "pedina": "engineer",
+   "reazioni": 1,
+   "velocita": 4,
+   "combattimento": 0,
+   "robustezza": 2,
+   "acume": 1,
+   "robustezza_max": 4,
+   "fortuna_max": 1,
+   "regole": "Umanoidi esili con talento innato per le macchine. +1 ai tiri per riparare un oggetto danneggiato. La Robustezza non può mai superare 4, nemmeno con i bonus dell'equipaggiamento.",
+   "bonus": {
+    "tabelle_creazione": true,
+    "riparare": 1,
+    "robustezza_max": 4
+   }
+  },
+  "kerin": {
+   "nome": "K'Erin",
+   "en": "K'Erin",
+   "pedina": "kerin",
+   "reazioni": 1,
+   "velocita": 4,
+   "combattimento": 0,
+   "robustezza": 4,
+   "acume": 0,
+   "fortuna_max": 1,
+   "regole": "Alieni fieri e bellicosi. In Rissa (corpo a corpo) tirano due dadi e tengono il migliore. Se un K'Erin inizia il round entro la propria velocità base da un nemico, DEVE muoversi per ingaggiarlo in Rissa.",
+   "bonus": {
+    "tabelle_creazione": true,
+    "rissa_doppio_dado": true,
+    "rissa_obbligata": true
+   }
+  },
+  "soulless": {
+   "nome": "Soulless",
+   "en": "Soulless",
+   "pedina": "soulless",
+   "reazioni": 1,
+   "velocita": 4,
+   "combattimento": 0,
+   "robustezza": 4,
+   "acume": 1,
+   "salvezza": 6,
+   "fortuna_max": 1,
+   "regole": "Organismi cibernetici collegati in un'intelligenza collettiva. Tiro salvezza armatura 6+ per la struttura metallica. Non possono usare consumabili né ricevere impianti. Usano la tabella delle Ferite dei Bot. A differenza dei Bot imparano dall'esperienza e ricevono XP normalmente. Possono installare Potenziamenti da Bot pagando 1,5 volte il costo normale (arrotondato per eccesso) [ma vedi nota: a p.123 il libro dice il contrario]. Tirano normalmente su Background, Motivazione e Classe.",
+   "bonus": {
+    "tabelle_creazione": true,
+    "no_consumabili": true,
+    "no_impianti": true,
+    "ferite_bot": true,
+    "upgrade_bot_moltiplicatore": 1.5
+   }
+  },
+  "precursor": {
+   "nome": "Precursor",
+   "en": "Precursor",
+   "pedina": "precursor",
+   "reazioni": 1,
+   "velocita": 5,
+   "combattimento": 0,
+   "robustezza": 2,
+   "acume": 0,
+   "fortuna_max": 1,
+   "regole": "Umanoidi alieni aggraziati e antichissimi. Se un Precursor è soggetto di un Evento del personaggio, tira 2 eventi e scegli quello preferito; dopo aver tirato due volte puoi anche evitare del tutto l'evento spendendo 1 punto Storia.",
+   "bonus": {
+    "tabelle_creazione": true,
+    "evento_personaggio_doppio": true,
+    "evita_evento_costo_storia": 1
+   }
+  },
+  "feral": {
+   "nome": "Feral",
+   "en": "Feral",
+   "pedina": "feral",
+   "reazioni": 1,
+   "velocita": 4,
+   "combattimento": 0,
+   "robustezza": 3,
+   "acume": 0,
+   "fortuna_max": 1,
+   "regole": "Ibridi umanoidi-animali creati per scopi militari. Se un Feral partecipa alla battaglia, si ignorano tutte le penalità imposte dal nemico ai tiri per Prendere l'Iniziativa. Nel Tiro Reazione all'inizio del round, se i dadi mostrano un solo 1, quel dado deve essere assegnato a un Feral, se possibile.",
+   "bonus": {
+    "tabelle_creazione": true,
+    "ignora_penalita_iniziativa": true,
+    "reazione_uno_obbligato": true
+   }
+  },
+  "swift": {
+   "nome": "Swift",
+   "en": "Swift",
+   "pedina": "swift",
+   "reazioni": 1,
+   "velocita": 5,
+   "combattimento": 0,
+   "robustezza": 3,
+   "acume": 0,
+   "fortuna_max": 1,
+   "regole": "Piccoli lucertoloidi alati dai movimenti a scatti. In battaglia possono usare l'Azione di Movimento per planare verso una posizione più bassa, atterrando in sicurezza a una distanza pari alla differenza di altezza (vedi p.42). Possono saltare varchi larghi fino a 4\" durante il movimento e, come azione gratuita, saltare da qualunque altezza senza danni. Quando sparano con un'arma a più colpi, devono dirigere tutti i colpi sullo stesso bersaglio.",
+   "bonus": {
+    "tabelle_creazione": true,
+    "plana": true,
+    "salto_varchi": 4,
+    "caduta_illesa": true,
+    "colpi_stesso_bersaglio": true
+   }
+  },
+  "deconvertito": {
+   "nome": "De-convertito",
+   "en": "De-converted",
+   "pedina": "deconvertito",
+   "reazioni": 1,
+   "velocita": 4,
+   "combattimento": 0,
+   "robustezza": 3,
+   "acume": 0,
+   "salvezza": 6,
+   "fortuna_max": 1,
+   "regole": "Ex prigioniero dei Converted salvato prima che gli inserissero i chip di controllo. Tiro salvezza armatura 6+ per le placche impiantate. Può avere fino a 3 impianti. L'Acume non può mai essere migliorato (resta +0 per sempre). La Motivazione è sempre Vendetta (non si tira).",
+   "bonus": {
+    "tabelle_creazione": true,
+    "impianti_max": 3,
+    "acume_bloccato": true,
+    "motivazione_fissa": "Revenge"
+   }
+  },
+  "agente_unity": {
+   "nome": "Agente Unity",
+   "en": "Unity Agent",
+   "pedina": "agente_unity",
+   "reazioni": 2,
+   "velocita": 4,
+   "combattimento": 0,
+   "robustezza": 3,
+   "acume": 0,
+   "fortuna_max": 1,
+   "regole": "Agente segreto dell'amministrazione Unity (p.136). Chiedere un favore: a ogni turno di campagna puoi tirare 2D6; con 10-12 scegli tra rimuovere un Rivale, ottenere una Diceria o ottenere un Patrono; con 2-4 devi partire subito per il pianeta successivo, e se non puoi perdi questa capacità per sempre. La Motivazione è sempre Ordine (non si tira).",
+   "bonus": {
+    "tabelle_creazione": true,
+    "motivazione_fissa": "Order",
+    "favore_unity": {
+     "dado": "2d6",
+     "successo_da": 10,
+     "successo": [
+      "rimuovi_rivale",
+      "diceria",
+      "patrono"
+     ],
+     "fallimento_a": 4,
+     "fallimento": "viaggio_obbligato"
+    }
+   }
+  },
+  "passato_misterioso": {
+   "nome": "Passato misterioso",
+   "en": "Mysterious Past",
+   "pedina": "passato_misterioso",
+   "reazioni": 1,
+   "velocita": 4,
+   "combattimento": 0,
+   "robustezza": 3,
+   "acume": 0,
+   "fortuna_max": 3,
+   "regole": "Non parla mai delle proprie origini. Si crea come Umano, ma tira due volte sulla tabella Background e applica entrambi i risultati. Tutti i punti Storia bonus dati dalle tabelle Background, Motivazione e Classe vengono ignorati per questo personaggio.",
+   "bonus": {
+    "tabelle_creazione": true,
+    "tiri_background": 2,
+    "ignora_punti_storia_creazione": true
+   }
+  },
+  "hakshan": {
+   "nome": "Hakshan",
+   "en": "Hakshan",
+   "pedina": "hakshan",
+   "reazioni": 1,
+   "velocita": 4,
+   "combattimento": 0,
+   "robustezza": 3,
+   "acume": 0,
+   "fortuna_max": 1,
+   "regole": "Alieni ad alta tecnologia, piuttosto amichevoli, in viaggio per la galassia alla ricerca di qualcosa. Oltre ai normali tiri su Background, Motivazione e Classe, ha automaticamente anche la Motivazione Verità.",
+   "bonus": {
+    "tabelle_creazione": true,
+    "motivazione_extra": "Truth"
+   }
+  },
+  "stalker": {
+   "nome": "Stalker",
+   "en": "Stalker",
+   "pedina": "stalker",
+   "reazioni": 1,
+   "velocita": 4,
+   "combattimento": 0,
+   "robustezza": 3,
+   "acume": 0,
+   "fortuna_max": 3,
+   "regole": "Umani geneticamente modificati dalla pelle blu, capaci di teletrasportarsi. Come opzione di Movimento alternativo può teletrasportarsi: tira 1D6\" e riposiziona il personaggio in un punto qualsiasi entro tale distanza; poi agisce normalmente. La capacità può essere migliorata con l'Esperienza due volte, al costo di 4 XP ciascuna, aggiungendo +1\" alla distanza ogni volta.",
+   "bonus": {
+    "tabelle_creazione": true,
+    "teletrasporto": "1d6",
+    "teletrasporto_upgrade": {
+     "max": 2,
+     "costo_xp": 4,
+     "bonus": 1
+    }
+   }
+  },
+  "hulker": {
+   "nome": "Hulker",
+   "en": "Hulker",
+   "pedina": "hulker",
+   "reazioni": 1,
+   "velocita": 4,
+   "combattimento": 1,
+   "robustezza": 5,
+   "acume": 0,
+   "fortuna_max": 3,
+   "regole": "Umani modificati, muscolosi e rabbiosi. Quando sparano, l'Abilità di Combattimento è sempre considerata +0, senza bonus possibili da armi, mirini o modifiche alle armi. Ignorano i tratti Goffa (Clumsy) e Pesante (Heavy) delle armi. Sulla tabella Classe, i risultati Tecnico, Scienziato o Hacker diventano Primitivo.",
+   "bonus": {
+    "tabelle_creazione": true,
+    "combattimento_tiro_fisso": 0,
+    "ignora_tratti": [
+     "clumsy",
+     "heavy"
+    ],
+    "sostituzioni_classe": {
+     "Technician": "Primitive",
+     "Scientist": "Primitive",
+     "Hacker": "Primitive"
+    }
+   }
+  },
+  "recluta_speranzosa": {
+   "nome": "Recluta speranzosa",
+   "en": "Hopeful Rookie",
+   "pedina": "recluta_speranzosa",
+   "reazioni": 1,
+   "velocita": 4,
+   "combattimento": 0,
+   "robustezza": 3,
+   "acume": 0,
+   "fortuna": 1,
+   "fortuna_max": 3,
+   "regole": "Umano giovane ed entusiasta. Inizia con 1 Fortuna e guadagna 1 XP bonus in ogni partita in cui non finisce fuori combattimento. La prima volta che finisce fuori combattimento (senza più Fortuna che lo salvi) perde per sempre tutta la Fortuna, non potrà più riceverne e non guadagna più l'XP bonus.",
+   "bonus": {
+    "tabelle_creazione": true,
+    "xp_bonus_se_illeso": 1,
+    "perde_fortuna_prima_caduta": true
+   }
+  },
+  "elevato_genetico": {
+   "nome": "Elevato genetico",
+   "en": "Genetic Uplift",
+   "pedina": "elevato_genetico",
+   "reazioni": 2,
+   "velocita": 5,
+   "combattimento": 1,
+   "robustezza": 4,
+   "acume": 1,
+   "fortuna_max": 3,
+   "regole": "Umano con modifiche genetiche pagate a caro prezzo. Tutti i tiri di Background che darebbero crediti aggiuntivi vengono ignorati. L'equipaggio riceve 1 Rivale aggiuntivo (p.77).",
+   "bonus": {
+    "tabelle_creazione": true,
+    "ignora_crediti_background": true,
+    "rivale": 1
+   }
+  },
+  "mutante": {
+   "nome": "Mutante",
+   "en": "Mutant",
+   "pedina": "mutante",
+   "reazioni": 1,
+   "velocita": 4,
+   "combattimento": 0,
+   "robustezza": 3,
+   "acume": 0,
+   "fortuna_max": 3,
+   "regole": "Umano con distorsioni genetiche. Non può essere mandato a svolgere i compiti Reclutare o Cercare un Patrono. Il Background è sempre Bassifondi di una megalopoli (non si tira).",
+   "bonus": {
+    "tabelle_creazione": true,
+    "no_compiti": [
+     "recruit",
+     "find_patron"
+    ],
+    "background_fisso": "Lower Megacity Class"
+   }
+  },
+  "bot_assalto": {
+   "nome": "Bot d'assalto",
+   "en": "Assault Bot",
+   "pedina": "bot_assalto",
+   "reazioni": 2,
+   "velocita": 4,
+   "combattimento": 1,
+   "robustezza": 4,
+   "acume": 0,
+   "salvezza": 5,
+   "robot": true,
+   "fortuna_max": 0,
+   "regole": "Come un Bot (tutte le regole dei Bot), ma corazzato e programmato con indole omicida: Acume +0, che non può essere migliorato. Ignora i tratti Goffa (Clumsy) e Pesante (Heavy) delle armi. Tiro salvezza armatura 5+ per la pesante struttura metallica. Nessun background, motivazione o classe.",
+   "bonus": {
+    "tabelle_creazione": false,
+    "ferite_bot": true,
+    "no_xp": true,
+    "upgrade_crediti": true,
+    "no_impianti": true,
+    "no_consumabili": true,
+    "no_eventi_personaggio": true,
+    "acume_bloccato": true,
+    "ignora_tratti": [
+     "clumsy",
+     "heavy"
+    ]
+   }
+  },
+  "manipolatore": {
+   "nome": "Manipolatore",
+   "en": "Manipulator",
+   "pedina": "manipolatore",
+   "reazioni": 2,
+   "velocita": 4,
+   "combattimento": 0,
+   "robustezza": 3,
+   "acume": 1,
+   "fortuna_max": 1,
+   "regole": "Alieni tentacolati dal talento per la comunicazione e la politica. Non può mai entrare volontariamente in una Rissa. Con i tentacoli può sparare con 2 Pistole nello stesso round, anche a bersagli diversi. Ogni volta che l'equipaggio guadagna punti Storia nella campagna, tira 1D6 per ogni Manipolatore: ogni 6 dà un punto Storia bonus (che non dà diritto a un altro tiro). Il Background è sempre Burocrate (non si tira).",
+   "bonus": {
+    "tabelle_creazione": true,
+    "no_rissa_volontaria": true,
+    "due_pistole": true,
+    "punti_storia_extra_su_6": true,
+    "background_fisso": "Bureaucrat"
+   }
+  },
+  "primitivo": {
+   "nome": "Primitivo",
+   "en": "Primitive",
+   "pedina": "primitivo",
+   "reazioni": 1,
+   "velocita": 4,
+   "combattimento": 0,
+   "robustezza": 3,
+   "acume": 0,
+   "fortuna_max": 3,
+   "regole": "Umano da un mondo tecnologicamente regredito, abile con le lame. Non beneficia dei mirini e non può sparare oltre 8\" di gittata. Tutte le armi da mischia contano come Eleganti (Elegant). Il Background è sempre Mondo primitivo o regredito (non si tira).",
+   "bonus": {
+    "tabelle_creazione": true,
+    "no_mirini": true,
+    "gittata_max": 8,
+    "mischia_elegante": true,
+    "background_fisso": "Primitive or Regressed World"
+   }
+  },
+  "feeler": {
+   "nome": "Feeler",
+   "en": "Feeler",
+   "pedina": "feeler",
+   "reazioni": 1,
+   "velocita": 4,
+   "combattimento": 0,
+   "robustezza": 3,
+   "acume": 0,
+   "fortuna_max": 3,
+   "regole": "Umano di una cultura con emozioni fortissime. Tira due volte sulla tabella Motivazione e riceve i benefici di entrambi i tiri. Se finisce in uno scontro con un altro membro dell'equipaggio, ha un crollo mentale e lascia subito l'equipaggio per sempre.",
+   "bonus": {
+    "tabelle_creazione": true,
+    "tiri_motivazione": 2,
+    "lascia_se_lite_equipaggio": true
+   }
+  },
+  "emo_soppresso": {
+   "nome": "Emo-soppresso",
+   "en": "Emo-suppressed",
+   "pedina": "emo_soppresso",
+   "reazioni": 1,
+   "velocita": 4,
+   "combattimento": 0,
+   "robustezza": 3,
+   "acume": 0,
+   "fortuna_max": 0,
+   "regole": "Umano incapace di provare emozioni oltre a quelle essenziali. Non lascerà mai volontariamente l'equipaggio per nessun motivo e può ignorare qualunque evento che lo costringerebbe a battersi con un abitante locale o un altro membro dell'equipaggio. Non può mai ricevere punti Fortuna. La Motivazione è sempre Sopravvivenza (non si tira).",
+   "bonus": {
+    "tabelle_creazione": true,
+    "non_lascia_mai": true,
+    "ignora_eventi_lite": true,
+    "motivazione_fissa": "Survival"
+   }
+  },
+  "alieno_minore": {
+   "nome": "Alieno minore",
+   "en": "Minor Alien",
+   "pedina": "alieno_minore",
+   "reazioni": 1,
+   "velocita": 4,
+   "combattimento": 0,
+   "robustezza": 3,
+   "acume": 0,
+   "fortuna_max": 1,
+   "regole": "Una delle tante specie aliene senza peso politico nelle regioni della Frontiera (p.143). Profilo umano. Se le tabelle Background, Motivazione o Classe darebbero crediti bonus o punti Storia bonus, l'aumento finale si riduce di 1. Tira 1D6: aumentare la caratteristica indicata costa 1 XP in meno (1 Reazioni, 2-3 Velocità, 4 Combattimento, 5 Robustezza, 6 Acume).",
+   "bonus": {
+    "tabelle_creazione": true,
+    "riduci_bonus_crediti": 1,
+    "riduci_bonus_punti_storia": 1,
+    "sconto_xp": {
+     "dado": "1d6",
+     "riduzione": 1,
+     "righe": [
+      {
+       "da": 1,
+       "a": 1,
+       "stat": "reazioni"
+      },
+      {
+       "da": 2,
+       "a": 3,
+       "stat": "velocita"
+      },
+      {
+       "da": 4,
+       "a": 4,
+       "stat": "combattimento"
+      },
+      {
+       "da": 5,
+       "a": 5,
+       "stat": "robustezza"
+      },
+      {
+       "da": 6,
+       "a": 6,
+       "stat": "acume"
+      }
+     ]
+    }
+   }
+  },
+  "viaggiatore": {
+   "nome": "Viaggiatore",
+   "en": "Traveler",
+   "pedina": "viaggiatore",
+   "reazioni": 3,
+   "velocita": 4,
+   "combattimento": 0,
+   "robustezza": 4,
+   "acume": 2,
+   "fortuna_max": 1,
+   "regole": "Persona stravagante che sostiene di non appartenere a questo tempo e luogo. Inizia con +2 punti Storia e 2 Dicerie. La Velocità è +2\" se si allontana direttamente da un nemico visibile. Dopo ogni battaglia tira 2D6: con 2 scompare per sempre (l'equipaggio ha la strana sensazione che fosse lì per un motivo importante) e si ottengono 2 punti Storia; con 11-12 l'equipaggio riceve subito una Missione (Quest). La Motivazione è sempre Verità (non si tira).",
+   "bonus": {
+    "tabelle_creazione": true,
+    "punti_storia": 2,
+    "dicerie": 2,
+    "velocita_fuga": 2,
+    "tiro_post_battaglia": {
+     "dado": "2d6",
+     "scompare_a": 2,
+     "scompare_punti_storia": 2,
+     "missione_da": 11
+    },
+    "motivazione_fissa": "Truth"
+   }
+  },
+  "empatico": {
+   "nome": "Empatico",
+   "en": "Empath",
+   "pedina": "empatico",
+   "reazioni": 1,
+   "velocita": 4,
+   "combattimento": 0,
+   "robustezza": 3,
+   "acume": 0,
+   "fortuna_max": 3,
+   "regole": "Umano con una lieve inclinazione psionica che gli fa leggere gli stati emotivi. +1 al tiro quando viene mandato a svolgere i compiti Reclutare o Cercare un Patrono. Se riceve impianti perde questa capacità.",
+   "bonus": {
+    "tabelle_creazione": true,
+    "bonus_compiti": {
+     "recruit": 1,
+     "find_patron": 1
+    },
+    "impianti_annullano_bonus": true
+   }
+  },
+  "bio_potenziato": {
+   "nome": "Bio-potenziato",
+   "en": "Bio-upgrade",
+   "pedina": "bio_potenziato",
+   "reazioni": 1,
+   "velocita": 4,
+   "combattimento": 0,
+   "robustezza": 3,
+   "acume": 0,
+   "fortuna_max": 3,
+   "regole": "Umano trattato geneticamente per tollerare i potenziamenti cibernetici. Può avere fino a 4 impianti e beneficiare di 2 copie dello stesso impianto. Se i tiri di Background, Motivazione o Classe danno crediti bonus, ne riceve 2 in meno.",
+   "bonus": {
+    "tabelle_creazione": true,
+    "impianti_max": 4,
+    "impianti_doppi": true,
+    "riduci_bonus_crediti": 2
+   }
+  }
+ }
+}

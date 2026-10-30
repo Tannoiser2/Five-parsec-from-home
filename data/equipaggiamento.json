@@ -1,0 +1,1176 @@
+{
+ "_nota": "Equipaggiamento (regolamento p.53-58 stampate = PDF 55-60; tabelle Gear/Gadget p.29 = PDF 31). tipo: corazza, schermo (massimo una corazza e uno schermo a testa), equip (dispositivi di utilità: massimo 3 a personaggio), gadget (non usato: nel libro 'Gadget' è solo il nome della tabella, gli oggetti hanno il loro tipo vero), consumabile (monouso, Azione gratuita; stanno nella Scorta comune; Bot e Senz'anima non possono usarli), impianto (massimo 2, non si danneggiano né si rimuovono; vietati a Bot e Senz'anima), mod_arma e mirino (vedi armi.json), nave (oggetti di bordo: restano sulla nave, si usano nel turno di campagna). Un tiro può beneficiare di più oggetti diversi ma non di due copie dello stesso. Usare due consumabili nello stesso round richiede un'Azione di combattimento; due dello stesso tipo nello stesso round non danno benefici. Il libro non dà prezzi: si compra con 3 crediti un tiro su tabella Equipaggiamento o Gadget (p.125), quindi 'costo' è omesso. Chiavi di 'effetto': salvezza N (tiro salvezza N+ contro i colpi), salvezza_area N, salvezza_esclude [area, rissa], salvezza_contro {tipo, soglia} (tiro salvezza speciale), bonus {stat o tiro: n} (tiri: rissa, colpire, riparare, quest, licenza), max {stat: n} (tetto), stat {..} (modifica permanente), bonus_battaglia / bonus_round (+durata_round), colpire, gittata, danno, danno_rissa, tratti_aggiunti, ignora_tratti, tratti_entro, solo ('pistola'/'non_pistola'), solo_armi, iniziativa (+ai tiri per Prendere l'iniziativa), per_battaglia / per_missione (usi), monouso, consumabile (id dell'effetto), recupero (turni di recupero tolti), punti_storia, xp, crediti_per_turno, manuale (il gioco mostra il testo).",
+ "oggetti": {
+  "corazza_battaglia": {
+   "nome": "Armatura da battaglia",
+   "en": "Battle dress",
+   "tipo": "corazza",
+   "testo": "Il personaggio conta come avere +1 Reazioni (massimo 4) e riceve un tiro salvezza di 5+.",
+   "effetto": {
+    "salvezza": 5,
+    "bonus": {
+     "reazioni": 1
+    },
+    "max": {
+     "reazioni": 4
+    }
+   }
+  },
+  "mantello_mimetico": {
+   "nome": "Mantello mimetico",
+   "en": "Camo cloak",
+   "tipo": "schermo",
+   "testo": "Se il personaggio è entro 2\" da una Copertura, conta come in Copertura. Non vale se chi spara è entro 4\".",
+   "effetto": {
+    "copertura_entro": 2,
+    "non_se_tiratore_entro": 4
+   }
+  },
+  "corazza_combattimento": {
+   "nome": "Corazza da combattimento",
+   "en": "Combat armor",
+   "tipo": "corazza",
+   "testo": "Tiro salvezza 5+.",
+   "effetto": {
+    "salvezza": 5
+   }
+  },
+  "schermo_deflettore": {
+   "nome": "Campo deflettore",
+   "en": "Deflector field",
+   "tipo": "schermo",
+   "testo": "Devia automaticamente un singolo colpo di arma a distanza per battaglia. Dopo che un colpo è andato a segno, decidi se usare il campo prima di tirare per Robustezza o corazza.",
+   "effetto": {
+    "annulla_colpo_distanza": 1,
+    "per_battaglia": 1
+   }
+  },
+  "schermo_flak": {
+   "nome": "Schermo flak",
+   "en": "Flak screen",
+   "tipo": "schermo",
+   "testo": "Tutte le armi ad Area che colpiscono chi lo indossa, sia con i colpi iniziali sia con quelli aggiuntivi del tratto Area, hanno il Danno ridotto di 1 (fino a un minimo di +0).",
+   "effetto": {
+    "riduci_danno_area": 1
+   }
+  },
+  "flex_armor": {
+   "nome": "Flex-armor",
+   "en": "Flex-armor",
+   "tipo": "corazza",
+   "testo": "Se il personaggio non si è mosso nella sua ultima attivazione, conta come avere +1 Robustezza (massimo 6).",
+   "effetto": {
+    "bonus_se_fermo": {
+     "robustezza": 1
+    },
+    "max": {
+     "robustezza": 6
+    }
+   }
+  },
+  "corazza_frag": {
+   "nome": "Giubbotto antischegge",
+   "en": "Frag vest",
+   "tipo": "corazza",
+   "testo": "Tiro salvezza 6+, che migliora a 5+ contro qualsiasi attacco ad Area.",
+   "effetto": {
+    "salvezza": 6,
+    "salvezza_area": 5
+   }
+  },
+  "generatore_schermo": {
+   "nome": "Generatore di schermo",
+   "en": "Screen generator",
+   "tipo": "schermo",
+   "testo": "Tiro salvezza 5+ contro il fuoco delle armi. Nessun effetto contro attacchi ad Area o in mischia.",
+   "effetto": {
+    "salvezza": 5,
+    "salvezza_esclude": [
+     "area",
+     "rissa"
+    ]
+   }
+  },
+  "equip_furtivo": {
+   "nome": "Equipaggiamento furtivo",
+   "en": "Stealth gear",
+   "tipo": "corazza",
+   "testo": "I nemici che sparano da oltre 9\" hanno -1 per colpire.",
+   "effetto": {
+    "malus_tiratore_oltre": {
+     "distanza": 9,
+     "colpire": -1
+    }
+   }
+  },
+  "booster": {
+   "nome": "Pillole booster",
+   "en": "Booster pills",
+   "tipo": "consumabile",
+   "testo": "Chi le prende rimuove tutti i segnalini Stordito e in questo round può muoversi al doppio della Velocità normale.",
+   "effetto": {
+    "consumabile": "booster",
+    "rimuovi_storditi": true,
+    "velocita_doppia_round": true
+   }
+  },
+  "combat_serum": {
+   "nome": "Siero da combattimento",
+   "en": "Combat serum",
+   "tipo": "consumabile",
+   "testo": "Il personaggio riceve +2\" di Velocità e +2 Reazioni per il resto della battaglia.",
+   "effetto": {
+    "consumabile": "siero",
+    "bonus_battaglia": {
+     "velocita": 2,
+     "reazioni": 2
+    }
+   }
+  },
+  "cristalli_kiranin": {
+   "nome": "Cristalli Kiranin",
+   "en": "Kiranin crystals",
+   "tipo": "consumabile",
+   "testo": "Un abbagliante spettacolo di luci ipnotiche stordisce ogni personaggio entro 4\" dall'utilizzatore, che non può agire in questo round. Nessun effetto su chi ha già agito in questo round né sull'utilizzatore. Un personaggio attaccato in Rissa si difende normalmente.",
+   "effetto": {
+    "consumabile": "kiranin",
+    "raggio": 4,
+    "manuale": true
+   }
+  },
+  "rage_out": {
+   "nome": "Rage Out",
+   "en": "Rage out",
+   "tipo": "consumabile",
+   "testo": "L'utilizzatore ottiene +2\" di Velocità e +1 a tutti i tiri di Rissa per il resto di questo round e per il round successivo. Un K'Erin ottiene i benefici per il resto della battaglia.",
+   "effetto": {
+    "consumabile": "furia",
+    "bonus_round": {
+     "velocita": 2,
+     "rissa": 1
+    },
+    "durata_round": 2,
+    "kerin_tutta_battaglia": true
+   }
+  },
+  "still": {
+   "nome": "Still",
+   "en": "Still",
+   "tipo": "consumabile",
+   "testo": "L'utilizzatore ottiene +1 per colpire, ma non può Muoversi in questo round e nel successivo.",
+   "effetto": {
+    "consumabile": "still",
+    "bonus_round": {
+     "colpire": 1
+    },
+    "durata_round": 2,
+    "immobile": true
+   }
+  },
+  "stim": {
+   "nome": "Stim-pack",
+   "en": "Stim-pack",
+   "tipo": "consumabile",
+   "testo": "Se il personaggio diventerebbe una perdita (fuori combattimento), resta sul tavolo con un solo segnalino Stordito. Si usa d'istinto nel momento in cui si diventerebbe perdita, senza richiedere un'azione.",
+   "effetto": {
+    "consumabile": "stim",
+    "evita_perdita": true,
+    "reattivo": true
+   }
+  },
+  "compagno_ia": {
+   "nome": "Compagno IA",
+   "en": "AI companion",
+   "tipo": "impianto",
+   "testo": "Nei tiri di Acume il personaggio può tirare due volte e tenere il risultato migliore.",
+   "effetto": {
+    "vantaggio_acume": true
+   }
+  },
+  "filo_corporeo": {
+   "nome": "Filo corporeo",
+   "en": "Body wire",
+   "tipo": "impianto",
+   "testo": "+1 Reazioni.",
+   "effetto": {
+    "stat": {
+     "reazioni": 1
+    }
+   }
+  },
+  "impianto_muscoli": {
+   "nome": "Braccio potenziato",
+   "en": "Boosted arm",
+   "tipo": "impianto",
+   "testo": "La gittata delle granate aumenta di +2\". Se il personaggio termina il Movimento a contatto con un ostacolo non più alto della miniatura, può issarsi in cima (ma non attraversarlo) con un'Azione gratuita.",
+   "effetto": {
+    "gittata_granate": 2,
+    "manuale": true
+   }
+  },
+  "impianto_gambe": {
+   "nome": "Gamba potenziata",
+   "en": "Boosted leg",
+   "tipo": "impianto",
+   "testo": "Il movimento base e lo Scatto aumentano di +1\" ciascuno.",
+   "effetto": {
+    "movimento": 1,
+    "scatto": 1
+   }
+  },
+  "mano_cibernetica": {
+   "nome": "Mano cibernetica",
+   "en": "Cyber hand",
+   "tipo": "impianto",
+   "testo": "Il personaggio può incorporare nella mano una Pistola che possiede. La gittata si dimezza, ma l'arma spara sempre con +1 per colpire e dà un ulteriore +1 in Rissa.",
+   "effetto": {
+    "pistola_integrata": {
+     "gittata_mult": 0.5,
+     "colpire": 1,
+     "rissa": 1
+    },
+    "manuale": true
+   }
+  },
+  "difese_genetiche": {
+   "nome": "Difese genetiche",
+   "en": "Genetic defenses",
+   "tipo": "impianto",
+   "testo": "Tiro salvezza 5+ se esposto a veleni, virus, gas o malattie.",
+   "effetto": {
+    "salvezza_contro": {
+     "tipo": [
+      "veleno",
+      "virus",
+      "gas",
+      "malattia"
+     ],
+     "soglia": 5
+    }
+   }
+  },
+  "potenziamento_salute": {
+   "nome": "Potenziamento della salute",
+   "en": "Health boost",
+   "tipo": "impianto",
+   "testo": "Se una Ferita dopo la battaglia richiederebbe 2 o più turni di recupero, il tempo si riduce di 1. Se il personaggio ha Robustezza 3 quando riceve l'impianto, la porta a 4.",
+   "effetto": {
+    "riduci_recupero_se_2_piu": 1,
+    "robustezza_3_diventa_4": true
+   }
+  },
+  "regolatore_nervi": {
+   "nome": "Regolatore nervoso",
+   "en": "Nerve adjuster",
+   "tipo": "impianto",
+   "testo": "Ogni volta che il personaggio viene Stordito, per qualsiasi motivo, ha un tiro salvezza di 5+ per evitarlo.",
+   "effetto": {
+    "salvezza_contro": {
+     "tipo": [
+      "stordimento"
+     ],
+     "soglia": 5
+    }
+   }
+  },
+  "impianto_riflessi": {
+   "nome": "Ottimizzazione neurale",
+   "en": "Neural optimization",
+   "tipo": "impianto",
+   "testo": "Il personaggio non può essere Stordito.",
+   "effetto": {
+    "immune_stordimento": true
+   }
+  },
+  "visore_notturno": {
+   "nome": "Vista notturna",
+   "en": "Night sight",
+   "tipo": "impianto",
+   "testo": "Il personaggio non subisce riduzioni di visibilità dovute al buio, ma fumo, gas ecc. lo influenzano normalmente.",
+   "effetto": {
+    "ignora_buio": true
+   }
+  },
+  "soppressore_dolore": {
+   "nome": "Soppressore del dolore",
+   "en": "Pain suppressor",
+   "tipo": "impianto",
+   "testo": "Il personaggio può svolgere compiti dell'equipaggio mentre è in Infermeria, ma non può partecipare alle battaglie.",
+   "effetto": {
+    "compiti_da_ferito": true
+   }
+  },
+  "sensore_auto": {
+   "nome": "Sensore automatico",
+   "en": "Auto sensor",
+   "tipo": "equip",
+   "testo": "Se un nemico inizia o termina un movimento entro 4\" e in linea di vista del personaggio, puoi sparare subito un colpo con una Pistola che porta. Il colpo si risolve anche se il nemico è a contatto con un personaggio e colpisce solo con un 6 naturale.",
+   "effetto": {
+    "manuale": true
+   }
+  },
+  "visore_battaglia": {
+   "nome": "Visore da battaglia",
+   "en": "Battle visor",
+   "tipo": "equip",
+   "testo": "Quando spara, il personaggio può ritirare gli 1 sui dadi di tiro.",
+   "effetto": {
+    "ritira_1_tiro": true
+   }
+  },
+  "comunicatore": {
+   "nome": "Comunicatore",
+   "en": "Communicator",
+   "tipo": "equip",
+   "testo": "Nel tiro di Reazione di ogni round puoi tirare un dado in più, poi sceglierne uno da scartare.",
+   "effetto": {
+    "dado_reazione_extra": 1
+   }
+  },
+  "lama_nascosta": {
+   "nome": "Lama nascosta",
+   "en": "Concealed blade",
+   "tipo": "equip",
+   "testo": "Se il personaggio inizia il round entro 2\" da un avversario, può lanciare la lama come Azione gratuita prima di fare qualsiasi altra cosa. Si tira per colpire normalmente; il colpo ha Danno +0. Usabile una volta per battaglia, poi viene sostituita gratis.",
+   "effetto": {
+    "per_battaglia": 1,
+    "manuale": true
+   }
+  },
+  "dislocatore": {
+   "nome": "Dislocatore",
+   "en": "Displacer",
+   "tipo": "equip",
+   "testo": "Usabile una volta per missione al posto del Movimento. Mira un punto qualsiasi in vista: il personaggio si teletrasporta in un punto a 1D6\" da lì in direzione casuale. Se finirebbe dentro un ostacolo solido, il dispositivo fallisce e va Riparato prima di riusarlo. Il personaggio riappare alla stessa altezza del punto mirato (può cadere se è nel vuoto) e può fare un'Azione di combattimento dopo il teletrasporto. Un Precursore può fissare due punti d'arrivo e sceglierne uno.",
+   "effetto": {
+    "per_missione": 1,
+    "manuale": true
+   }
+  },
+  "bot_distrazione": {
+   "nome": "Bot diversivo",
+   "en": "Distraction bot",
+   "tipo": "equip",
+   "testo": "Una volta per battaglia, come Azione di combattimento: scegli un nemico entro 12\". La prossima volta che si attiverebbe non può agire, anche se rimuove gli Storditi normalmente. Usa un segnalino per ricordarlo.",
+   "effetto": {
+    "per_battaglia": 1,
+    "manuale": true
+   }
+  },
+  "rampino": {
+   "nome": "Lancia-rampino",
+   "en": "Grapple launcher",
+   "tipo": "equip",
+   "testo": "Come Azione di combattimento il personaggio può scalare un elemento del terreno entro 1\", salendo fino a 12\"; deve arrivare su una superficie su cui stare in piedi.",
+   "effetto": {
+    "scalata": 12,
+    "manuale": true
+   }
+  },
+  "smorzatore_grav": {
+   "nome": "Smorzatore gravitazionale",
+   "en": "Grav dampener",
+   "tipo": "equip",
+   "testo": "Il personaggio non subisce danni da caduta e può scendere da qualsiasi altezza senza rischi. Se scende di più di 6\", conta come il suo Movimento del round.",
+   "effetto": {
+    "nessun_danno_caduta": true
+   }
+  },
+  "tuta_ambientale": {
+   "nome": "Tuta antirischio",
+   "en": "Hazard suit",
+   "tipo": "equip",
+   "testo": "Se il personaggio subisce un colpo da un rischio ambientale, riceve un tiro salvezza di 5+.",
+   "effetto": {
+    "salvezza_contro": {
+     "tipo": [
+      "ambientale"
+     ],
+     "soglia": 5
+    }
+   }
+  },
+  "hoverboard": {
+   "nome": "Hoverboard",
+   "en": "Hover board",
+   "tipo": "equip",
+   "testo": "Il personaggio può usarlo per muoversi invece di camminare: fino a 9\", ignorando il terreno alto quanto un uomo o meno. In hoverboard non può combattere, ma può fare un'Azione non di combattimento.",
+   "effetto": {
+    "movimento_alternativo": 9,
+    "manuale": true
+   }
+  },
+  "insta_muro": {
+   "nome": "Insta-muro",
+   "en": "Insta-wall",
+   "tipo": "equip",
+   "testo": "Una volta per missione, come Azione di combattimento: piazza un segnalino entro 3\", poi un muro di forza lungo 2\" orientato a piacere che tocchi il segnalino. Il muro è alto quanto un uomo e impenetrabile agli attacchi (non blocca la vista né i poteri mentali). All'inizio di ogni round successivo si tira 1D6: con 6 il muro svanisce.",
+   "effetto": {
+    "per_missione": 1,
+    "manuale": true
+   }
+  },
+  "jump_belt": {
+   "nome": "Cintura a reazione",
+   "en": "Jump belt",
+   "tipo": "equip",
+   "testo": "Invece di Muoversi normalmente, il personaggio può saltare fino a 9\" in avanti in linea retta e 3\" verso l'alto. Dopo l'atterraggio può fare normalmente un'Azione di combattimento.",
+   "effetto": {
+    "salto": {
+     "avanti": 9,
+     "su": 3
+    }
+   }
+  },
+  "motion_tracker": {
+   "nome": "Rilevatore di movimento",
+   "en": "Motion tracker",
+   "tipo": "equip",
+   "testo": "+1 a tutti i tiri per Prendere l'iniziativa.",
+   "effetto": {
+    "iniziativa": 1
+   }
+  },
+  "multitaglio": {
+   "nome": "Multi-taglierina",
+   "en": "Multi-cutter",
+   "tipo": "equip",
+   "testo": "Come Azione di combattimento il personaggio apre un varco a misura d'uomo in qualsiasi elemento del terreno spesso fino a 1\". Nessun effetto sui campi di forza.",
+   "effetto": {
+    "manuale": true
+   }
+  },
+  "zampa_coniglio": {
+   "nome": "Robo-zampa di coniglio",
+   "en": "Robo-rabbit's foot",
+   "tipo": "equip",
+   "testo": "Un personaggio con Fortuna 0 conta come avere Fortuna 1. Se il personaggio morirebbe mentre la porta, la zampa viene distrutta (non riparabile) e il personaggio non tira sulla tabella delle Ferite.",
+   "effetto": {
+    "fortuna_minima": 1,
+    "salva_dalla_morte": true
+   }
+  },
+  "scanner_bot": {
+   "nome": "Bot scanner",
+   "en": "Scanner bot",
+   "tipo": "equip",
+   "testo": "L'equipaggio aggiunge +1 a tutti i tiri per Prendere l'iniziativa.",
+   "effetto": {
+    "iniziativa": 1,
+    "di_squadra": true
+   }
+  },
+  "bot_spia": {
+   "nome": "Bot spia",
+   "en": "Snooper bot",
+   "tipo": "equip",
+   "testo": "Si può schierare prima della battaglia se il tiro per Prendere l'iniziativa sarebbe penalizzato o annullato: la penalità si ignora, ma con 1 su 1D6 il Bot viene Danneggiato.",
+   "effetto": {
+    "ignora_malus_iniziativa": true,
+    "danneggiato_su_1": true
+   }
+  },
+  "emettitore_sonico": {
+   "nome": "Emettitore sonico",
+   "en": "Sonic emitter",
+   "tipo": "equip",
+   "testo": "Ogni nemico entro 5\" ha -1 a tutti i tiri per colpire quando spara.",
+   "effetto": {
+    "malus_nemici_entro": {
+     "distanza": 5,
+     "colpire": -1
+    }
+   }
+  },
+  "stivali_acciaio": {
+   "nome": "Stivali d'acciaio",
+   "en": "Steel boots",
+   "tipo": "equip",
+   "testo": "Se il personaggio ottiene un 5 o 6 naturale in Rissa e la vince, può scegliere di dare un calcio invece di colpire normalmente: colpo con Danno +0 che spinge il bersaglio di 1D3\" direttamente indietro. Se l'avversario finisce contro un altro personaggio, quest'ultimo viene spinto di 1D3\" in direzione casuale.",
+   "effetto": {
+    "manuale": true
+   }
+  },
+  "distorsore_temporale": {
+   "nome": "Distorsore temporale",
+   "en": "Time distorter",
+   "tipo": "equip",
+   "testo": "Si attiva come Azione gratuita. Scegli fino a 3 nemici sul campo: restano congelati nel tempo fino alla fine del round successivo. Non possono Muoversi, agire né essere influenzati da attacchi o effetti, e sono esclusi dai tiri di Morale. Monouso.",
+   "effetto": {
+    "monouso": true,
+    "manuale": true
+   }
+  },
+  "analizzatore": {
+   "nome": "Analizzatore",
+   "en": "Analyzer",
+   "tipo": "nave",
+   "testo": "+1 ai tiri per vedere se le Dicerie diventano una Missione (Quest) e ai tiri di risoluzione della Missione.",
+   "effetto": {
+    "bonus": {
+     "quest": 1
+    }
+   }
+  },
+  "razioni_coloniali": {
+   "nome": "Razioni coloniali",
+   "en": "Colonist ration packs",
+   "tipo": "nave",
+   "testo": "Ignora i costi di mantenimento per un turno di campagna. +1 punto Storia. Monouso.",
+   "effetto": {
+    "monouso": true,
+    "salta_mantenimento": 1,
+    "punti_storia": 1
+   }
+  },
+  "duplicatore": {
+   "nome": "Duplicatore",
+   "en": "Duplicator",
+   "tipo": "nave",
+   "testo": "Crea una copia perfetta di un oggetto del tuo inventario. Non può copiare un Duplicatore. Monouso.",
+   "effetto": {
+    "monouso": true,
+    "manuale": true
+   }
+  },
+  "documenti_falsi": {
+   "nome": "Documenti falsi",
+   "en": "Fake ID",
+   "tipo": "nave",
+   "testo": "+1 a tutti i tentativi di ottenere una licenza o un altro documento legale.",
+   "effetto": {
+    "bonus": {
+     "licenza": 1
+    }
+   }
+  },
+  "fixer": {
+   "nome": "Fixer",
+   "en": "Fixer",
+   "tipo": "nave",
+   "testo": "Ripara automaticamente e gratis un oggetto personale danneggiato o distrutto. Monouso.",
+   "effetto": {
+    "monouso": true,
+    "ripara_oggetto": 1
+   }
+  },
+  "kit_riconfigurazione": {
+   "nome": "Kit di riconfigurazione genetica",
+   "en": "Genetic reconfiguration kit",
+   "tipo": "nave",
+   "testo": "Riduce di 2 XP il costo di un aumento di caratteristica. Nessun effetto su Bot e Senz'anima (Soulless); i K'Erin possono usarlo solo per aumentare la Robustezza. Monouso.",
+   "effetto": {
+    "monouso": true,
+    "sconto_xp": 2
+   }
+  },
+  "dadi_truccati": {
+   "nome": "Dadi truccati",
+   "en": "Loaded dice",
+   "tipo": "nave",
+   "testo": "Ogni turno di campagna un membro dell'equipaggio può giocare d'azzardo. Tira 1D6: con 1-4 guadagni altrettanti crediti; con 5 niente; con 6 la gente del posto non la prende bene: i dadi sono persi e il personaggio tira sulla tabella delle Ferite dopo la battaglia.",
+   "effetto": {
+    "manuale": true
+   }
+  },
+  "dadi_fortunati": {
+   "nome": "Dadi fortunati",
+   "en": "Lucky dice",
+   "tipo": "nave",
+   "testo": "Ogni turno di campagna un membro dell'equipaggio può giocare d'azzardo guadagnando +1 credito. Con entrambi i set di dadi (Fortunati e Truccati) si usano tutti e due, ma un 6 con i Dadi truccati fa perdere entrambi i set.",
+   "effetto": {
+    "crediti_per_turno": 1
+   }
+  },
+  "traduttore_mk2": {
+   "nome": "Traduttore Mk II",
+   "en": "Mk II translator",
+   "tipo": "nave",
+   "testo": "Quando tiri per Reclutare puoi tirare un D6 in più.",
+   "effetto": {
+    "dado_reclutare_extra": 1
+   }
+  },
+  "medikit": {
+   "nome": "Med-patch",
+   "en": "Med-patch",
+   "tipo": "nave",
+   "testo": "Un personaggio che si sta riprendendo da una Ferita può togliere un turno di campagna dal recupero. Se il tempo scende a zero, può agire normalmente in questo turno. Monouso.",
+   "effetto": {
+    "monouso": true,
+    "recupero": 1
+   }
+  },
+  "sfera_meditazione": {
+   "nome": "Sfera di meditazione",
+   "en": "Meditation orb",
+   "tipo": "nave",
+   "testo": "L'equipaggio si sente rassicurato sul proprio equilibrio karmico: +2 punti Storia. Tutti gli Swift o Precursori dell'equipaggio ottengono anche +1 XP. Monouso.",
+   "effetto": {
+    "monouso": true,
+    "punti_storia": 2,
+    "xp_specie": {
+     "specie": [
+      "swift",
+      "precursore"
+     ],
+     "xp": 1
+    }
+   }
+  },
+  "nano_doc": {
+   "nome": "Nano-doc",
+   "en": "Nano-doc",
+   "tipo": "nave",
+   "testo": "Evita un tiro sulla tabella delle Ferite dopo la battaglia, qualunque sia la causa. Va deciso prima di tirare. Monouso.",
+   "effetto": {
+    "monouso": true,
+    "evita_ferita": true
+   }
+  },
+  "peluche": {
+   "nome": "Peluche stravagante",
+   "en": "Novelty stuffed animal",
+   "tipo": "nave",
+   "testo": "Da dare a un personaggio che non sia Senz'anima, K'Erin o Bot: riceve +1 XP e tira 1D6; con 6 aggiungi anche +1 punto Storia. Monouso.",
+   "effetto": {
+    "monouso": true,
+    "xp": 1,
+    "manuale": true
+   }
+  },
+  "purificatore": {
+   "nome": "Purificatore",
+   "en": "Purifier",
+   "tipo": "nave",
+   "testo": "Ogni turno di campagna produce acqua pulita che si vende per 1 credito. Non serve un membro dell'equipaggio per usarlo, ma se ne può usare uno solo alla volta.",
+   "effetto": {
+    "crediti_per_turno": 1,
+    "non_cumulabile": true
+   }
+  },
+  "kit_riparazione": {
+   "nome": "Bot riparatore",
+   "en": "Repair Bot",
+   "tipo": "nave",
+   "testo": "+1 a tutti i tentativi di Riparazione.",
+   "effetto": {
+    "bonus": {
+     "riparare": 1
+    }
+   }
+  },
+  "permesso_settore": {
+   "nome": "Permesso di settore",
+   "en": "Sector permit",
+   "tipo": "nave",
+   "testo": "Quando arrivi su un pianeta che richiede una licenza tira 1D6: con 4+ il Permesso è accettato. Si tira per ogni tipo di licenza, su ogni pianeta.",
+   "effetto": {
+    "licenza_su": 4
+   }
+  },
+  "pezzi_ricambio": {
+   "nome": "Pezzi di ricambio",
+   "en": "Spare parts",
+   "tipo": "nave",
+   "testo": "+1 ai tentativi di Riparazione. Se il tiro è un 1 naturale, i pezzi si esauriscono e vanno cancellati.",
+   "effetto": {
+    "bonus": {
+     "riparare": 1
+    },
+    "perso_su_1": true
+   }
+  },
+  "teach_bot": {
+   "nome": "Bot istruttore",
+   "en": "Teach-bot",
+   "tipo": "nave",
+   "testo": "Un personaggio che svolge il compito Addestrarsi guadagna 1D6 XP aggiuntivi. Monouso.",
+   "effetto": {
+    "monouso": true,
+    "xp_addestramento": "1d6"
+   }
+  },
+  "trascensore": {
+   "nome": "Trascensore",
+   "en": "Transcender",
+   "tipo": "nave",
+   "testo": "Il personaggio che attiva questo misterioso dispositivo riceve +1 XP. L'intero equipaggio comprende qualcosa sul proprio posto nel cosmo: +2 punti Storia. Monouso.",
+   "effetto": {
+    "monouso": true,
+    "xp": 1,
+    "punti_storia": 2
+   }
+  },
+  "lama_assalto": {
+   "nome": "Lama d'assalto",
+   "en": "Assault blade",
+   "tipo": "mod_arma",
+   "testo": "L'arma ottiene il tratto Mischia, Danno +1 e vince la Rissa in caso di pareggio. Solo armi non Pistola.",
+   "effetto": {
+    "tratti_aggiunti": [
+     "mischia"
+    ],
+    "danno_rissa": 1,
+    "vince_pareggio_rissa": true,
+    "solo": "non_pistola"
+   }
+  },
+  "torcia": {
+   "nome": "Torcia tattica",
+   "en": "Beam light",
+   "tipo": "mod_arma",
+   "testo": "Usando l'arma con visibilità ridotta, la visibilità aumenta di +3\".",
+   "effetto": {
+    "visibilita": 3
+   }
+  },
+  "bipode": {
+   "nome": "Bipode",
+   "en": "Bipod",
+   "tipo": "mod_arma",
+   "testo": "+1 per colpire a distanze oltre 8\" quando si Mira o si spara da una Copertura. Solo armi non Pistola.",
+   "effetto": {
+    "colpire_oltre": {
+     "distanza": 8,
+     "bonus": 1,
+     "se": [
+      "mira",
+      "copertura"
+     ]
+    },
+    "solo": "non_pistola"
+   }
+  },
+  "pacco_hot_shot": {
+   "nome": "Pacco hot shot",
+   "en": "Hot shot pack",
+   "tipo": "mod_arma",
+   "testo": "Se montato su Pistola blaster, Fucile blaster, Laser a mano o Laser da fanteria: Danno +1. Ogni 6 naturale sui dadi di tiro causa un surriscaldamento: l'arma è inutilizzabile per il resto dello scontro.",
+   "effetto": {
+    "danno": 1,
+    "solo_armi": [
+     "pistola_blaster",
+     "fucile_blaster",
+     "laser_mano",
+     "laser_fanteria"
+    ],
+    "surriscalda_su_6": true
+   }
+  },
+  "nano_fango": {
+   "nome": "Nano-fango configurabile",
+   "en": "Cyber-configurable nano-sludge",
+   "tipo": "mod_arma",
+   "testo": "L'arma riceve un bonus permanente di +1 per colpire.",
+   "effetto": {
+    "colpire": 1
+   }
+  },
+  "stabilizzatore": {
+   "nome": "Stabilizzatore",
+   "en": "Stabilizer",
+   "tipo": "mod_arma",
+   "testo": "L'arma può ignorare il tratto Pesante.",
+   "effetto": {
+    "ignora_tratti": [
+     "pesante"
+    ]
+   }
+  },
+  "attacco_shock": {
+   "nome": "Attacco shock",
+   "en": "Shock attachment",
+   "tipo": "mod_arma",
+   "testo": "L'arma ottiene il tratto Impatto contro bersagli entro 8\".",
+   "effetto": {
+    "tratti_entro": {
+     "tratto": "impatto",
+     "distanza": 8
+    }
+   }
+  },
+  "kit_potenziamento": {
+   "nome": "Kit di potenziamento",
+   "en": "Upgrade kit",
+   "tipo": "mod_arma",
+   "testo": "Gittata +2\".",
+   "effetto": {
+    "gittata": 2
+   }
+  },
+  "mirino_laser": {
+   "nome": "Mirino laser",
+   "en": "Laser sight",
+   "tipo": "mirino",
+   "testo": "L'arma ottiene il tratto Tiro rapido. Solo Pistole.",
+   "effetto": {
+    "tratti_aggiunti": [
+     "tiro_rapido"
+    ],
+    "solo": "pistola"
+   }
+  },
+  "mirino_qualita": {
+   "nome": "Mirino di qualità",
+   "en": "Quality sight",
+   "tipo": "mirino",
+   "testo": "Gittata +2\". Si ritirano gli 1 quando si spara un solo colpo.",
+   "effetto": {
+    "gittata": 2,
+    "ritira_1_se_colpo_singolo": true
+   }
+  },
+  "mirino_cercatore": {
+   "nome": "Mirino cercatore",
+   "en": "Seeker sight",
+   "tipo": "mirino",
+   "testo": "+1 per colpire se chi spara non si è Mosso in questo round.",
+   "effetto": {
+    "colpire_se_fermo": 1
+   }
+  },
+  "mirino_tracciante": {
+   "nome": "Mirino tracciante",
+   "en": "Tracker sight",
+   "tipo": "mirino",
+   "testo": "+1 per colpire se nel round precedente hai sparato allo stesso bersaglio.",
+   "effetto": {
+    "colpire_stesso_bersaglio": 1
+   }
+  },
+  "mirino_unity": {
+   "nome": "Mirino da battaglia Unity",
+   "en": "Unity battle sight",
+   "tipo": "mirino",
+   "testo": "+1 a tutti i tiri per colpire.",
+   "effetto": {
+    "colpire": 1
+   }
+  }
+ },
+ "tabelle": {
+  "equip": {
+   "_dado": "d100",
+   "_pagina": 29,
+   "en": "Gear Table",
+   "righe": [
+    {
+     "da": 1,
+     "a": 4,
+     "oggetto": "lama_assalto",
+     "nome": "Lama d'assalto",
+     "en": "Assault blade"
+    },
+    {
+     "da": 5,
+     "a": 10,
+     "oggetto": "torcia",
+     "nome": "Torcia tattica",
+     "en": "Beam light"
+    },
+    {
+     "da": 11,
+     "a": 15,
+     "oggetto": "bipode",
+     "nome": "Bipode",
+     "en": "Bipod"
+    },
+    {
+     "da": 16,
+     "a": 20,
+     "oggetto": "booster",
+     "nome": "Pillole booster",
+     "en": "Booster pills"
+    },
+    {
+     "da": 21,
+     "a": 24,
+     "oggetto": "mantello_mimetico",
+     "nome": "Mantello mimetico",
+     "en": "Camo cloak"
+    },
+    {
+     "da": 25,
+     "a": 28,
+     "oggetto": "corazza_combattimento",
+     "nome": "Corazza da combattimento",
+     "en": "Combat armor"
+    },
+    {
+     "da": 29,
+     "a": 33,
+     "oggetto": "comunicatore",
+     "nome": "Comunicatore",
+     "en": "Communicator"
+    },
+    {
+     "da": 34,
+     "a": 37,
+     "oggetto": "lama_nascosta",
+     "nome": "Lama nascosta",
+     "en": "Concealed blade"
+    },
+    {
+     "da": 38,
+     "a": 42,
+     "oggetto": "documenti_falsi",
+     "nome": "Documenti falsi",
+     "en": "Fake ID"
+    },
+    {
+     "da": 43,
+     "a": 46,
+     "oggetto": "fixer",
+     "nome": "Fixer",
+     "en": "Fixer"
+    },
+    {
+     "da": 47,
+     "a": 52,
+     "oggetto": "corazza_frag",
+     "nome": "Giubbotto antischegge",
+     "en": "Frag vest"
+    },
+    {
+     "da": 53,
+     "a": 57,
+     "oggetto": "rampino",
+     "nome": "Lancia-rampino",
+     "en": "Grapple launcher"
+    },
+    {
+     "da": 58,
+     "a": 61,
+     "oggetto": "tuta_ambientale",
+     "nome": "Tuta antirischio",
+     "en": "Hazard suit"
+    },
+    {
+     "da": 62,
+     "a": 65,
+     "oggetto": "mirino_laser",
+     "nome": "Mirino laser",
+     "en": "Laser sight"
+    },
+    {
+     "da": 66,
+     "a": 69,
+     "oggetto": "dadi_truccati",
+     "nome": "Dadi truccati",
+     "en": "Loaded dice"
+    },
+    {
+     "da": 70,
+     "a": 75,
+     "oggetto": "medikit",
+     "nome": "Med-patch",
+     "en": "Med-patch"
+    },
+    {
+     "da": 76,
+     "a": 81,
+     "oggetto": "nano_doc",
+     "nome": "Nano-doc",
+     "en": "Nano-doc"
+    },
+    {
+     "da": 82,
+     "a": 85,
+     "oggetto": "purificatore",
+     "nome": "Purificatore",
+     "en": "Purifier"
+    },
+    {
+     "da": 86,
+     "a": 89,
+     "oggetto": "scanner_bot",
+     "nome": "Bot scanner",
+     "en": "Scanner bot"
+    },
+    {
+     "da": 90,
+     "a": 92,
+     "oggetto": "permesso_settore",
+     "nome": "Permesso di settore",
+     "en": "Sector permit"
+    },
+    {
+     "da": 93,
+     "a": 96,
+     "oggetto": "stivali_acciaio",
+     "nome": "Stivali d'acciaio",
+     "en": "Steel boots"
+    },
+    {
+     "da": 97,
+     "a": 100,
+     "oggetto": "mirino_tracciante",
+     "nome": "Mirino tracciante",
+     "en": "Tracker sight"
+    }
+   ]
+  },
+  "gadget": {
+   "_dado": "d100",
+   "_pagina": 29,
+   "en": "Gadget Table",
+   "righe": [
+    {
+     "da": 1,
+     "a": 4,
+     "oggetto": "compagno_ia",
+     "nome": "Compagno IA",
+     "en": "AI companion"
+    },
+    {
+     "da": 5,
+     "a": 9,
+     "oggetto": "analizzatore",
+     "nome": "Analizzatore",
+     "en": "Analyzer"
+    },
+    {
+     "da": 10,
+     "a": 13,
+     "oggetto": "visore_battaglia",
+     "nome": "Visore da battaglia",
+     "en": "Battle visor"
+    },
+    {
+     "da": 14,
+     "a": 17,
+     "oggetto": "impianto_muscoli",
+     "nome": "Braccio potenziato",
+     "en": "Boosted arm"
+    },
+    {
+     "da": 18,
+     "a": 21,
+     "oggetto": "impianto_gambe",
+     "nome": "Gamba potenziata",
+     "en": "Boosted leg"
+    },
+    {
+     "da": 22,
+     "a": 24,
+     "oggetto": "mano_cibernetica",
+     "nome": "Mano cibernetica",
+     "en": "Cyber hand"
+    },
+    {
+     "da": 25,
+     "a": 27,
+     "oggetto": "dislocatore",
+     "nome": "Dislocatore",
+     "en": "Displacer"
+    },
+    {
+     "da": 28,
+     "a": 31,
+     "oggetto": "bot_distrazione",
+     "nome": "Bot diversivo",
+     "en": "Distraction bot"
+    },
+    {
+     "da": 32,
+     "a": 36,
+     "oggetto": "duplicatore",
+     "nome": "Duplicatore",
+     "en": "Duplicator"
+    },
+    {
+     "da": 37,
+     "a": 41,
+     "oggetto": "insta_muro",
+     "nome": "Insta-muro",
+     "en": "Insta-wall"
+    },
+    {
+     "da": 42,
+     "a": 46,
+     "oggetto": "jump_belt",
+     "nome": "Cintura a reazione",
+     "en": "Jump belt"
+    },
+    {
+     "da": 47,
+     "a": 50,
+     "oggetto": "regolatore_nervi",
+     "nome": "Regolatore nervoso",
+     "en": "Nerve adjuster"
+    },
+    {
+     "da": 51,
+     "a": 55,
+     "oggetto": "kit_riparazione",
+     "nome": "Bot riparatore",
+     "en": "Repair Bot"
+    },
+    {
+     "da": 56,
+     "a": 60,
+     "oggetto": "scanner_bot",
+     "nome": "Bot scanner",
+     "en": "Scanner bot"
+    },
+    {
+     "da": 61,
+     "a": 65,
+     "oggetto": "generatore_schermo",
+     "nome": "Generatore di schermo",
+     "en": "Screen generator"
+    },
+    {
+     "da": 66,
+     "a": 69,
+     "oggetto": "mirino_cercatore",
+     "nome": "Mirino cercatore",
+     "en": "Seeker sight"
+    },
+    {
+     "da": 70,
+     "a": 73,
+     "oggetto": "attacco_shock",
+     "nome": "Attacco shock",
+     "en": "Shock attachment"
+    },
+    {
+     "da": 74,
+     "a": 79,
+     "oggetto": "bot_spia",
+     "nome": "Bot spia",
+     "en": "Snooper bot"
+    },
+    {
+     "da": 80,
+     "a": 83,
+     "oggetto": "emettitore_sonico",
+     "nome": "Emettitore sonico",
+     "en": "Sonic emitter"
+    },
+    {
+     "da": 84,
+     "a": 89,
+     "oggetto": "stabilizzatore",
+     "nome": "Stabilizzatore",
+     "en": "Stabilizer"
+    },
+    {
+     "da": 90,
+     "a": 93,
+     "oggetto": "equip_furtivo",
+     "nome": "Equipaggiamento furtivo",
+     "en": "Stealth gear"
+    },
+    {
+     "da": 94,
+     "a": 100,
+     "oggetto": "stim",
+     "nome": "Stim-pack",
+     "en": "Stim-pack"
+    }
+   ]
+  }
+ }
+}

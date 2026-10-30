@@ -1,0 +1,800 @@
+{
+ "_nota": "Nave: Tabella delle navi p.31 stampata (PDF 33), tratti p.30 (PDF 32), regole p.59-62 (PDF 61-64), debito e riparazioni p.76 (PDF 78), viaggio p.69 (PDF 71). scafo = punti scafo; debito = espressione di dadi del debito iniziale. 'effetti_tratti' e 'effetto' dei componenti: carburante (modifica al costo del viaggio), riduci_danno (per ogni danno subito), sconto_componenti, fuga_invasione (bonus al tiro 2D6 per fuggire), recupero_extra, mantenimento_membri, manuale. 'parametri' riassume i numeri delle regole.",
+ "navi": {
+  "_dado": "d100",
+  "righe": [
+   {
+    "da": 1,
+    "a": 12,
+    "nome": "Mercantile logoro",
+    "en": "Worn freighter",
+    "scafo": 30,
+    "debito": "1d6+20",
+    "tratti": []
+   },
+   {
+    "da": 13,
+    "a": 18,
+    "nome": "Trasporto truppe in disarmo",
+    "en": "Retired troop transport",
+    "scafo": 35,
+    "debito": "1d6+30",
+    "tratti": [
+     "propulsori_emergenza"
+    ]
+   },
+   {
+    "da": 19,
+    "a": 23,
+    "nome": "Strana nave aliena",
+    "en": "Strange alien vessel",
+    "scafo": 25,
+    "debito": "1d6+15",
+    "tratti": []
+   },
+   {
+    "da": 24,
+    "a": 31,
+    "nome": "Navetta potenziata",
+    "en": "Upgraded shuttle",
+    "scafo": 20,
+    "debito": "1d6+10",
+    "tratti": []
+   },
+   {
+    "da": 32,
+    "a": 38,
+    "nome": "Nave da ricognizione in disarmo",
+    "en": "Retired scout ship",
+    "scafo": 25,
+    "debito": "1d6+20",
+    "tratti": [
+     "efficiente"
+    ]
+   },
+   {
+    "da": 39,
+    "a": 45,
+    "nome": "Nave scientifica riadattata",
+    "en": "Repurposed science vessel",
+    "scafo": 20,
+    "debito": "1d6+10",
+    "tratti": []
+   },
+   {
+    "da": 46,
+    "a": 56,
+    "nome": "Nave mineraria malconcia",
+    "en": "Battered mining ship",
+    "scafo": 35,
+    "debito": "1d6+20",
+    "tratti": [
+     "divora_carburante"
+    ]
+   },
+   {
+    "da": 57,
+    "a": 65,
+    "nome": "Incrociatore mercantile inaffidabile",
+    "en": "Unreliable merchant cruiser",
+    "scafo": 30,
+    "debito": "1d6+20",
+    "tratti": []
+   },
+   {
+    "da": 66,
+    "a": 70,
+    "nome": "Ex nave diplomatica",
+    "en": "Former diplomatic vessel",
+    "scafo": 25,
+    "debito": "1d6+15",
+    "tratti": []
+   },
+   {
+    "da": 71,
+    "a": 76,
+    "nome": "Antico vascello a bassa tecnologia",
+    "en": "Ancient low-tech craft",
+    "scafo": 35,
+    "debito": "1d6+20",
+    "tratti": [
+     "motore_capriccioso"
+    ]
+   },
+   {
+    "da": 77,
+    "a": 84,
+    "nome": "Costruita con relitti recuperati",
+    "en": "Built from salvaged wrecks",
+    "scafo": 30,
+    "debito": "1d6+20",
+    "tratti": []
+   },
+   {
+    "da": 85,
+    "a": 95,
+    "nome": "Vecchia nave coloniale",
+    "en": "Worn colony ship",
+    "scafo": 25,
+    "debito": "1d6+20",
+    "tratti": [
+     "dotazione_standard"
+    ]
+   },
+   {
+    "da": 96,
+    "a": 100,
+    "nome": "Pattugliatore militare in disarmo",
+    "en": "Retired military patrol ship",
+    "scafo": 40,
+    "debito": "1d6+35",
+    "tratti": [
+     "corazzata"
+    ]
+   }
+  ]
+ },
+ "tratti_nave": {
+  "propulsori_emergenza": "Propulsori d'emergenza (Emergency Drives): se devi fare un decollo d'emergenza con la nave danneggiata, riduci di 3 il danno allo scafo ottenuto col tiro.",
+  "efficiente": "Basso consumo (Fuel-efficient): quando viaggi verso un nuovo mondo, il costo del carburante si riduce di 1 credito.",
+  "divora_carburante": "Divora-carburante (Fuel Hog): quando viaggi verso un nuovo mondo, il costo del carburante aumenta di 1 credito.",
+  "dotazione_standard": "Dotazione standard (Standard Issue): il costo di tutti i Componenti della nave si riduce di 1 credito.",
+  "motore_capriccioso": "Motore capriccioso (Dodgy Drive): ogni volta che la nave subisce danni allo scafo, tira 2D6. Se il risultato è uguale o inferiore al danno subito, il motore fa i capricci e subisci 2 danni aggiuntivi.",
+  "corazzata": "Corazzata (Armored): ogni volta che la nave subisce danni, perdi 1 punto scafo in meno di quanto indicato dalle regole."
+ },
+ "effetti_tratti": {
+  "propulsori_emergenza": {
+   "riduci_danno_decollo_emergenza": 3
+  },
+  "efficiente": {
+   "carburante": -1
+  },
+  "divora_carburante": {
+   "carburante": 1
+  },
+  "dotazione_standard": {
+   "sconto_componenti": 1
+  },
+  "motore_capriccioso": {
+   "danno_extra_se_2d6_minore_uguale": 2
+  },
+  "corazzata": {
+   "riduci_danno": 1
+  }
+ },
+ "regole": {
+  "base": "La nave è la base dell'equipaggio: si viaggia, ci si riposa, ci si addestra, si guarisce e si custodisce la Scorta. Con una nave siete agenti liberi. Il combattimento tra navi non è previsto da queste regole. Se la nave non viene potenziata, danneggiata o persa, di solito resta sullo sfondo.",
+  "viaggio": "All'inizio di ogni turno di campagna puoi decidere di lasciare il pianeta. Con una nave, viaggiare verso un nuovo mondo costa 5 crediti (carburante e altre spese); senza soldi resti bloccato finché non li hai. Se viaggi, tira una volta sulla tabella degli Eventi di viaggio. Il viaggio non 'consuma tempo': i feriti non recuperano durante il viaggio, salvo eventi specifici. Puoi generare un nuovo mondo e decidere di non andarci: aspetterai il turno successivo. Puoi tornare su un mondo già visitato, ritrovandone Patroni e Rivali. Comunque tu parta, Patroni, Rivali e conoscenti del mondo che lasci sono persi.",
+  "costo_carburante": "Costo base 5 crediti. +1 credito ogni 3 Componenti installati sulla nave. Tratti: Basso consumo -1, Divora-carburante +1. Convertitori di carburante militari: -2.",
+  "viaggio_commerciale": "Senza nave puoi comprare un passaggio su una nave commerciale: 1 credito per membro dell'equipaggio. Non puoi portare pacchi o carichi da consegnare (ricompense di trasporto), ma porti tutti gli effetti personali. Non si tira sugli Eventi di viaggio.",
+  "danni_scafo": "I danni si contano in punti scafo e mai su parti specifiche. Ogni nave ha una soglia (i punti scafo): quando i danni accumulati la raggiungono, la nave è un relitto inutilizzabile. Se succede nello spazio, vi schiantate su un pianeta vicino (vedi 'senza nave'); se succede a terra, recuperate rottami per 1D6+5 crediti. Con danni allo scafo la nave non può partire in sicurezza: niente viaggio nel turno di campagna (salvo decollo d'emergenza).",
+  "riparazioni": "Nella fase Mantenimento e riparazioni del turno di campagna: si ripara automaticamente 1 punto scafo per turno; inoltre ogni credito speso ripara 1 punto scafo, senza limite di spesa.",
+  "decollo_emergenza": "Se insisti a viaggiare con la nave danneggiata, la nave subisce 3D6 danni allo scafo perché il motore sfoga plasma surriscaldato nella nave.",
+  "senza_nave": "Se la nave viene distrutta durante il viaggio, fuggite con una navetta e atterrate su un mondo popolato, ma la nave è persa: perdete tutti i crediti e ogni membro dell'equipaggio tiene solo 2 oggetti; il resto è perso. Senza nave non viaggiate a piacere (potete restare su un pianeta quanto volete, o pagare il viaggio commerciale) e la Scorta è limitata a 5 oggetti (tutti della stessa 'taglia'; più copie dello stesso consumabile contano come un oggetto).",
+  "fuga_invasione": "Se il mondo è Invaso dovete tentare la fuga: 2D6, 8+ per lasciare il pianeta in sicurezza (bonus: Navetta +2, Torrette automatiche +1). Se mancano i 5 crediti di carburante si può vendere equipaggiamento in perdita (1 credito ogni 2 oggetti) o abbandonare la nave e prendere un passaggio di evacuazione. Senza nave si fugge su una nave di evacuazione perdendo tutti i crediti e 1D6 oggetti a scelta. (Dettagli in p.69.)",
+  "comprare_nave": "Ogni turno di campagna (fase Acquisti) potete cercare una nuova nave: costo (2D6+3) x 10 crediti. Tirate una volta sulla Tabella delle navi per sapere quale nave è in offerta; potete rinunciare e riprovare nel turno successivo. Potete finanziare fino a 70 crediti del costo (diventano debito).",
+  "debito_interessi": "Nella fase Mantenimento potete fare pagamenti sul debito. Dopo averli fatti (o no), se ancora dovete denaro il debito aumenta di 1 credito se è di 30 crediti o meno, di 2 crediti se è di 31 o più.",
+  "sequestro": "Se dopo l'aumento il debito arriva a 75 crediti o più, tirate 2D6: con 2-6 la nave viene sequestrata dalle autorità o dai loschi creditori ed è persa per sempre. (A p.60 il libro dice 'supera 75', a p.76 '75 o più': si usa la seconda.)",
+  "componenti": "Nella fase Acquisti potete comprare Componenti per la nave: uno solo per turno, funzionante dall'inizio del turno successivo. I Pezzi di nave ottenuti come ricompensa riducono il costo del Componente del loro valore. Potete rimuovere un Componente per turno, recuperando 1 credito di rottami ogni 5 crediti del suo costo; non si può rimuovere e installare nello stesso turno. Ogni 3 Componenti installati il viaggio costa 1 credito in più.",
+  "vendere_nave": "Il libro non prevede la vendita della nave: si possono solo recuperare rottami da un relitto a terra (1D6+5 crediti) o dai Componenti rimossi."
+ },
+ "parametri": {
+  "costo_viaggio": 5,
+  "carburante_ogni_componenti": 3,
+  "riparazione_gratuita_per_turno": 1,
+  "crediti_per_punto_scafo": 1,
+  "decollo_emergenza_danno": "3d6",
+  "rottami_relitto": "1d6+5",
+  "costo_nuova_nave": "(2d6+3)*10",
+  "finanziamento_max": 70,
+  "interessi": [
+   {
+    "fino_a": 30,
+    "aumento": 1
+   },
+   {
+    "da": 31,
+    "aumento": 2
+   }
+  ],
+  "sequestro_soglia": 75,
+  "sequestro_tiro": "2d6",
+  "sequestro_su": [
+   2,
+   6
+  ],
+  "passaggio_per_membro": 1,
+  "oggetti_per_membro_dopo_naufragio": 2,
+  "scorta_senza_nave": 5,
+  "rottami_componente_ogni": 5
+ },
+ "componenti": {
+  "infermeria": {
+   "nome": "Infermeria",
+   "en": "Medical Bay",
+   "costo": 25,
+   "testo": "Struttura medica completa. Ogni turno di campagna, durante il recupero dalle Ferite, un membro dell'equipaggio a scelta toglie 2 turni di recupero.",
+   "effetto": {
+    "recupero_extra": 2
+   }
+  },
+  "stiva": {
+   "nome": "Stiva",
+   "en": "Cargo Hold",
+   "costo": 15,
+   "testo": "Stiva ambientalmente stabile. Quando viaggi verso un nuovo pianeta puoi prendere un carico: tira 2D6 e scarta i 5-6; il dado più alto rimasto indica i crediti guadagnati consegnando la merce. Se entrambi sono scartati non ci sono carichi. Se la nave viene danneggiata durante il viaggio, il carico è perso.",
+   "effetto": {
+    "carico_viaggio": true,
+    "manuale": true
+   }
+  },
+  "database": {
+   "nome": "Database",
+   "en": "Database",
+   "costo": 10,
+   "testo": "Ampi archivi dati. Quando viaggi verso un nuovo pianeta puoi generare i dettagli di un pianeta in più e scegliere quale visitare.",
+   "effetto": {
+    "pianeti_extra": 1
+   }
+  },
+  "navetta": {
+   "nome": "Navetta",
+   "en": "Shuttle",
+   "costo": 15,
+   "testo": "Hangar con una navetta 'Lemon Shark'. Con l'evento di viaggio Richiesta di soccorso (Distress Call) tiri due volte e tieni il migliore. Se un pianeta è Invaso, +2 al tiro per lasciarlo.",
+   "effetto": {
+    "evento_soccorso_vantaggio": true,
+    "fuga_invasione": 2
+   }
+  },
+  "collegamento_commerciale": {
+   "nome": "Collegamento commerciale",
+   "en": "Merchant Link",
+   "costo": 20,
+   "testo": "Accesso alla rete corporativa. Ogni turno di campagna puoi fare un'azione di Commercio gratuita senza assegnarle un membro dell'equipaggio.",
+   "effetto": {
+    "commercio_gratuito": 1
+   }
+  },
+  "lanciatore_sgancio": {
+   "nome": "Lanciatore di sgancio",
+   "en": "Drop Launcher",
+   "costo": 25,
+   "testo": "Sistema di schieramento rapido militare. Preparando una battaglia tira 2D6: con 8+ lo sgancio è possibile. Scegli fino a due personaggi che non si schierano all'inizio; alla fine di un round qualsiasi scegli un punto del tavolo, spostalo di 1D6\" in direzione casuale e schiera entrambi entro 1\" dal punto finale. Non agiscono all'arrivo, ma normalmente dal round seguente.",
+   "effetto": {
+    "manuale": true
+   }
+  },
+  "lanciasonde": {
+   "nome": "Lanciasonde",
+   "en": "Probe Launcher",
+   "costo": 10,
+   "testo": "Lanciatore di sonde scientifiche. Con l'evento di viaggio Asteroidi puoi tirare due volte per evitare il campo.",
+   "effetto": {
+    "evento_asteroidi_vantaggio": true
+   }
+  },
+  "torrette_auto": {
+   "nome": "Torrette automatiche",
+   "en": "Auto-Turrets",
+   "costo": 15,
+   "testo": "Torretta laser a puntamento automatico. Con l'evento di viaggio Assalto (Raided) +1 al tiro per evitare la battaglia. Se devi fuggire da un mondo Invaso, +1 al tiro.",
+   "effetto": {
+    "evento_assalto": 1,
+    "fuga_invasione": 1
+   }
+  },
+  "navigazione_militare": {
+   "nome": "Sistema di navigazione militare",
+   "en": "Military Nav System",
+   "costo": 15,
+   "testo": "Navigazione migliorata. Con l'evento Problemi di navigazione (Navigation Trouble) non perdi 1 punto Storia. Con l'evento Tempo di viaggio (Travel-Time) ottieni i benefici sia di quell'evento sia di Viaggio tranquillo (Uneventful Trip).",
+   "effetto": {
+    "manuale": true
+   }
+  },
+  "schermatura": {
+   "nome": "Schermatura migliorata",
+   "en": "Improved Shielding",
+   "costo": 20,
+   "testo": "Corazzatura aggiuntiva e schermi direzionali. Ogni volta che la nave subirebbe danni da qualsiasi fonte, riduci il danno di 1 punto scafo. Con l'evento Asteroidi, che può infliggere più colpi, la riduzione vale per ciascun colpo.",
+   "effetto": {
+    "riduci_danno": 1
+   }
+  },
+  "scomparto_nascosto": {
+   "nome": "Scomparto nascosto",
+   "en": "Hidden Compartment",
+   "costo": 15,
+   "testo": "Con l'evento Nave di pattuglia (Patrol Ship) tiri una sola volta per gli oggetti confiscati. Ogni volta che viaggi verso un nuovo pianeta puoi tirare 3D6: scarta i dadi che non fanno 1 o 2 e guadagna crediti pari alla somma dei dadi rimasti.",
+   "effetto": {
+    "crediti_viaggio": "3d6 tieni 1-2",
+    "manuale": true
+   }
+  },
+  "capsula_sospensione": {
+   "nome": "Capsule di sospensione",
+   "en": "Suspension Pod",
+   "costo": 15,
+   "testo": "Nella fase Mantenimento puoi Sospendere membri dell'equipaggio (fino a 4 alla volta): non partecipano a eventi, compiti o missioni, non recuperano dalle Ferite, non pagano mantenimento e non contano come parte dell'equipaggio. In una fase Mantenimento successiva puoi risvegliarli: contano subito per il mantenimento di quel turno e poi agiscono normalmente. Le Ferite vanno comunque recuperate dopo il risveglio.",
+   "effetto": {
+    "sospesi_max": 4,
+    "manuale": true
+   }
+  },
+  "alloggi": {
+   "nome": "Alloggi migliorati",
+   "en": "Living Quarters",
+   "costo": 15,
+   "testo": "Alloggi più comodi e supporto vitale efficiente. Nel calcolo del mantenimento l'equipaggio conta come se avesse 2 membri in meno.",
+   "effetto": {
+    "mantenimento_membri": -2
+   }
+  },
+  "convertitori_carburante": {
+   "nome": "Convertitori di carburante militari",
+   "en": "Military Fuel Converters",
+   "costo": 15,
+   "testo": "Convertono molti materiali comuni in carburante da salto. Il costo dei viaggi si riduce di 2 crediti.",
+   "effetto": {
+    "carburante": -2
+   }
+  }
+ },
+ "eventi_viaggio": {
+  "_dado": "d100",
+  "_nota": "Eventi di viaggio stellare (p.70-72). Si tira una volta quando si viaggia con la propria nave. Chiavi extra: ritira (tira di nuovo su questa tabella), ripetizioni (la prova si ripete N volte e l'esito si applica a ogni tiro), tentativi (si può ritentare fino a N volte, basta un successo), sottotabella (tabella interna con proprio dado), una_volta_per_campagna, prossimo_mondo_non_invadibile.",
+  "righe": [
+   {
+    "da": 1,
+    "a": 7,
+    "nome": "Asteroidi",
+    "en": "Asteroids",
+    "testo": "Detriti rocciosi ovunque. Per evitarli tira 1D6: con 5+ trovi una rotta sicura e tiri di nuovo su questa tabella. Per attraversare il campo scegli un membro dell'equipaggio e tira 1D6+Acume tre volte, serve 4+ ogni volta: ogni fallimento infligge 1D6 danni allo Scafo. (Se il tentativo di evitarli fallisce si attraversa il campo.)",
+    "effetti": {
+     "scelte": [
+      {
+       "testo": "Tenta di evitarli (1D6, 5+)",
+       "effetti": {
+        "prova": {
+         "stat": null,
+         "soglia": 5,
+         "dado": "1d6",
+         "successo": {
+          "ritira": true
+         },
+         "fallimento": {
+          "prova": {
+           "stat": "acume",
+           "soglia": 4,
+           "dado": "1d6",
+           "ripetizioni": 3,
+           "successo": {},
+           "fallimento": {
+            "scafo": "-1d6"
+           }
+          }
+         }
+        }
+       }
+      },
+      {
+       "testo": "Attraversa il campo (3 prove 1D6+Acume, 4+)",
+       "effetti": {
+        "prova": {
+         "stat": "acume",
+         "soglia": 4,
+         "dado": "1d6",
+         "ripetizioni": 3,
+         "successo": {},
+         "fallimento": {
+          "scafo": "-1d6"
+         }
+        }
+       }
+      }
+     ]
+    }
+   },
+   {
+    "da": 8,
+    "a": 12,
+    "nome": "Problemi di navigazione",
+    "en": "Navigation trouble",
+    "testo": "Si va alla deriva nel vuoto: perdi 1 punto Storia, poi tira di nuovo su questa tabella. Se la nave ha danni allo Scafo quando esce questo evento, un membro a caso dell'equipaggio tira sulla Tabella delle ferite per i guasti al supporto vitale.",
+    "effetti": {
+     "punti_storia": -1,
+     "ritira": true,
+     "se_scafo_danneggiato": {
+      "tiro_ferite_casuale": 1
+     },
+     "manuale": true
+    }
+   },
+   {
+    "da": 13,
+    "a": 17,
+    "nome": "Abbordaggio pirata",
+    "en": "Raided",
+    "testo": "Dei pirati notano la nave. Puoi tentare di intimidirli: scegli un membro e tira 1D6+Acume, con 6+ eviti lo scontro. Altrimenti combatti in uno spazio angusto contro nemici della Tabella degli incontri criminali (p.94). Numero di nemici: 3D6 tenendo il dado più alto (equipaggio di campagna 5: 2D6 tenendo il più alto; 4: 1D6), più i numeri indicati nella tabella dei nemici, +1 figura extra. Nessun obiettivo: se li respingi fuggono sulla loro nave. Se perdi, perdi tutti i crediti e tutto il Deposito ma tieni la nave. Se vinci ottieni le ricompense normali di una missione d'Opportunità (p.120) più un tiro bonus sulla Tabella del bottino (p.131). È uno scontro 'fuori sequenza' e non conta come Battaglia del turno.",
+    "effetti": {
+     "prova": {
+      "stat": "acume",
+      "soglia": 6,
+      "dado": "1d6",
+      "successo": {},
+      "fallimento": {
+       "battaglia": {
+        "tipo": "fuori_sequenza",
+        "nemici": "criminali",
+        "dado_nemici": {
+         "6": "3d6_alto",
+         "5": "2d6_alto",
+         "4": "1d6"
+        },
+        "nemici_extra": 1,
+        "obiettivo": null,
+        "sconfitta": {
+         "perde_tutti_crediti": true,
+         "perde_deposito": true
+        },
+        "vittoria": {
+         "ricompense": "opportunita",
+         "oggetti": [
+          "bottino"
+         ]
+        }
+       },
+       "manuale": true
+      }
+     }
+    }
+   },
+   {
+    "da": 18,
+    "a": 25,
+    "nome": "Relitto nello spazio profondo",
+    "en": "Deep space wreckage",
+    "testo": "Trovi un vecchio relitto alla deriva: 2 tiri sulla sottotabella Equipaggiamento del bottino (p.132). Entrambi gli oggetti sono danneggiati e vanno Riparati.",
+    "effetti": {
+     "oggetti": [
+      "bottino_equip",
+      "bottino_equip"
+     ],
+     "oggetti_danneggiati": true
+    }
+   },
+   {
+    "da": 26,
+    "a": 29,
+    "nome": "Guasto al motore",
+    "en": "Drive trouble",
+    "testo": "Scegli 3 membri dell'equipaggio: ognuno tira 1D6+Acume, serve 6+. Per ogni fallimento resti bloccato a terra sul prossimo mondo per un turno di campagna mentre il motore viene ripristinato. Decollare prima del ripristino infligge 2D6 danni allo Scafo.",
+    "effetti": {
+     "prova": {
+      "stat": "acume",
+      "soglia": 6,
+      "dado": "1d6",
+      "ripetizioni": 3,
+      "membri_diversi": true,
+      "successo": {},
+      "fallimento": {
+       "turni_a_terra": 1
+      }
+     },
+     "decollo_anticipato": {
+      "scafo": "-2d6"
+     }
+    }
+   },
+   {
+    "da": 30,
+    "a": 38,
+    "nome": "Tempo morto",
+    "en": "Down-time",
+    "testo": "Un membro a scelta riceve +1 XP. C'è tempo per la manutenzione: puoi Riparare 1 oggetto danneggiato senza tiro.",
+    "effetti": {
+     "xp": 1,
+     "ripara_oggetto": 1
+    }
+   },
+   {
+    "da": 39,
+    "a": 44,
+    "nome": "Richiesta di soccorso",
+    "en": "Distress call",
+    "testo": "Se vai in aiuto tira 1D6. 1: il motore dell'altra nave esplode mentre ti avvicini, un'ondata di detriti infligge 1D6+1 danni allo Scafo. 2: trovi solo rottami. 3-4: salvi un membro dell'equipaggio, risolvi come l'evento Capsula di salvataggio. 5-6: arrivi in tempo per aiutare a salvare la nave da un guasto al motore: scegli un membro e tira 1D6+Acume, serve 7+, hai tre tentativi; se riesci l'equipaggio riconoscente ti regala 3 tiri sulla tabella del bottino Equipaggiamento; se fallisci il motore esplode e subisci danni come con 1.",
+    "effetti": {
+     "scelte": [
+      {
+       "testo": "Ignora la richiesta",
+       "effetti": {}
+      },
+      {
+       "testo": "Vai in aiuto",
+       "effetti": {
+        "sottotabella": {
+         "_dado": "d6",
+         "righe": [
+          {
+           "da": 1,
+           "a": 1,
+           "testo": "Il motore esplode: 1D6+1 danni allo Scafo.",
+           "effetti": {
+            "scafo": "-1d6-1"
+           }
+          },
+          {
+           "da": 2,
+           "a": 2,
+           "testo": "Solo rottami alla deriva.",
+           "effetti": {}
+          },
+          {
+           "da": 3,
+           "a": 4,
+           "testo": "Salvi un membro dell'equipaggio: risolvi come Capsula di salvataggio (54-60).",
+           "effetti": {
+            "evento": "capsula_salvataggio"
+           }
+          },
+          {
+           "da": 5,
+           "a": 6,
+           "testo": "Aiuti a salvare la nave: 1D6+Acume, 7+, fino a tre tentativi. Successo: 3 tiri sulla tabella del bottino Equipaggiamento. Fallimento: 1D6+1 danni allo Scafo.",
+           "effetti": {
+            "prova": {
+             "stat": "acume",
+             "soglia": 7,
+             "dado": "1d6",
+             "tentativi": 3,
+             "successo": {
+              "oggetti": [
+               "bottino_equip",
+               "bottino_equip",
+               "bottino_equip"
+              ]
+             },
+             "fallimento": {
+              "scafo": "-1d6-1"
+             }
+            }
+           }
+          }
+         ]
+        }
+       }
+      }
+     ]
+    }
+   },
+   {
+    "da": 45,
+    "a": 50,
+    "nome": "Nave di pattuglia",
+    "en": "Patrol ship",
+    "testo": "Una nave di pattuglia dell'Unità ti intima l'alt. Tira 1D6-3 due volte: ogni dado sopra 0 indica quel numero di oggetti confiscati come contrabbando (puoi consegnare qualsiasi oggetto portato o nel Deposito). Per la presenza militare, il prossimo mondo che visiti non può essere Invaso.",
+    "effetti": {
+     "confisca": [
+      "1d6-3",
+      "1d6-3"
+     ],
+     "prossimo_mondo_non_invadibile": true,
+     "manuale": true
+    }
+   },
+   {
+    "da": 51,
+    "a": 53,
+    "nome": "Fenomeno cosmico",
+    "en": "Cosmic phenomenon",
+    "testo": "Un membro vede una strana manifestazione nello spazio che nessun altro ha visto. Quel membro aggiunge +1 Fortuna (se può). Se nell'equipaggio c'è un Precursore, lo ritiene un buon presagio: +1 punto Storia. L'evento può accadere una sola volta per campagna; se riesce, non succede nulla.",
+    "effetti": {
+     "stat": {
+      "fortuna": 1
+     },
+     "una_volta_per_campagna": true,
+     "se_specie_in_equipaggio": {
+      "precursore": {
+       "punti_storia": 1
+      }
+     }
+    }
+   },
+   {
+    "da": 54,
+    "a": 60,
+    "nome": "Capsula di salvataggio",
+    "en": "Escape pod",
+    "testo": "Trovi una capsula di salvataggio. Se la recuperi tira 1D6. 1: è un criminale ricercato. Se lo lasci andare al prossimo mondo potrebbe ricambiare: la prossima volta che ottieni un nuovo Rivale, con 4+ su 1D6 lo rimuovi subito dalla campagna. Se lo consegni ottieni 1D6 crediti ma un Rivale dalla sua vecchia banda. 2-3: ti ricompensa con 1D3 crediti e un tiro sulla Tabella del bottino all'arrivo sul mondo più vicino. 4: non ha da pagarti ma ha informazioni interessanti: +1 Diceria di missione e +1 punto Storia. 5: vuole unirsi all'equipaggio: genera un nuovo personaggio, senza alcun equipaggiamento; se non lo assumi se ne va al prossimo mondo. 6: come 5, ma il personaggio inizia con 10 XP non spesi.",
+    "effetti": {
+     "scelte": [
+      {
+       "testo": "Ignora la capsula",
+       "effetti": {}
+      },
+      {
+       "testo": "Recupera la capsula",
+       "effetti": {
+        "sottotabella": {
+         "_dado": "d6",
+         "righe": [
+          {
+           "da": 1,
+           "a": 1,
+           "testo": "Criminale ricercato.",
+           "effetti": {
+            "scelte": [
+             {
+              "testo": "Lascialo andare: al prossimo nuovo Rivale, 4+ su 1D6 lo rimuove.",
+              "effetti": {
+               "favore_rivale": {
+                "dado": "1d6",
+                "soglia": 4
+               },
+               "manuale": true
+              }
+             },
+             {
+              "testo": "Consegnalo: 1D6 crediti e un Rivale.",
+              "effetti": {
+               "crediti": "1d6",
+               "rivale": 1
+              }
+             }
+            ]
+           }
+          },
+          {
+           "da": 2,
+           "a": 3,
+           "testo": "1D3 crediti e un tiro sul bottino all'arrivo.",
+           "effetti": {
+            "crediti": "1d3",
+            "oggetti": [
+             "bottino"
+            ]
+           }
+          },
+          {
+           "da": 4,
+           "a": 4,
+           "testo": "Informazioni: +1 Diceria e +1 punto Storia.",
+           "effetti": {
+            "dicerie": 1,
+            "punti_storia": 1
+           }
+          },
+          {
+           "da": 5,
+           "a": 5,
+           "testo": "Vuole unirsi: nuovo personaggio senza equipaggiamento (facoltativo).",
+           "effetti": {
+            "recluta": {
+             "equipaggiamento": false,
+             "xp": 0,
+             "facoltativo": true
+            }
+           }
+          },
+          {
+           "da": 6,
+           "a": 6,
+           "testo": "Come 5, con 10 XP non spesi.",
+           "effetti": {
+            "recluta": {
+             "equipaggiamento": false,
+             "xp": 10,
+             "facoltativo": true
+            }
+           }
+          }
+         ]
+        }
+       }
+      }
+     ]
+    }
+   },
+   {
+    "da": 61,
+    "a": 66,
+    "nome": "Incidente",
+    "en": "Accident",
+    "testo": "Un membro dell'equipaggio si ferisce durante una manutenzione di routine: deve riposare un turno di campagna per riprendersi, e un oggetto che porta viene danneggiato.",
+    "effetti": {
+     "ferito_casuale": 1,
+     "danneggia_oggetto": 1
+    }
+   },
+   {
+    "da": 67,
+    "a": 75,
+    "nome": "Lungo avvicinamento",
+    "en": "Travel-time",
+    "testo": "Le condizioni locali costringono a saltare al bordo del sistema e avvicinarsi a motori normali. Tutti i feriti possono riposare per un turno di campagna.",
+    "effetti": {
+     "recupero_tutti": 1
+    }
+   },
+   {
+    "da": 76,
+    "a": 85,
+    "nome": "Viaggio tranquillo",
+    "en": "Uneventful trip",
+    "testo": "Tanto tempo a giocare a carte e pulire le armi. Puoi Riparare un oggetto danneggiato.",
+    "effetti": {
+     "ripara_oggetto": 1
+    }
+   },
+   {
+    "da": 86,
+    "a": 91,
+    "nome": "Tempo per riflettere",
+    "en": "Time to reflect",
+    "testo": "Come si sta sviluppando la storia? +1 punto Storia.",
+    "effetti": {
+     "punti_storia": 1
+    }
+   },
+   {
+    "da": 92,
+    "a": 95,
+    "nome": "Tempo per leggere un libro",
+    "en": "Time to read a book",
+    "testo": "Tira 1D6. 1-2: un membro a caso +3 XP. 3-4: un membro a caso +2 XP e un secondo membro a caso +1 XP. 5-6: tre membri a caso +1 XP ciascuno.",
+    "effetti": {
+     "sottotabella": {
+      "_dado": "d6",
+      "righe": [
+       {
+        "da": 1,
+        "a": 2,
+        "testo": "Un membro a caso +3 XP.",
+        "effetti": {
+         "xp_casuali": [
+          3
+         ]
+        }
+       },
+       {
+        "da": 3,
+        "a": 4,
+        "testo": "Un membro a caso +2 XP, un altro +1 XP.",
+        "effetti": {
+         "xp_casuali": [
+          2,
+          1
+         ]
+        }
+       },
+       {
+        "da": 5,
+        "a": 6,
+        "testo": "Tre membri a caso +1 XP ciascuno.",
+        "effetti": {
+         "xp_casuali": [
+          1,
+          1,
+          1
+         ]
+        }
+       }
+      ]
+     }
+    }
+   },
+   {
+    "da": 96,
+    "a": 100,
+    "nome": "Chiuso di notte nell'archivio dati",
+    "en": "Locked in the library data by night",
+    "testo": "Il capitano scopre informazioni sul settore verso cui sei diretto. Puoi generare le informazioni planetarie (problemi, vantaggi, licenze) di tre mondi e scegliere quale visitare, ma per il carburante devi visitarne uno dei tre. Tutti e tre restano nella campagna e si possono visitare in seguito.",
+    "effetti": {
+     "mondi_da_scegliere": 3,
+     "manuale": true
+    }
+   }
+  ]
+ }
+}

@@ -1,0 +1,287 @@
+{
+  "_nota": "Appendice V «The Story Track», pp. 153-160 del regolamento (pagine PDF 155-162). Il Tracciato della Storia è facoltativo e si aggiunge alla campagna normale. Chiavi specifiche: `orologio` = Tick da impostare dopo l'evento (null = non si imposta, vedi `prossimo`); profili nemici con `numero`, `panico` (intervallo d6, es. \"1-2\"), `velocita` (pollici), `combattimento`, `robustezza`, `ia` (tattica/difensiva), `armi` (id di armi.json); `tiro_salvezza` = armatura (6 = salvezza 6+). Le distanze sono in pollici (= caselle sulla griglia).",
+  "regole": {
+    "introduzione": "Il Tracciato della Storia serve a inserire un arco narrativo nella campagna. Non sostituisce la campagna normale: man mano che si gioca, avvengono certi eventi che costringono ad affrontarli. È un'aggiunta facoltativa; si consiglia di aspettare almeno la seconda campagna prima di usarlo.",
+    "orologio": {
+      "nome": "Orologio della Storia",
+      "en": "Story Clock",
+      "testo": "Gli eventi accadono secondo l'Orologio della Storia, misurato in Tick (unità di tempo astratta). All'inizio della campagna e dopo ogni Evento della Storia viene indicato un numero di Tick. Alla fine di ogni turno di campagna successivo, se si è Vinta la missione di quel turno, l'Orologio scende di 1 Tick. Se non si è Vinto, si tira 1D6 sulla tabella. Se i Tick rimanenti scendono a 0 o meno, il prossimo Evento della Storia avviene nel turno di campagna seguente. L'Orologio NON scende durante un turno di campagna in cui avviene un Evento della Storia.",
+      "tick_iniziali": 5,
+      "scende_se_vittoria": 1,
+      "tabella_senza_vittoria": {
+        "_dado": "d6",
+        "righe": [
+          {"da": 1, "a": 1, "nome": "L'orologio non scende", "en": "The clock does not count down", "effetti": {"tick": 0}},
+          {"da": 2, "a": 5, "nome": "Scende di 1 Tick", "en": "Count down 1 Tick", "effetti": {"tick": -1}},
+          {"da": 6, "a": 6, "nome": "Scende di 2 Tick", "en": "Count down 2 Ticks", "effetti": {"tick": -2}}
+        ]
+      },
+      "attivazione": "Quando i Tick arrivano a 0 o meno, l'evento successivo si gioca nel turno di campagna seguente.",
+      "non_scende_nei_turni_evento": true
+    },
+    "eventi_della_storia": "Quando avviene un Evento della Storia, sostituisce o modifica i normali eventi della campagna come descritto nell'evento. Ogni evento indica il numero di Tick prima del successivo; i Tick passano solo dopo turni di campagna normali, non dopo quelli con Eventi. Alcuni eventi avvengono «immediatamente»: in tal caso si applicano nel turno di campagna immediatamente successivo.",
+    "inizio_campagna": "All'inizio della campagna si imposta l'Orologio a 5 Tick. Poiché l'apertura della campagna è sempre un turno normale, alla sua fine si controlla se l'Orologio avanza.",
+    "battaglie_storia": "Nelle battaglie degli Eventi della Storia non si tira mai per Condizioni di Schieramento né per Punti d'Interesse (Notable Sights).",
+    "effetti": {"niente_condizioni_schieramento": true, "niente_punti_interesse": true}
+  },
+  "eventi": [
+    {
+      "id": "sventato",
+      "numero": 1,
+      "nome": "Sventato!",
+      "en": "Event 1: Foiled!",
+      "testo": "Un grosso lavoro per una mega-corporazione sembrava un affare, ma al luogo dell'appuntamento l'equipaggio trova ad attenderlo dei sicari. Che sta succedendo?",
+      "turno_campagna": {
+        "testo": "Un personaggio deve essere mandato a cercare un Patrono in questo turno, senza tirare per il successo. Non si tira per l'interferenza dei Rivali esistenti e non si possono Rintracciare Rivali.",
+        "effetti": {"assegna_cerca_patrono": 1, "cerca_patrono_tiro": false, "niente_attacco_rivali": true, "niente_rintraccia_rivali": true}
+      },
+      "battaglia": {
+        "preparazione": "Siete sotto attacco! I due schieramenti si piazzano a esattamente 12\" l'uno dall'altro, in una linea approssimativa. Tutte le figure avversarie devono essere piazzate dietro una Copertura ma in grado di sparare (agli angoli degli edifici, ecc.). Non si può tentare di Prendere l'Iniziativa.",
+        "distanza_schieramento": 12,
+        "prendi_iniziativa": false,
+        "nemici": [
+          {"id": "sicario", "nome": "Sicario", "en": "Hired gun", "numero": 4, "panico": "1-2", "velocita": 4, "combattimento": 1, "robustezza": 3, "ia": "tattica", "armi": ["fucile_coloniale"]},
+          {"id": "arma_pesante", "nome": "Arma pesante", "en": "Big gun", "numero": 1, "panico": "1-2", "velocita": 4, "combattimento": 1, "robustezza": 4, "ia": "tattica", "armi": ["mitragliatrice", "pistola"]},
+          {"id": "capo", "nome": "Capo", "en": "Leader", "numero": 1, "panico": "1-2", "velocita": 4, "combattimento": 1, "robustezza": 4, "ia": "tattica", "armi": ["pistola_mitragliatrice", "lama"], "capo": true}
+        ],
+        "regole_speciali": [
+          "Finché il Capo è vivo, i nemici hanno Panico 1. Se il Capo manca, hanno Panico 1-3 (sostituisce il 1-2 della tabella).",
+          "Dal Round 6 in poi, se i nemici finiscono un round con 3 figure o meno, si ritirano (Bail)."
+        ],
+        "panico_con_capo": "1",
+        "panico_senza_capo": "1-3",
+        "ritirata": {"dal_round": 6, "figure_max": 3},
+        "obiettivo": "Sopravvivere all'imboscata e respingere i sicari (combattimento standard)."
+      },
+      "esiti": {
+        "testo": "Se si tiene il campo, si scopre che i contatti della corporazione sono stati assassinati e l'equipaggio è visto con sospetto, ma riesce a cavarsela a parole. Se si fugge dalla battaglia, si viene incastrati: si aggiunge un Rivale (la corporazione assolda dei killer). In ogni caso si viene pagati normalmente (affari del capitano dietro le quinte) e si può fare un normale tiro sul Bottino, purché si sia ucciso almeno un avversario. Non si fa il normale controllo dei Rivali.",
+        "tiene_campo": {"effetti": {}},
+        "fuga": {"effetti": {"rivale": 1}},
+        "sempre": {"effetti": {"paga_normale": true, "oggetti_se_almeno_un_ucciso": ["bottino"], "niente_controllo_rivali": true}}
+      },
+      "prossimo": {"orologio": 3, "testo": "Impostare l'Orologio a 3 Tick."}
+    },
+    {
+      "id": "sulle_tracce",
+      "numero": 2,
+      "nome": "Sulle tracce",
+      "en": "Event 2: On the Trail",
+      "testo": "Le indagini danno frutto: dietro c'è Q'narr, contrabbandiere e piccolo criminale dei settori contesi. Un tempo amico, ce l'ha con voi da quando rifiutaste un lavoro troppo sporco che lui accettò e in cui quasi morì. Ora è un pezzo grosso e vuole vendicarsi.",
+      "turno_campagna": {
+        "testo": "Non si può tentare di Rintracciare Rivali in questo turno. Se si accetta un lavoro da un Patrono in questo turno, si considera un lavoro preso per avvicinarsi alla preda; se si viene attaccati dai Rivali, l'attacco avviene durante il tragitto.",
+        "effetti": {"niente_rintraccia_rivali": true, "manuale": true}
+      },
+      "battaglia": {
+        "preparazione": "Q'narr ha assoldato una squadra di Mercenari Blood Storm per coprire le sue tracce. Battaglia standard contro Mercenari Blood Storm della sottotabella Muscoli a Pagamento (Hired Muscle). Valgono tutte le regole normali, ma il numero minimo di nemici è 4 anche se i dadi ne darebbero meno.",
+        "nemici": [{"tabella": "muscoli_a_pagamento", "tipo": "mercenari_blood_storm", "en": "Blood Storm Mercs", "numero_minimo": 4}],
+        "regole_speciali": [
+          "Se si sconfigge un mercenario in Mischia (Brawling), lo si cattura e lo si può interrogare: +1 punto Storia. Registrare la cattura (dà bonus all'Evento 3)."
+        ],
+        "obiettivo": "Battaglia standard.",
+        "effetti_cattura_mischia": {"punti_storia": 1, "flag": "mercenario_catturato"}
+      },
+      "esiti": {
+        "testo": "Dopo la missione si entra in contatto con la persona che si cercava. Ricompense normali. Registrare se si è Vinto (bonus all'Evento 3).",
+        "vittoria": {"effetti": {"flag": "vinto_evento_2"}},
+        "sempre": {"effetti": {}}
+      },
+      "prossimo": {"orologio": 2, "richiede_viaggio_nuovo_mondo": true, "testo": "Impostare l'Orologio a 2 Tick, ma l'evento successivo non può iniziare finché non si è viaggiato verso un nuovo mondo (generato normalmente)."}
+    },
+    {
+      "id": "sabotare_il_piano",
+      "numero": 3,
+      "nome": "Sabotare il piano",
+      "en": "Event 3: Disrupting the Plan",
+      "testo": "Il vecchio amico sta preparando qualcosa di grosso: avete scoperto dove la sua organizzazione custodisce il contrabbando da vendere fuori dal pianeta, ed è ora di dare una lezione ai suoi.",
+      "turno_campagna": {
+        "testo": "Non si possono Rintracciare Rivali né acquisire un Patrono in questo turno. Si può essere attaccati dai Rivali: se succede, l'Evento è rimandato al turno successivo. Un membro dell'equipaggio a scelta deve essere incaricato di pianificare l'attacco e non può compiere azioni in questo turno. Se non si è pronti si può rimandare di un solo turno, poi si deve giocare.",
+        "effetti": {"niente_rintraccia_rivali": true, "niente_patroni": true, "attacco_rivali_rimanda_evento": true, "membro_bloccato": 1, "rinvio_max_turni": 1}
+      },
+      "battaglia": {
+        "preparazione": "Campo che ricordi un accampamento, un complesso industriale o simile, con casse, barili, container ecc. sparsi ovunque (se mancano, si immaginano fuori dal campo). Gli avversari si disperdono in modo abbastanza uniforme sul campo; poi si sceglie il bordo da cui entrare e si tira per Prendere l'Iniziativa, a +2 se si è Vinto l'Evento 2, a +3 se si è catturato un mercenario. Al centro del campo c'è il Bersaglio.",
+        "mod_iniziativa": {"vinto_evento_2": 2, "mercenario_catturato": 3},
+        "nemici": [
+          {"id": "scagnozzo", "nome": "Scagnozzo", "en": "Goon", "numero": 5, "panico": "1-2", "velocita": 4, "combattimento": 0, "robustezza": 3, "ia": "difensiva_speciale", "armi": ["pistola_mitragliatrice"]},
+          {"id": "picchiatore", "nome": "Picchiatore", "en": "Bruiser", "numero": 2, "panico": "1-2", "velocita": 4, "combattimento": 1, "robustezza": 4, "ia": "difensiva_speciale", "armi": ["fucile_pompa", "arma_brutale"]},
+          {"id": "capo", "nome": "Capo", "en": "Leader", "numero": 1, "panico": "1-2", "velocita": 4, "combattimento": 1, "robustezza": 4, "ia": "difensiva_speciale", "armi": ["pistola_blaster", "lama"], "capo": true}
+        ],
+        "regole_speciali": [
+          "IA D*: i nemici entro 12\" da figure dell'equipaggio usano IA Difensiva. Quelli non entro 12\" cercano prima di raggiungere il centro del campo, poi passano a IA Difensiva.",
+          "Dispositivo di sabotaggio: al centro del campo, costa un'Azione di Combattimento e richiede 1D6+Acume 5+. Se fallisce, può riprovare un altro personaggio o la stessa figura con Azioni successive. Una volta piazzato, gli avversari si ritirano dal campo alla fine del round successivo.",
+          "Se si respingono tutti gli avversari, si può piazzare il dispositivo con calma.",
+          "Rinforzi se la battaglia si trascina: alla fine dei Round 8 e 12 arrivano 2 Scagnozzi ciascuna volta, al centro di un bordo del campo scelto a caso."
+        ],
+        "ia_regola": {"distanza_difensiva": 12, "altrimenti": "vai_al_centro_poi_difensiva"},
+        "sabotaggio": {"prova": {"stat": "acume", "soglia": 5, "dado": "1d6", "luogo": "centro_campo", "costo": "azione_combattimento", "ripetibile": true}, "ritirata_nemica_round_dopo": 1},
+        "rinforzi": [{"fine_round": 8, "numero": 2, "tipo": "scagnozzo", "ingresso": "centro_bordo_casuale"}, {"fine_round": 12, "numero": 2, "tipo": "scagnozzo", "ingresso": "centro_bordo_casuale"}],
+        "obiettivo": "Tenere il campo, oppure raggiungere il centro e piazzare il dispositivo di sabotaggio.",
+        "vittoria": "Si Vince tenendo il campo o piazzando il dispositivo.",
+        "sconfitta": "Fuga o equipaggio tutto fuori combattimento senza aver piazzato il dispositivo."
+      },
+      "esiti": {
+        "testo": "Le ricompense si raccolgono normalmente. Se si Vince la missione, si ottiene un tiro di Bottino aggiuntivo frugando nel sito.",
+        "vittoria": {"effetti": {"oggetti": ["bottino"]}},
+        "sempre": {"effetti": {"ricompense_normali": true}}
+      },
+      "prossimo": {"orologio": 5, "testo": "Impostare l'Orologio a 5 Tick."}
+    },
+    {
+      "id": "contrattacco_nemico",
+      "numero": 4,
+      "nome": "Il nemico contrattacca",
+      "en": "Event 4: The Enemy Strikes Back",
+      "testo": "Un attacco diretto alla vostra nave mentre è attraccata in porto: devono aver distratto la sicurezza dello spazioporto. Ora si combatte per la vita!",
+      "turno_campagna": {
+        "testo": "I Patroni acquisiti in questo turno restano disponibili anche nel turno successivo. Non si può essere attaccati dai Rivali in questo turno.",
+        "effetti": {"patroni_restano_turno_dopo": true, "niente_attacco_rivali": true}
+      },
+      "battaglia": {
+        "preparazione": "Campo che rappresenta uno spazioporto con casse, macchinari, veicoli ecc. sparsi ovunque; se si ha un modello di astronave in scala lo si piazza lungo il bordo, altrimenti la nave è appena fuori dal campo. L'equipaggio si schiera entro 5\" dal proprio bordo. Si possono schierare anche i membri in Infermeria, segnati come Menomati: possono combattere ma non possono Scattare (Dash) né Mirare. Non è possibile Prendere l'Iniziativa. Si tira due volte sulla sottotabella Muscoli a Pagamento e si generano due forze nemiche separate (anche se esce lo stesso tipo, restano due gruppi distinti). Il primo gruppo si schiera a 18\" dall'equipaggio in una linea approssimativa con 2\" tra ogni figura. All'inizio del Round 3 il secondo gruppo arriva dietro di loro, dal bordo del campo.",
+        "schieramento_equipaggio": 5,
+        "infermeria_partecipa": {"menomati": true, "niente_scatto": true, "niente_mira": true},
+        "prendi_iniziativa": false,
+        "nemici": [
+          {"tabella": "muscoli_a_pagamento", "gruppo": 1, "schieramento": {"distanza": 18, "spaziatura": 2}},
+          {"tabella": "muscoli_a_pagamento", "gruppo": 2, "arrivo_inizio_round": 3, "ingresso": "bordo_nemico_dietro_gruppo_1"}
+        ],
+        "regole_speciali": [
+          "Morale speciale: alla fine di ogni round si tira 2D6 per ogni gruppo nemico; se il risultato è pari o inferiore alle perdite subite finora da quel gruppo, interrompe l'attacco e fugge.",
+          "La battaglia finisce quando si respingono entrambi i gruppi o si è costretti a fuggire."
+        ],
+        "morale_gruppo": {"dado": "2d6", "fugge_se_minore_uguale_perdite": true},
+        "obiettivo": "Respingere entrambi i gruppi nemici.",
+        "vittoria": "Entrambi i gruppi respinti (si tiene il campo).",
+        "sconfitta": "Fuga o tutto l'equipaggio fuori combattimento."
+      },
+      "esiti": {
+        "testo": "Se si fugge o tutto l'equipaggio diventa vittima, la nave subisce 1D6+10 punti Scafo di danno. Se si tiene il campo, si assegna +1 XP a ogni personaggio ancora sul campo alla fine, si tira due volte sui Ritrovamenti sul Campo (p.121) e, grazie alla reputazione guadagnata, si può rimuovere un Rivale a scelta. Non si controllano nuovi Rivali dopo questa battaglia.",
+        "sconfitta": {"effetti": {"scafo": "-1d6-10"}},
+        "tiene_campo": {"effetti": {"xp_ogni_rimasto": 1, "ritrovamenti_campo": 2, "rivale": -1}},
+        "sempre": {"effetti": {"niente_controllo_rivali": true}}
+      },
+      "prossimo": {"orologio": 3, "testo": "Impostare l'Orologio a 3 Tick."}
+    },
+    {
+      "id": "rapimento",
+      "numero": 5,
+      "nome": "Rapimento",
+      "en": "Event 5: Kidnap",
+      "testo": "Non contento di aver provato a uccidervi, Q'Narr se l'è presa con un altro vecchio compagno, uscito dal «giro» e onesto da anni: la sua famiglia vi avvisa che è stato attaccato da scagnozzi armati.",
+      "turno_campagna": {
+        "testo": "Si deve Viaggiare immediatamente; per fortuna si sguscia via senza che i Rivali possano attaccare. Si sceglie a caso un mondo già visitato, dove è avvenuto il rapimento; se non se ne è tenuta traccia, si genera un nuovo mondo e lo si considera visitato prima dell'inizio della campagna. Se la nave non è in grado di viaggiare o si preferisce restare, si può prendere una navetta: costa 3 crediti e si possono portare solo 4 membri dell'equipaggio in tutto (gli altri si prendono una licenza a terra).",
+        "effetti": {"viaggio_obbligatorio": true, "destinazione": "mondo_visitato_casuale", "niente_attacco_rivali": true, "scelte": [{"testo": "Viaggiare con la propria nave", "effetti": {"viaggio": true}}, {"testo": "Prendere una navetta (3 crediti, massimo 4 membri dell'equipaggio)", "effetti": {"crediti": -3, "equipaggio_max_battaglia": 4}}]}
+      },
+      "battaglia": {
+        "preparazione": "Un edificio al centro del tavolo con terreno naturale sparso. Si piazzano 6 segnalini distribuiti uniformemente; l'equipaggio parte da un bordo del campo, non entro 8\" da un segnalino. Inizialmente non ci sono avversari. Quando una figura arriva entro 4\" da un segnalino, si tira 1D6 sulla tabella dei segnalini.",
+        "segnalini": 6,
+        "distanza_minima_schieramento": 8,
+        "distanza_rivelazione": 4,
+        "tabella_segnalini": {
+          "_dado": "d6",
+          "righe": [
+            {"da": 1, "a": 1, "id": "indizio", "nome": "Indizio!", "en": "Evidence!", "testo": "Tracce degli aggressori. Registrare l'Indizio per l'evento successivo.", "effetti": {"indizi": 1}},
+            {"da": 2, "a": 3, "id": "niente", "nome": "Niente", "en": "Nothing", "testo": "Qui non c'è nulla.", "effetti": {}},
+            {"da": 4, "a": 4, "id": "cadavere", "nome": "Cadavere", "en": "Body", "testo": "Il corpo di qualcuno che lavorava qui. Se ci si muove a contatto, si tira 1D6: con 5-6 si scopre un Indizio.", "effetti": {"tiro_a_contatto": {"dado": "1d6", "soglia": 5, "successo": {"indizi": 1}}}},
+            {"da": 5, "a": 6, "id": "robot_guerra", "nome": "Robot da guerra!", "en": "War Bot!", "testo": "Un Robot da guerra nascosto: Velocità 3\", Combattimento +0, Robustezza 5, IA Difensiva, tiro salvezza Armatura 6+. I Robot non fanno test di Morale. Ognuno ha un Laser a mano. Se ci si muove a contatto con il punto in cui è stato scoperto (dopo averlo eliminato), si tira 1D6: con 6 si scopre un Indizio.", "effetti": {"nemico": {"id": "robot_guerra", "nome": "Robot da guerra", "en": "War Bot", "velocita": 3, "combattimento": 0, "robustezza": 5, "ia": "difensiva", "tiro_salvezza": 6, "niente_morale": true, "armi": ["laser_mano"]}, "tiro_a_contatto_luogo": {"dado": "1d6", "soglia": 6, "successo": {"indizi": 1}}}}
+          ]
+        },
+        "regole_speciali": [
+          "Alla fine del Round 3 e di ogni round successivo si tira 1D6 per ogni segnalino rimasto: con 1 il segnalino viene rimosso.",
+          "Se ci si muove a contatto con il punto in cui è stato scoperto un Robot da guerra, si tira 1D6: con 6 si scopre un Indizio.",
+          "La missione termina quando tutti i segnalini sono stati rivelati o rimossi. Se tutto l'equipaggio diventa vittima, si rimuovono i segnalini rimasti."
+        ],
+        "rimozione_segnalini": {"dal_round": 3, "dado": "1d6", "rimosso_con": 1},
+        "obiettivo": "Esplorare i segnalini e raccogliere Indizi.",
+        "vittoria": "Nessuna condizione di vittoria esplicita: conta il numero di Indizi raccolti."
+      },
+      "esiti": {
+        "testo": "Non si viene pagati per questa missione e non si ottiene Bottino, ma la gente del posto, solidale, offre cibo che copre tutti i costi di Mantenimento del turno successivo. Si può fare un normale tiro sui Ritrovamenti sul Campo (p.121).",
+        "sempre": {"effetti": {"niente_paga": true, "niente_bottino": true, "mantenimento_gratis_turno_dopo": true, "ritrovamenti_campo": 1}}
+      },
+      "prossimo": {
+        "orologio": null,
+        "testo": "L'Orologio non viene impostato. All'inizio di ogni turno di campagna successivo (compreso il seguente) si tira 1D6 + numero di Indizi trovati. Con 7+ si è scoperto dove è tenuto il vecchio compagno e si può giocare l'Evento 6 quando si è pronti. Con qualsiasi altro risultato si sta ancora cercando: si gioca un turno normale ma si scopre un Indizio aggiuntivo. Annotare quanti turni di campagna servono per trovare il prigioniero (serve all'Evento 6).",
+        "tiro_ricerca": {"dado": "1d6", "aggiungi": "indizi", "soglia": 7, "fallimento": {"indizi": 1}},
+        "conta_turni_ricerca": true
+      }
+    },
+    {
+      "id": "stiamo_arrivando",
+      "numero": 6,
+      "nome": "Stiamo arrivando!",
+      "en": "Event 6: We're Coming!",
+      "testo": "Avete scoperto dove tengono il vostro amico. È ora di un po' di diplomazia, stile Frontiera!",
+      "turno_campagna": {
+        "testo": "È inutile cercare un Patrono in questo turno, e si riesce a schivare i Rivali che vi danno la caccia.",
+        "effetti": {"niente_patroni": true, "niente_attacco_rivali": true}
+      },
+      "battaglia": {
+        "preparazione": "Si tira una volta sulla sottotabella Muscoli a Pagamento (p.121). Non si tira per il numero: sono automaticamente 5 + l'eventuale modificatore della tabella nemici. Luogotenente e Specialisti si determinano normalmente; non ci sono Individui Unici. 2 nemici base sono sentinelle a pochi pollici dal centro del campo; gli altri a metà strada tra il centro e il bordo nemico, dentro o vicino a un edificio o complesso centrale. Serve una figura extra come prigioniero, piazzata dentro l'edificio in un punto difficile da vedere. L'equipaggio entra dal bordo opposto, ogni figura entra in campo nel Round 1. I nemici all'inizio non sono consapevoli della vostra presenza e non si muovono né agiscono.",
+        "nemici": [{"tabella": "muscoli_a_pagamento", "numero_fisso": 5, "piu_modificatore_tipo": true, "individui_unici": false, "sentinelle": 2}],
+        "regole_speciali": [
+          "Infiltrazione: se si spara con un'arma o si termina un Movimento (o altro spostamento) entro 6\" da una figura nemica, il nemico è allertato; il round termina subito dopo che la figura attiva ha risolto le sue azioni, e il resto si gioca come battaglia normale.",
+          "Sparare a un bersaglio ignaro dà +2 al tiro per colpire.",
+          "Alla fine di ogni round di infiltrazione si determina una direzione casuale per ciascuna delle 2 sentinelle (dove guardano) e si traccia una linea dalla sentinella al bordo del campo (o fino a un elemento di terreno che la blocca). Se passa entro 1\" da un membro dell'equipaggio allo scoperto, è avvistato e scatta l'allarme. Se passa entro 1\" da un membro visibile ma in Copertura o parzialmente nascosto, questi tira 1D6+Acume e deve fare 4+ per non essere scoperto.",
+          "Quando scatta l'allarme, nel primo round regolare i nemici sono confusi: possono Muoversi (se non vedono l'equipaggio) oppure restare fermi e sparare senza Mirare (se vedono un bersaglio).",
+          "Ben preparati: se sono serviti più di 3 turni di campagna per trovare il prigioniero, per ogni turno oltre il terzo i nemici ricevono una figura standard di rinforzo. Arrivano una alla volta, a partire dal round dopo l'allarme, al centro del bordo nemico. Se si ripulisce il campo dai nemici, i rinforzi rimanenti NON arrivano.",
+          "Il prigioniero è legato e viene lasciato stare se scoppia una sparatoria (i nemici devono portarlo via dal pianeta presto). Muovendosi a contatto e spendendo un'Azione non di Combattimento lo si libera: da allora si muove e agisce normalmente, ma diventa anche un bersaglio valido per i nemici. È disarmato, ma un membro dell'equipaggio può dargli un'arma di scorta."
+        ],
+        "infiltrazione": {"distanza_allarme": 6, "bonus_colpire_ignaro": 2, "cono_sentinella_pollici": 1, "prova_copertura": {"stat": "acume", "soglia": 4, "dado": "1d6"}},
+        "rinforzi_preparati": {"turni_ricerca_soglia": 3, "per_turno_extra": 1, "ingresso": "centro_bordo_nemico", "uno_per_round_dopo_allarme": true},
+        "prigioniero": {"id": "prigioniero", "nome": "Prigioniero", "en": "Captive", "reazioni": 2, "velocita": 4, "combattimento": 0, "robustezza": 4, "acume": 1, "armi": [], "liberazione": "contatto + azione non di combattimento"},
+        "obiettivo": "Liberare il prigioniero (e/o respingere i nemici).",
+        "sconfitta": "Se si è costretti a fuggire o l'equipaggio diventa tutto vittima, il compagno viene portato via, ma si unirà a voi dopo aver concluso l'Evento 7."
+      },
+      "esiti": {
+        "testo": "Dopo la battaglia il vecchio compagno, se è sopravvissuto, si offre di unirsi per la battaglia finale; durante questo periodo non conta per il Mantenimento. Se si fugge o l'equipaggio è tutto vittima, il compagno viene portato via ma si unirà dopo l'Evento 7.",
+        "vittoria": {"effetti": {"alleato_temporaneo": "prigioniero", "conta_mantenimento": false}},
+        "sconfitta": {"effetti": {"flag": "compagno_portato_via"}},
+        "sempre": {"effetti": {}}
+      },
+      "prossimo": {"orologio": 2, "testo": "Impostare l'Orologio a 2 Tick."}
+    },
+    {
+      "id": "regolamento_conti",
+      "numero": 7,
+      "nome": "È ora di chiudere i conti",
+      "en": "Event 7: Time to Settle This",
+      "testo": "Avete rintracciato il vostro vecchio rivale nel suo nascondiglio. Le sue forze sono stremate: non avrete un'occasione migliore.",
+      "turno_campagna": {
+        "testo": "Si può rimandare questa battaglia fino a 3 turni di campagna; oltre, l'occasione è persa e si passa a «Perdere la storia». Quando si coglie l'occasione bisogna Viaggiare con le regole normali: la nemesi si nasconde sulla luna morta di un mondo desolato, non serve generare dettagli del mondo.",
+        "effetti": {"rinvio_max_turni": 3, "oltre_rinvio": "sconfitta_storia", "viaggio_obbligatorio": true, "niente_generazione_mondo": true}
+      },
+      "battaglia": {
+        "preparazione": "Due terzi del campo sono un paesaggio lunare desolato (crateri, colline, rocce, nessuna vegetazione); l'ultimo terzo è un grande edificio, complesso o struttura sotterranea (anche tessere da gioco o stanze disegnate su carta). L'equipaggio indossa tute atmosferiche che danno un tiro salvezza Armatura 6+, al posto di qualsiasi armatura normale; Robot e Senz'anima (Soulless) non le indossano. In superficie pattugliano 4 sentinelle in tuta spaziale: si schierano in linea attraverso il centro del campo, poi ciascuna si sposta di 1D6\" in una direzione casuale. Quando il primo membro dell'equipaggio entra nel complesso, si piazzano 4 sentinelle aggiuntive in giro per l'area come se pattugliassero, nessuna in Linea di Vista dell'equipaggio; le guardie interne non hanno armatura. La nemesi va piazzata da sola il più in fondo possibile nel complesso.",
+        "tuta_equipaggio": {"tiro_salvezza": 6, "sostituisce_armatura": true, "esclusi": ["robot", "senzanima"]},
+        "nemici": [
+          {"id": "sentinella_esterna", "nome": "Sentinella (esterna)", "en": "Sentry", "numero": 4, "panico": "1", "velocita": 4, "combattimento": 0, "robustezza": 3, "ia": "tattica", "armi": ["fucile_militare"], "tiro_salvezza": 6, "schieramento": "linea al centro, poi 1D6\" in direzione casuale"},
+          {"id": "sentinella_interna", "nome": "Sentinella (interna)", "en": "Sentry", "numero": 4, "panico": "1", "velocita": 4, "combattimento": 0, "robustezza": 3, "ia": "tattica", "armi": ["fucile_militare"], "tiro_salvezza": null, "schieramento": "quando il primo membro entra nel complesso, fuori dalla Linea di Vista"},
+          {"id": "qnarr", "nome": "Q'Narr – Nemesi", "en": "Q'Narr – Nemesis", "numero": 1, "panico": null, "velocita": 4, "combattimento": 0, "robustezza": 4, "ia": "difensiva", "armi": ["cannone_mano"], "schieramento": "il più in fondo possibile nel complesso"}
+        ],
+        "regole_speciali": [
+          "È la battaglia finale. Se si deve fuggire o si viene sconfitti, Q'Narr scappa: si va a «Perdere la storia».",
+          "Se lo si uccide, le sentinelle rimaste fuggono: si va a «Vincere la storia»."
+        ],
+        "obiettivo": "Uccidere Q'Narr.",
+        "vittoria": "Q'Narr ucciso - finale.vittoria",
+        "sconfitta": "Fuga o sconfitta - finale.sconfitta"
+      },
+      "esiti": {"testo": "Vedi `finale`.", "vittoria": {"vai_a": "finale.vittoria"}, "sconfitta": {"vai_a": "finale.sconfitta"}},
+      "prossimo": {"orologio": null, "testo": "Fine del Tracciato della Storia: si applica il finale."}
+    }
+  ],
+  "finale": {
+    "vittoria": {
+      "nome": "Vincere la storia",
+      "en": "Winning the Story",
+      "testo": "Avete finalmente chiuso la questione con un proiettile da 7 mm. Ogni membro dell'equipaggio riceve +1 XP. Si aggiungono 3 punti Storia. Si tira due volte sulla tabella dei Ritrovamenti sul Campo; saccheggiando il nascondiglio si ottengono 1D6+2 crediti e 3 tiri sulla tabella del Bottino. Poiché ora si è noti come chi «salda i debiti», si può rimuovere un Rivale a scelta (o il prossimo ottenuto, se non se ne hanno). Se il vecchio amico è ancora vivo, si offre di unirsi permanentemente e NON conta per il Mantenimento; se non lo si era liberato, lo si trova nel nascondiglio e si offre di unirsi allo stesso modo.",
+      "effetti": {"xp_tutto_equipaggio": 1, "punti_storia": 3, "ritrovamenti_campo": 2, "crediti": "1d6+2", "oggetti": ["bottino", "bottino", "bottino"], "rivale": -1, "rivale_rimuovi_prossimo_se_nessuno": true, "recluta_compagno": {"se_vivo": true, "conta_mantenimento": false}}
+    },
+    "sconfitta": {
+      "nome": "Perdere la storia",
+      "en": "Losing the Story",
+      "testo": "Eravate così vicini, ma alla fine Q'Narr è scappato. Ogni membro dell'equipaggio guadagna comunque +1 XP per essere arrivato fin qui, e si aggiunge 1 punto Storia. Purtroppo la nemesi continuerà a tormentarvi da lontano: su ciascuno dei prossimi tre mondi visitati si acquisisce automaticamente un nuovo Rivale. Se il vecchio compagno era stato salvato e non è morto, si tira 1D6: con 4+ si unisce come membro normale dell'equipaggio, ma CONTA per il Mantenimento.",
+      "effetti": {"xp_tutto_equipaggio": 1, "punti_storia": 1, "rivale_per_prossimi_mondi": 3, "prova": {"dado": "1d6", "soglia": 4, "condizione": "compagno_salvato_e_vivo", "successo": {"recluta_compagno": {"conta_mantenimento": true}}, "fallimento": {}}}
+    }
+  }
+}

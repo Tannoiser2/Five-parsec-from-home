@@ -1,0 +1,1 @@
+Qui vanno le immagini delle pedine: <nome>.png (vedi PROMPT_PEDINE.md nella radice del progetto).

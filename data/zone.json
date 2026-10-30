@@ -1,0 +1,124 @@
+{
+  "_nota": "Appendice III «Red and Black Zone Jobs», pp. 148-151 del regolamento (pagine PDF 150-153). Chiavi specifiche: `requisiti` = condizioni per la licenza (turni_minimi, costo_crediti, sconto_broker, equipaggio_minimo); `modificatori` = modifiche numeriche che il motore applica agli incontri/tiri (nemici_base, specialisti, luogotenenti, mod_individuo_unico, mod_minaccia_invasione, mod_guerra_galattica); `fine_battaglia`: true = la battaglia termina subito; `tiene_campo`: false = non si tiene il campo; `vince_solo_se_obiettivo`: true = si vince solo se l'obiettivo è già compiuto. Le distanze sono in pollici (= caselle sulla griglia).",
+  "requisiti": {
+    "nome": "Licenza Zona Rossa",
+    "en": "Red Job license",
+    "testo": "Quando l'equipaggio è abbastanza esperto e armato da trovare troppo facili i lavori normali, può richiedere una licenza per Lavori Rossi, che autorizza a prendere incarichi estremamente pericolosi nel settore. Per ottenerla bisogna: aver giocato almeno 10 turni di campagna; pagare una tassa di licenza di 15 crediti (un Broker nell'equipaggio riduce il costo di 2 crediti); avere almeno 7 membri dell'equipaggio al momento della richiesta. Con la licenza, quando si viaggia si può scegliere di visitare un mondo in Zona Rossa: su quel mondo tutte le missioni sono considerate Lavori Rossi, qualunque sia il loro tipo.",
+    "turni_minimi": 10,
+    "costo_crediti": 15,
+    "sconto_broker": 2,
+    "equipaggio_minimo": 7,
+    "effetti": {"crediti": -15}
+  },
+  "red_zone": {
+    "nome": "Lavori in Zona Rossa",
+    "en": "Red Jobs",
+    "avvertenza": "Le Zone Rosse sono luoghi ad alto rischio pensati per chi trova troppo facile la campagna base: è probabile trovarsi in situazioni ingiuste o molto difficili da vincere senza molta fortuna.",
+    "testo": "Si applicano tutte le normali regole di gioco, compreso il controllo della ritirata nemica per obiettivo di missione completato. In più, in ogni Lavoro Rosso valgono le regole seguenti: Condizione di Minaccia, Vincolo di tempo, Opposizione aumentata, Minacce d'invasione e Ricompense migliorate.",
+    "condizione_minaccia": {
+      "nome": "Condizione di minaccia",
+      "en": "Threat Condition",
+      "testo": "Si deve tirare una Condizione di Minaccia: è un fattore aggiuntivo applicato alla missione, di qualunque tipo sia. Non tutte le condizioni sono sempre applicabili: «Avversari corazzati» e «Opposizione d'élite» valgono solo per truppe con certi profili; se non si applicano, il risultato viene semplicemente ignorato (non si ritira).",
+      "_dado": "d6",
+      "righe": [
+        {"da": 1, "a": 1, "id": "interferenza_comunicazioni", "nome": "Interferenza nelle comunicazioni", "en": "Comms Interference", "testo": "In ogni fase di Tiro Reazioni si tira un dado in meno del normale. Il personaggio a cui non viene assegnato un dado agisce nella fase delle Azioni Lente.", "effetti": {"dadi_reazione": -1}},
+        {"da": 2, "a": 2, "id": "opposizione_elite", "nome": "Opposizione d'élite", "en": "Elite Opposition", "testo": "Tutti gli avversari con Combattimento +0 passano a +1.", "effetti": {"nemici_combattimento_da_0_a_1": true}},
+        {"da": 3, "a": 3, "id": "buio_pesto", "nome": "Buio pesto", "en": "Pitch Black", "testo": "La visibilità è limitata a 6\". Sostituisce qualsiasi altra riduzione di visibilità.", "effetti": {"visibilita_max": 6}},
+        {"da": 4, "a": 4, "id": "opposizione_pesante", "nome": "Opposizione pesante", "en": "Heavy Opposition", "testo": "La forza avversaria aumenta di +2 nemici.", "effetti": {"nemici_extra": 2}},
+        {"da": 5, "a": 5, "id": "avversari_corazzati", "nome": "Avversari corazzati", "en": "Armored Opponents", "testo": "Tutti gli avversari con Robustezza 3 passano a 4.", "effetti": {"nemici_robustezza_da_3_a_4": true}},
+        {"da": 6, "a": 6, "id": "capitano_nemico", "nome": "Capitano nemico", "en": "Enemy Captain", "testo": "Si aggiunge un Luogotenente extra con Combattimento +2 e Robustezza 5, indipendentemente dal profilo normale usato.", "effetti": {"luogotenente_extra": {"combattimento": 2, "robustezza": 5}}}
+      ]
+    },
+    "vincolo_tempo": {
+      "nome": "Vincolo di tempo",
+      "en": "Time Constraint",
+      "testo": "Tutti i Lavori Rossi si combattono sotto un vincolo di tempo: alla fine del Round 6 si tira 1D6 sulla tabella.",
+      "round": 6,
+      "_dado": "d6",
+      "righe": [
+        {"da": 1, "a": 1, "id": "nessuno", "nome": "Nessuno", "en": "None", "testo": "Non succede nulla. Si continua.", "effetti": {}},
+        {"da": 2, "a": 2, "id": "rinforzi", "nome": "Rinforzi", "en": "Reinforcements", "testo": "Arrivano 3 nemici aggiuntivi dal centro di uno dei bordi neutrali del campo: si sceglie il punto d'ingresso più vicino a una figura dell'equipaggio. Uno dei nuovi arrivati è uno Specialista.", "effetti": {"rinforzi": {"numero": 3, "specialisti": 1, "ingresso": "centro_bordo_neutrale_piu_vicino_equipaggio"}}},
+        {"da": 3, "a": 3, "id": "rinforzi_consistenti", "nome": "Rinforzi consistenti", "en": "Significant reinforcements", "testo": "Arrivano 3 nemici aggiuntivi dal centro di uno dei bordi neutrali (il punto d'ingresso più vicino a una figura dell'equipaggio); uno è uno Specialista. Inoltre arrivano nemici aggiuntivi dal centro del bordo degli avversari (il numero non è specificato dal regolamento).", "effetti": {"rinforzi": {"numero": 3, "specialisti": 1, "ingresso": "centro_bordo_neutrale_piu_vicino_equipaggio"}, "rinforzi_bordo_nemico": "non_specificato", "manuale": true}},
+        {"da": 4, "a": 4, "id": "conto_alla_rovescia", "nome": "Conto alla rovescia", "en": "Count down", "testo": "Da ora in poi si tira 1D6 ogni round. Al primo tiro la battaglia termina subito con 1; alla fine del round successivo termina con 1-2, poi 1-3, e così via. Se il tempo scade prima di aver respinto la parte avversaria, la battaglia finisce e non si tiene il campo. Per Vincere bisogna completare l'obiettivo prima che accada.", "effetti": {"conto_alla_rovescia": {"dado": "1d6", "soglia_iniziale": 1, "incremento_per_round": 1}, "tiene_campo_se_scade": false}},
+        {"da": 5, "a": 5, "id": "evacuazione", "nome": "Evacuazione immediata!", "en": "Evac now!", "testo": "La battaglia termina immediatamente. Non si tiene il campo, e si Vince solo se l'obiettivo è già stato raggiunto.", "effetti": {"fine_battaglia": true, "tiene_campo": false, "vince_solo_se_obiettivo": true}},
+        {"da": 6, "a": 6, "id": "rinforzi_elite", "nome": "Rinforzi d'élite", "en": "Elite reinforcements", "testo": "Arrivano un Individuo Unico e 2 nemici (uno dei quali è un Luogotenente), piazzati al centro del bordo del campo degli avversari.", "effetti": {"rinforzi": {"numero": 2, "luogotenenti": 1, "individuo_unico": 1, "ingresso": "centro_bordo_nemico"}}}
+      ]
+    },
+    "opposizione_aumentata": {
+      "nome": "Opposizione aumentata",
+      "en": "Increased Opposition",
+      "testo": "Non si tira per il numero degli avversari: si incontra una base di 7 figure + l'eventuale modificatore del tipo di nemico incontrato, senza altri modificatori in su o in giù. Le figure avversarie comprendono 3 Specialisti, uno dei quali è un Luogotenente. Si aggiunge +1 al tiro per determinare se è presente un Individuo Unico.",
+      "modificatori": {"nemici_base": 7, "solo_modificatore_tipo_nemico": true, "specialisti": 3, "di_cui_luogotenenti": 1, "mod_individuo_unico": 1}
+    },
+    "minacce_invasione": {
+      "nome": "Minacce d'invasione",
+      "en": "Invasion Threats",
+      "testo": "Tutti i tiri di Minaccia d'Invasione hanno un modificatore di +2, in aggiunta ai normali modificatori. Tutti i tiri di Progresso della Guerra Galattica hanno un modificatore di -1.",
+      "modificatori": {"mod_minaccia_invasione": 2, "mod_guerra_galattica": -1}
+    },
+    "ricompense_migliorate": {
+      "nome": "Ricompense migliorate",
+      "en": "Improved Rewards",
+      "testo": "Se si tiene il campo, ogni membro dell'equipaggio rimasto riceve +1 XP. Quando si tira per i crediti (paga), si può tirare due volte e scegliere il risultato migliore. Quando si completa una Missione (Quest), si possono tirare tre dadi, scegliere il migliore e aggiungere +1. Se si Vince, si può fare un tiro aggiuntivo sulla tabella del Bottino dopo la battaglia: lo si ottiene purché si Vinca, anche se poi ci si ritira dal campo.",
+      "regole": [
+        {"id": "xp_tenere_campo", "testo": "Se si tiene il campo: +1 XP a ogni membro dell'equipaggio rimasto.", "condizione": "tiene_campo", "effetti": {"xp_ogni_rimasto": 1}},
+        {"id": "paga_doppio_tiro", "testo": "Tiro dei crediti: si tira due volte e si tiene il migliore.", "effetti": {"paga_tiri": 2, "paga_scelta": "migliore"}},
+        {"id": "missione_tre_dadi", "testo": "Completando una Missione (Quest): si tirano tre dadi, si tiene il migliore e si aggiunge +1.", "effetti": {"quest_dadi": 3, "quest_scelta": "migliore", "quest_mod": 1}},
+        {"id": "bottino_vittoria", "testo": "Se si Vince: un tiro extra sulla tabella del Bottino, anche se poi ci si ritira.", "condizione": "vittoria", "effetti": {"oggetti": ["bottino"]}}
+      ]
+    }
+  },
+  "black_zone": {
+    "nome": "Lavori in Zona Nera",
+    "en": "Black Jobs",
+    "avvertenza": "Non è pensato per essere neanche lontanamente equo: è del tutto possibile che l'intera squadra finisca fuori combattimento. Se si gioca con un amico, si può fare squadra e portare 6 membri dell'equipaggio ciascuno.",
+    "testo": "Per gli equipaggi più temprati (o folli): si viene sganciati in una missione quasi suicida per conto delle forze segrete del governo dell'Unità. Si è presi in considerazione solo dopo aver giocato almeno 10 turni di campagna in una Zona Rossa; da allora ci si può offrire volontari per un Lavoro Nero in qualsiasi momento. In quel turno di campagna non si cercano Rivali né Patroni.",
+    "requisiti": {"turni_zona_rossa_minimi": 10, "niente_patroni_rivali_nel_turno": true, "cooperativo_equipaggio_per_giocatore": 6},
+    "vantaggi": {
+      "testo": "I Lavori Neri non subiscono mai interferenze dai Rivali (nessun balordo da spazioporto è così pazzo da attaccare una nave da sbarco armata dell'Unità). Nel turno di campagna in cui si accetta un Lavoro Nero non si paga il Mantenimento, l'eventuale prestito della nave non aumenta e la nave non può essere sequestrata. Si può tirare tre volte sulla tabella delle Armi del capitolo «Bottino» e ottenere subito gli oggetti, che si tengono anche dopo.",
+      "effetti": {"niente_rivali": true, "niente_mantenimento": true, "debito_non_aumenta": true, "nave_non_sequestrabile": true, "oggetti": ["bottino_armi", "bottino_armi", "bottino_armi"]}
+    },
+    "missione": {
+      "testo": "Si affronta sempre un avversario della sottotabella delle Minacce Itineranti (Roving Threats). Il campo si allestisce normalmente, poi si tira per determinare l'obiettivo.",
+      "tabella_nemici": "minacce_itineranti",
+      "_dado": "d10",
+      "righe": [
+        {"da": 1, "a": 2, "id": "distruggi_caposaldo", "nome": "Distruggi il caposaldo", "en": "Destroy strong point", "testo": "Bisogna raggiungere il centro del campo, poi spendere un'Azione e tirare 1D6+Acume: con 5+ le cariche sono piazzate. Qualsiasi membro dell'equipaggio può farle detonare come Azione Gratuita a qualsiasi distanza. Quando esplodono, tutte le figure entro 1D6+3\" (dal centro) diventano automaticamente vittime e si Vince.", "effetti": {"prova": {"stat": "acume", "soglia": 5, "dado": "1d6", "luogo": "centro_campo", "costo": "azione"}, "raggio_esplosione": "1d6+3", "manuale": true}},
+        {"da": 3, "a": 4, "id": "resisti_assalto", "nome": "Resisti all'assalto", "en": "Hold against assault", "testo": "Bisogna resistere per 10 round. Si Vince alla fine del Round 10.", "effetti": {"vittoria_fine_round": 10}},
+        {"da": 5, "a": 6, "id": "elimina_bersaglio", "nome": "Elimina il bersaglio prioritario", "en": "Eliminate priority target", "testo": "Si piazza un avversario extra a 6\" dentro il campo dal centro del bordo nemico: è il bersaglio. Ha Robustezza 5 e non può essere colpito con tiri da distanze superiori a 20\". Quando è eliminato dal tavolo si Vince. Non si muove, ma può sparare normalmente se ha bersagli a gittata.", "effetti": {"bersaglio": {"robustezza": 5, "distanza_tiro_max": 20, "immobile": true, "posizione": "6_dal_centro_bordo_nemico"}}},
+        {"da": 7, "a": 8, "id": "distruggi_plotone", "nome": "Distruggi il plotone nemico", "en": "Destroy enemy platoon", "testo": "Bisogna uccidere 25 nemici per Vincere.", "effetti": {"uccisioni_richieste": 25}},
+        {"da": 9, "a": 10, "id": "sfonda_linee", "nome": "Sfonda le linee", "en": "Penetrate the lines", "testo": "Almeno due membri dell'equipaggio devono uscire dal bordo del campo avversario per Vincere.", "effetti": {"uscite_bordo_nemico_richieste": 2}}
+      ]
+    },
+    "preparazione": {
+      "testo": "Non ci sono Punti d'Interesse (Notable Sights) né Condizioni di Schieramento. Si può comunque tirare per Prendere l'Iniziativa, e si può persino richiedere un bonus di +1.",
+      "effetti": {"niente_punti_interesse": true, "niente_condizioni_schieramento": true, "mod_iniziativa": 1}
+    },
+    "opposizione": {
+      "testo": "L'opposizione opera in squadre di 4 figure; i nemici che hanno Specialisti ne hanno uno per squadra. All'inizio si piazzano 4 squadre, equidistanti tra loro, sulla linea a metà strada tra il loro bordo del campo e la metà del campo: queste iniziano Attive. Alla fine di ogni round arriva un'altra squadra: si sceglie a caso un bordo neutrale, si piazza un punto d'ingresso a 2D6\" lungo quel bordo misurando dal bordo avversario, e si piazzano le figure a 1D6\" dentro il campo dal lato. Queste squadre entrano Passive.",
+      "figure_per_squadra": 4,
+      "specialisti_per_squadra": 1,
+      "squadre_iniziali": 4,
+      "squadra_nuova_ogni_round": true,
+      "ingresso_nuove": {"bordo": "neutrale_casuale", "distanza_lungo_bordo_da_bordo_nemico": "2d6", "distanza_dentro_campo": "1d6"},
+      "squadre_attive": "Una squadra Attiva combatte come truppe normali.",
+      "squadre_passive": "Una squadra Passiva non si muove né combatte nel round in cui è piazzata. Alla fine di ogni round si numerano le squadre Passive sul campo (contando da sinistra a destra) e si tira 1D6: se il risultato corrisponde a una squadra presente, diventa Attiva; altrimenti non succede nulla. Una squadra Passiva diventa Attiva anche se le si spara contro o se una figura dell'equipaggio arriva entro 8\" da essa.",
+      "attivazione_passive": {"dado": "1d6", "distanza_attivazione": 8, "attiva_se_bersagliata": true}
+    },
+    "fine_missione": {
+      "testo": "Se si è Vinto, si viene evacuati alla fine del round successivo: bisogna resistere fino ad allora. Si può terminare la missione fuggendo normalmente, ma ogni membro dell'equipaggio che fugge dal campo diventa automaticamente una vittima e deve tirare per le Ferite post-battaglia.",
+      "evacuazione_round_dopo_vittoria": 1,
+      "fuga_diventa_vittima": true
+    },
+    "ricompense": {
+      "sconfitta": {
+        "testo": "Se si sopravvive ma si fallisce la missione: si ottengono le normali ricompense post-battaglia di una missione fallita, e l'Unità paga 1 credito per ogni membro dell'equipaggio che è diventato vittima.",
+        "effetti": {"crediti_per_vittima": 1}
+      },
+      "vittoria": {
+        "testo": "Se si Vince si ottengono tutti questi benefici: si cancellano tutti i Rivali (protetti dagli amici dell'Unità, nessuno vi attacca deliberatamente); si aggiungono 2 Patroni alla lista, Persistenti tra i mondi; 5 crediti bonus, e se si ha un debito sulla nave l'Unità ne paga inoltre 5 crediti; 3 tiri sulla tabella del Bottino; 1 XP bonus per ogni membro dell'equipaggio, anche chi non ha partecipato alla battaglia.",
+        "effetti": {"rivali_cancella_tutti": true, "patrono": 2, "patroni_persistenti": true, "crediti": 5, "debito": "-5", "oggetti": ["bottino", "bottino", "bottino"], "xp_tutto_equipaggio": 1}
+      }
+    }
+  }
+}

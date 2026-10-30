@@ -1,0 +1,3523 @@
+{
+  "_nota": "Campagna e turno di campagna, pp. 63-85 del regolamento stampato (file PDF 65-87). Convenzioni generali in LEGGIMI_DATI.md. Chiavi extra usate in 'effetti': ritira (tira di nuovo sulla stessa tabella), tabella (tiro su un'altra tabella di questo file: commercio/esplorazione), sottotabella ({_dado, righe} interna), ripetizioni/tentativi (dentro 'prova'), stat null in 'prova' = tiro secco senza statistica, oggetti_danneggiati (gli oggetti ottenuti vanno Riparati), ripara_oggetto (ripara N oggetti senza tiro), danneggia_oggetto, infermeria (turni in Infermeria del personaggio), recupero_tutti (tutti i feriti recuperano N turni), xp_casuali (lista di XP a membri casuali diversi), se_specie / specie_immuni (id specie: ingegnere, kerin, senzanima, precursore, ferale, swift), oggetto_speciale (oggetto di campagna con regola propria, vedi testo), monouso, bonus_turno / bonus_prossimo_turno, battaglia_rivale. 'oggetti': 'bottino' = Tabella del bottino (p.131), 'bottino_equip' = sottotabella Equipaggiamento del bottino (p.132); id armi da armi.json; 'stim' da equipaggiamento.json; 'med_patch', 'mirino_laser', 'bipiede', 'torcia_raggio' sono id provvisori non ancora presenti in equipaggiamento.json.",
+  "preparazione": {
+    "_nota": "Preparazione della campagna (pp. 63-65 del regolamento, file PDF 65-67). I passi si possono eseguire in qualunque ordine.",
+    "passi": [
+      {
+        "id": "dimensione_equipaggio",
+        "nome": "Scegli la dimensione dell'equipaggio",
+        "en": "Select Crew Size",
+        "testo": "La dimensione predefinita è 6: è sia il numero di personaggi iniziali sia il massimo schierabile in battaglia. Si può scegliere 5 o 4. Il numero di nemici dipende sempre dalla dimensione di campagna, non da quanti personaggi porti. Durante la campagna il ruolino può avere un numero qualsiasi di personaggi: il limite vale solo per quanti ne porti in battaglia."
+      },
+      {
+        "id": "traccia_storia",
+        "nome": "Decidi se usare la Traccia della Storia",
+        "en": "Decide Whether to Use the Story Track",
+        "testo": "Serie opzionale di eventi narrativi sovrapposta alla campagna normale (appendice Story Track, p.153). Va deciso adesso."
+      },
+      {
+        "id": "condizione_vittoria",
+        "nome": "Scegli una condizione di vittoria",
+        "en": "Select a Victory Condition",
+        "testo": "Facoltativa: la campagna può anche continuare all'infinito. Vedi la sezione 'vittoria'."
+      },
+      {
+        "id": "difficolta",
+        "nome": "Scegli la modalità di difficoltà",
+        "en": "Select a Difficulty Mode",
+        "testo": "Facile, Normale, Impegnativa, Hardcore o Follia. Vedi la sezione 'difficolta'."
+      },
+      {
+        "id": "regole_casa",
+        "nome": "Stabilisci le regole della casa",
+        "en": "Establish House Rules",
+        "testo": "Alla prima partita si consiglia di giocare le regole come scritte. In genere non aggiungere, togliere o cambiare regole della casa a campagna iniziata."
+      }
+    ],
+    "dimensioni_equipaggio": {
+      "6": {
+        "personaggi_iniziali": 6,
+        "max_in_battaglia": 6,
+        "dado_nemici": "2d6_alto",
+        "testo": "Tira 2D6 e usa il risultato più alto dei due dadi per determinare il numero di nemici."
+      },
+      "5": {
+        "personaggi_iniziali": 5,
+        "max_in_battaglia": 5,
+        "dado_nemici": "1d6",
+        "testo": "Tira 1D6 per determinare il numero di nemici."
+      },
+      "4": {
+        "personaggi_iniziali": 4,
+        "max_in_battaglia": 4,
+        "dado_nemici": "2d6_basso",
+        "testo": "Tira 2D6 e usa il risultato più basso dei due dadi per determinare il numero di nemici."
+      }
+    },
+    "dimensione_predefinita": 6,
+    "punti_storia_iniziali": {
+      "base": "1d6+1",
+      "testo": "All'inizio si ricevono 1D6+1 punti Storia; non si possono usare durante la creazione dell'equipaggio iniziale.",
+      "modificatori": [
+        {
+          "condizione": "difficolta_hardcore",
+          "valore": -1,
+          "testo": "Hardcore: sottrai 1."
+        },
+        {
+          "condizione": "difficolta_follia",
+          "valore": "nessuno",
+          "testo": "Follia: niente punti Storia, né iniziali né in seguito."
+        },
+        {
+          "condizione": "prima_partita",
+          "valore": "tira_due_volte_tieni_migliore",
+          "testo": "Se è la tua prima partita a Five Parsecs from Home o stai insegnando il gioco a un nuovo giocatore, tira due volte e tieni il punteggio migliore."
+        },
+        {
+          "condizione": "possiede_five_parsecs_klicks_leagues",
+          "valore": 1,
+          "testo": "Se possiedi Five Parsecs, Five Klicks E Five Leagues, aggiungi +1 al totale."
+        },
+        {
+          "condizione": "ranghi_elite",
+          "valore": "+1 per rango",
+          "testo": "+1 punto Storia bonus per ogni Rango d'élite (tranne in Follia)."
+        }
+      ]
+    },
+    "valute": {
+      "crediti": {
+        "nome": "Crediti",
+        "en": "Credits",
+        "testo": "Unità monetaria generica garantita dall'Unità. I crediti sono una riserva unica dell'equipaggio, accessibile a chiunque in qualsiasi momento; non si tiene traccia di chi li porta e non si perdono per le perdite in battaglia. Ciò che vale meno di 1 credito è irrilevante per la campagna."
+      },
+      "esperienza": {
+        "nome": "Punti esperienza (XP)",
+        "en": "Experience Points",
+        "testo": "Si guadagnano da eventi e missioni e si tracciano per ogni personaggio separatamente (a differenza di crediti e Deposito, che sono condivisi). Si spendono per Miglioramenti del personaggio (p.123)."
+      },
+      "dicerie": {
+        "nome": "Dicerie di missione",
+        "en": "Quest Rumors",
+        "testo": "Si ottengono in campagna e durante la creazione dei personaggi; sono una riserva unica per tutto l'equipaggio. Ogni turno si tira per vedere se portano a una Missione (vedi 'dicerie_missione'). Se si è già in una Missione attiva, ogni nuova Diceria aiuta a risolverla."
+      }
+    },
+    "ranghi_elite": {
+      "nome": "Ranghi d'élite",
+      "en": "Elite Ranks",
+      "testo": "Terminando una campagna dopo aver raggiunto una condizione di vittoria si guadagna un Rango d'élite, che resta al giocatore tra una campagna e l'altra. Ogni condizione di vittoria può dare un Rango d'élite una sola volta. Si possono guadagnare al massimo 17 Ranghi.",
+      "massimo": 17,
+      "benefici": [
+        {
+          "id": "punti_storia",
+          "testo": "+1 punto Storia bonus per Rango d'élite all'inizio della nuova campagna.",
+          "per_rango": {
+            "punti_storia": 1
+          }
+        },
+        {
+          "id": "xp",
+          "testo": "2 XP per Rango d'élite da assegnare a piacere ai personaggi, risolvendo subito i Miglioramenti. Questi Miglioramenti pre-campagna non contano per le condizioni di vittoria 'Migliora 10 volte', che vanno raggiunte nell'arco di una sola campagna.",
+          "per_rango": {
+            "xp": 2
+          }
+        },
+        {
+          "id": "personaggio_extra",
+          "testo": "Ogni 3 Ranghi d'élite puoi generare un personaggio iniziale in più: resti limitato alla dimensione iniziale dell'equipaggio ma scegli tra tutti quelli generati.",
+          "ogni_ranghi": 3
+        },
+        {
+          "id": "stelle_doppie",
+          "testo": "Ogni 5 Ranghi d'élite puoi scegliere un'opzione 'Stelle della Storia' utilizzabile due volte; va scelta alla preparazione della campagna.",
+          "ogni_ranghi": 5
+        }
+      ]
+    }
+  },
+  "difficolta": {
+    "_nota": "Modalità di difficoltà (p.64-65). Chiavi effetti: xp_dopo_battaglia, crediti_ricompensa (bonus alle ricompense post-battaglia), rimuovi_base_se_nemici_almeno, dado_nemici_minimo (ogni dado per il numero di nemici che fa 1 o 2 vale 3), nemici_base_extra, nemici_specialisti_extra, invasione (modificatore ai tiri di Invasione), iniziativa (modificatore a Prendere l'iniziativa), individui_unici (modificatore al tiro per Individui unici), punti_storia_iniziali, punti_storia_disabilitati, stelle_disabilitate, individuo_unico_sempre, vittorie_ammesse.",
+    "modalita": [
+      {
+        "id": "facile",
+        "nome": "Facile",
+        "en": "Easy",
+        "testo": "Dopo ogni battaglia scegli un membro dell'equipaggio che riceve +1 XP. Le ricompense post-battaglia aumentano di +1 credito. Allestendo una battaglia, se affronteresti 5 o più avversari, rimuovi un nemico Base. In questa modalità si possono completare solo le condizioni di vittoria 'Gioca 20 turni di campagna' e 'Vinci 20 battaglie'.",
+        "effetti": {
+          "xp_dopo_battaglia": 1,
+          "crediti_ricompensa": 1,
+          "rimuovi_base_se_nemici_almeno": 5,
+          "vittorie_ammesse": [
+            "turni_20",
+            "battaglie_20"
+          ]
+        }
+      },
+      {
+        "id": "normale",
+        "nome": "Normale",
+        "en": "Normal",
+        "testo": "Nessuna modifica: tutte le regole si applicano come scritte.",
+        "effetti": {}
+      },
+      {
+        "id": "impegnativa",
+        "nome": "Impegnativa",
+        "en": "Challenging",
+        "testo": "Quando tiri per il numero di nemici in battaglia, ogni dado che fa 1 o 2 conta come 3.",
+        "effetti": {
+          "dado_nemici_minimo": 3
+        }
+      },
+      {
+        "id": "hardcore",
+        "nome": "Hardcore",
+        "en": "Hardcore",
+        "testo": "Come Impegnativa, inoltre: un nemico Base in più in ogni battaglia; +2 a tutti i tiri di Invasione; -2 a tutti i tiri per Prendere l'iniziativa; +1 quando si tira per gli Individui unici; si inizia la campagna con un punto Storia in meno.",
+        "effetti": {
+          "dado_nemici_minimo": 3,
+          "nemici_base_extra": 1,
+          "invasione": 2,
+          "iniziativa": -2,
+          "individui_unici": 1,
+          "punti_storia_iniziali": -1
+        }
+      },
+      {
+        "id": "follia",
+        "nome": "Follia",
+        "en": "Insanity",
+        "testo": "Come Hardcore (incluso il nemico Base extra), inoltre: uno specialista nemico in più in ogni battaglia; +3 a tutti i tiri di Invasione e -3 a Prendere l'iniziativa (sostituiscono i valori di Hardcore); lo schieramento avversario include sempre un Individuo unico, anche per le Minacce vaganti; tira 2D6: con 11-12 include due Individui unici. Nessuna opzione 'Stelle della Storia'. Nessun punto Storia: se un oggetto o evento li concederebbe non ha effetto e non si ritira. Buona fortuna!",
+        "effetti": {
+          "dado_nemici_minimo": 3,
+          "nemici_base_extra": 1,
+          "nemici_specialisti_extra": 1,
+          "invasione": 3,
+          "iniziativa": -3,
+          "individui_unici": 1,
+          "individuo_unico_sempre": true,
+          "secondo_individuo_unico": {
+            "dado": "2d6",
+            "soglia": 11
+          },
+          "stelle_disabilitate": true,
+          "punti_storia_disabilitati": true
+        }
+      }
+    ]
+  },
+  "vittoria": {
+    "_nota": "Condizioni di vittoria (p.64). tipo: turni, missioni (Quest completate), battaglie (battaglie vinte), uccisioni_unici (Individui unici uccisi), miglioramenti (numero di personaggi che hanno ricevuto 10 Miglioramenti), turni_modalita (turni giocati in una modalità).",
+    "regole": "Facoltative. Alcune sono volutamente lunghe o molto legate alla fortuna. Una volta scelta non si può cambiare e si può ottenere solo quella, anche se si soddisfano altre condizioni; non si può aggiungere una condizione a campagna iniziata. Completarla dà un Rango d'élite (una volta per condizione). Per le condizioni sui Miglioramenti i personaggi non devono essere nell'equipaggio contemporaneamente: se uno si migliora 10 volte e poi muore, i 10 Miglioramenti contano ancora. In modalità Facile sono ammesse solo 'Gioca 20 turni' e 'Vinci 20 battaglie'.",
+    "condizioni": [
+      {
+        "id": "turni_20",
+        "nome": "Gioca 20 turni di campagna",
+        "en": "Play 20 campaign turns",
+        "tipo": "turni",
+        "valore": 20
+      },
+      {
+        "id": "turni_50",
+        "nome": "Gioca 50 turni di campagna",
+        "en": "Play 50 campaign turns",
+        "tipo": "turni",
+        "valore": 50
+      },
+      {
+        "id": "turni_100",
+        "nome": "Gioca 100 turni di campagna",
+        "en": "Play 100 campaign turns",
+        "tipo": "turni",
+        "valore": 100
+      },
+      {
+        "id": "missioni_3",
+        "nome": "Completa 3 Missioni",
+        "en": "Complete 3 Quests",
+        "tipo": "missioni",
+        "valore": 3
+      },
+      {
+        "id": "missioni_5",
+        "nome": "Completa 5 Missioni",
+        "en": "Complete 5 Quests",
+        "tipo": "missioni",
+        "valore": 5
+      },
+      {
+        "id": "missioni_10",
+        "nome": "Completa 10 Missioni",
+        "en": "Complete 10 Quests",
+        "tipo": "missioni",
+        "valore": 10
+      },
+      {
+        "id": "battaglie_20",
+        "nome": "Vinci 20 battaglie",
+        "en": "Win 20 tabletop battles",
+        "tipo": "battaglie",
+        "valore": 20
+      },
+      {
+        "id": "battaglie_50",
+        "nome": "Vinci 50 battaglie",
+        "en": "Win 50 tabletop battles",
+        "tipo": "battaglie",
+        "valore": 50
+      },
+      {
+        "id": "battaglie_100",
+        "nome": "Vinci 100 battaglie",
+        "en": "Win 100 tabletop battles",
+        "tipo": "battaglie",
+        "valore": 100
+      },
+      {
+        "id": "unici_10",
+        "nome": "Uccidi 10 Individui unici",
+        "en": "Kill 10 Unique Individuals",
+        "tipo": "uccisioni_unici",
+        "valore": 10
+      },
+      {
+        "id": "unici_25",
+        "nome": "Uccidi 25 Individui unici",
+        "en": "Kill 25 Unique Individuals",
+        "tipo": "uccisioni_unici",
+        "valore": 25
+      },
+      {
+        "id": "migliora_1x10",
+        "nome": "Migliora un singolo personaggio 10 volte",
+        "en": "Upgrade a single character 10 times",
+        "tipo": "miglioramenti",
+        "valore": 1,
+        "miglioramenti_per_personaggio": 10
+      },
+      {
+        "id": "migliora_3x10",
+        "nome": "Migliora 3 personaggi 10 volte",
+        "en": "Upgrade 3 characters 10 times",
+        "tipo": "miglioramenti",
+        "valore": 3,
+        "miglioramenti_per_personaggio": 10
+      },
+      {
+        "id": "migliora_5x10",
+        "nome": "Migliora 5 personaggi 10 volte",
+        "en": "Upgrade 5 characters 10 times",
+        "tipo": "miglioramenti",
+        "valore": 5,
+        "miglioramenti_per_personaggio": 10
+      },
+      {
+        "id": "impegnativa_50",
+        "nome": "Gioca 50 turni in modalità Impegnativa",
+        "en": "Play 50 campaign turns in Challenging mode",
+        "tipo": "turni_modalita",
+        "valore": 50,
+        "modalita": "impegnativa"
+      },
+      {
+        "id": "hardcore_50",
+        "nome": "Gioca 50 turni in modalità Hardcore",
+        "en": "Play 50 campaign turns in Hardcore mode",
+        "tipo": "turni_modalita",
+        "valore": 50,
+        "modalita": "hardcore"
+      },
+      {
+        "id": "follia_50",
+        "nome": "Gioca 50 turni in modalità Follia",
+        "en": "Play 50 campaign turns in Insanity mode",
+        "tipo": "turni_modalita",
+        "valore": 50,
+        "modalita": "follia"
+      }
+    ]
+  },
+  "punti_storia": {
+    "_nota": "Punti Storia (p.66-67). Ogni uso va giustificato narrativamente. In modalità Follia non si usano.",
+    "iniziali": "Vedi preparazione.punti_storia_iniziali (1D6+1).",
+    "guadagno": [
+      {
+        "id": "reputazione",
+        "nome": "La tua reputazione cresce",
+        "en": "Your Reputation Develops",
+        "testo": "All'inizio di ogni terzo turno di campagna, +1 punto Storia.",
+        "ogni_turni": 3,
+        "effetti": {
+          "punti_storia": 1
+        }
+      },
+      {
+        "id": "giorno_amaro",
+        "nome": "Un giorno amaro",
+        "en": "A Bitter Day",
+        "testo": "Se Tieni il campo dopo una battaglia ma uno dei tuoi personaggi è stato ucciso, +1 punto Storia.",
+        "condizione": "tieni_il_campo_e_morto",
+        "effetti": {
+          "punti_storia": 1
+        }
+      },
+      {
+        "id": "eventi",
+        "nome": "Eventi e tabelle",
+        "en": "Events",
+        "testo": "Vari risultati di tabelle (eventi di viaggio, commercio, esplorazione, ecc.) concedono punti Storia."
+      }
+    ],
+    "spesa": [
+      {
+        "id": "tira_due_volte",
+        "costo": 1,
+        "testo": "Prima di tirare su qualsiasi tabella fuori dal combattimento, spendi 1 punto per tirare due volte e scegliere il risultato preferito.",
+        "limite": null
+      },
+      {
+        "id": "successo_forzato",
+        "costo": 1,
+        "testo": "Quando un oggetto, un'abilità del personaggio o simile richiede un tiro per funzionare e fallisce, spendi 1 punto perché riesca comunque.",
+        "limite": null
+      },
+      {
+        "id": "ritira",
+        "costo": 1,
+        "testo": "Dopo un qualsiasi tiro (dei tuoi personaggi, di un'azione nemica o di un evento di campagna) spendi 1 punto per ritirarlo; il nuovo risultato va accettato.",
+        "limite": null
+      },
+      {
+        "id": "crediti",
+        "costo": 1,
+        "testo": "Spendi 1 punto per ottenere 3 crediti. Una volta per turno di campagna.",
+        "limite": "1_per_turno",
+        "effetti": {
+          "crediti": 3
+        }
+      },
+      {
+        "id": "xp",
+        "costo": 1,
+        "testo": "Spendi 1 punto per dare +3 XP a un personaggio. Una volta per turno di campagna.",
+        "limite": "1_per_turno",
+        "effetti": {
+          "xp": 3
+        }
+      },
+      {
+        "id": "azione_extra",
+        "costo": 1,
+        "testo": "Spendi 1 punto per un'azione di campagna (incarico) aggiuntiva per un membro dell'equipaggio. Una volta per turno di campagna.",
+        "limite": "1_per_turno"
+      }
+    ]
+  },
+  "stelle_della_storia": {
+    "_nota": "Le Stelle della Storia (p.67). Ogni opzione si usa UNA volta per campagna (due volte quella scelta grazie a 5 Ranghi d'élite). Non disponibili in modalità Follia. Per riaverle bisogna ricominciare da zero o avere 5 Ranghi d'élite.",
+    "usi_per_campagna": 1,
+    "opzioni": [
+      {
+        "id": "ritirata",
+        "nome": "È ora di andare!",
+        "en": "It's time to go!",
+        "testo": "L'equipaggio può terminare subito una battaglia: tutti i personaggi rimasti fuggono dallo scontro.",
+        "quando": "battaglia"
+      },
+      {
+        "id": "sembrava_peggio",
+        "nome": "Sembrava peggio di quanto fosse!",
+        "en": "Looked worse than it was!",
+        "testo": "Ignora un tiro sulla Tabella delle ferite: il personaggio si riprende immediatamente.",
+        "quando": "ferite"
+      },
+      {
+        "id": "il_mio_amico",
+        "nome": "Ti ho mai presentato il mio amico?",
+        "en": "Did you ever meet my mate?",
+        "testo": "Aggiungi subito un nuovo personaggio alla squadra, anche a metà battaglia. Piazzalo entro 6\" da un bordo qualsiasi del campo; può agire immediatamente.",
+        "quando": "sempre"
+      },
+      {
+        "id": "colpo_fortunato",
+        "nome": "Colpo fortunato!",
+        "en": "Lucky shot!",
+        "testo": "Se un personaggio ha appena mancato un colpo, trasformalo in colpo a segno. Vale per un solo colpo, anche se l'arma tira più dadi d'attacco.",
+        "quando": "battaglia"
+      },
+      {
+        "id": "fondo_emergenza",
+        "nome": "Fondo per i tempi duri!",
+        "en": "Rainy day fund!",
+        "testo": "Aggiungi subito 1D6+5 crediti ai fondi disponibili.",
+        "quando": "sempre",
+        "effetti": {
+          "crediti": "1d6+5"
+        }
+      }
+    ]
+  },
+  "sequenza_turno": {
+    "_nota": "Sequenza del turno di campagna (p.68). Le pagine indicate sono quelle del regolamento stampato.",
+    "fasi": [
+      {
+        "id": "viaggio",
+        "nome": "Viaggio",
+        "en": "Travel",
+        "pagina": 69,
+        "passi": [
+          {
+            "id": "fuga_invasione",
+            "nome": "Fuggire dall'invasione (se applicabile)",
+            "en": "Flee Invasion (if applicable)"
+          },
+          {
+            "id": "decidere_viaggio",
+            "nome": "Decidere se viaggiare",
+            "en": "Decide whether to travel"
+          },
+          {
+            "id": "evento_viaggio",
+            "nome": "Evento di viaggio stellare (se applicabile)",
+            "en": "Starship travel event (if applicable)"
+          },
+          {
+            "id": "arrivo_mondo",
+            "nome": "Passi di arrivo su un nuovo mondo (se applicabile)",
+            "en": "New world arrival steps (if applicable)"
+          }
+        ]
+      },
+      {
+        "id": "mondo",
+        "nome": "Mondo",
+        "en": "World",
+        "pagina": 76,
+        "passi": [
+          {
+            "id": "mantenimento",
+            "nome": "Mantenimento e riparazioni della nave",
+            "en": "Upkeep and ship repairs"
+          },
+          {
+            "id": "incarichi",
+            "nome": "Assegnare e risolvere gli incarichi dell'equipaggio",
+            "en": "Assign and resolve crew tasks"
+          },
+          {
+            "id": "offerte_lavoro",
+            "nome": "Determinare le offerte di lavoro",
+            "en": "Determine job offers"
+          },
+          {
+            "id": "assegna_equipaggiamento",
+            "nome": "Assegnare l'equipaggiamento",
+            "en": "Assign equipment"
+          },
+          {
+            "id": "dicerie",
+            "nome": "Risolvere le Dicerie",
+            "en": "Resolve any Rumors"
+          },
+          {
+            "id": "scelta_battaglia",
+            "nome": "Scegliere la battaglia",
+            "en": "Choose your battle"
+          }
+        ]
+      },
+      {
+        "id": "battaglia",
+        "nome": "Battaglia sul tavolo",
+        "en": "Tabletop Battle",
+        "pagina": 87,
+        "passi": []
+      },
+      {
+        "id": "dopo_battaglia",
+        "nome": "Sequenza post-battaglia",
+        "en": "Post-Battle Sequence",
+        "pagina": 119,
+        "passi": [
+          {
+            "id": "stato_rivali",
+            "nome": "Risolvere lo stato dei Rivali",
+            "en": "Resolve Rival status"
+          },
+          {
+            "id": "stato_patroni",
+            "nome": "Risolvere lo stato dei Patroni",
+            "en": "Resolve Patron status"
+          },
+          {
+            "id": "progresso_missione",
+            "nome": "Determinare il progresso della Missione",
+            "en": "Determine Quest progress"
+          },
+          {
+            "id": "paga",
+            "nome": "Essere pagati",
+            "en": "Get paid"
+          },
+          {
+            "id": "ritrovamenti",
+            "nome": "Ritrovamenti sul campo",
+            "en": "Battlefield finds"
+          },
+          {
+            "id": "controllo_invasione",
+            "nome": "Controllare l'Invasione",
+            "en": "Check for Invasion"
+          },
+          {
+            "id": "bottino",
+            "nome": "Raccogliere il bottino",
+            "en": "Gather the Loot"
+          },
+          {
+            "id": "ferite",
+            "nome": "Determinare ferite e recupero",
+            "en": "Determine Injuries and recovery"
+          },
+          {
+            "id": "esperienza",
+            "nome": "Esperienza e Miglioramenti del personaggio",
+            "en": "Experience and Character Upgrades"
+          },
+          {
+            "id": "addestramento_avanzato",
+            "nome": "Investire nell'Addestramento avanzato",
+            "en": "Invest in Advanced Training"
+          },
+          {
+            "id": "acquisti",
+            "nome": "Acquistare oggetti",
+            "en": "Purchase items"
+          },
+          {
+            "id": "evento_campagna",
+            "nome": "Tirare per un Evento di campagna",
+            "en": "Roll for a Campaign Event"
+          },
+          {
+            "id": "evento_personaggio",
+            "nome": "Tirare per un Evento del personaggio",
+            "en": "Roll for a Character Event"
+          },
+          {
+            "id": "guerra_galattica",
+            "nome": "Controllare il progresso della Guerra galattica",
+            "en": "Check for Galactic War progress"
+          }
+        ]
+      }
+    ],
+    "primo_turno": "All'inizio della campagna si può saltare il Viaggio; si possono usare facoltativamente i passi di arrivo su un nuovo mondo (saltando i passi 1 e 2) oppure iniziare su un mondo senza regole speciali."
+  },
+  "viaggio": {
+    "_nota": "Passi di viaggio (p.69).",
+    "fuga_invasione": {
+      "nome": "Fuggire dall'invasione",
+      "en": "Flee Invasion",
+      "condizione": "mondo_invaso",
+      "tiro": {
+        "dado": "2d6",
+        "soglia": 8
+      },
+      "testo": "Se il mondo è sotto Invasione bisogna tentare la fuga: tira 2D6, serve 8+ per lasciare il pianeta in sicurezza. Se fallisci, nella fase Mondo puoi solo Assegnare l'equipaggiamento, poi DEVI combattere una Battaglia d'invasione (p.92). Se riesci, o sopravvivi alla battaglia, lasci il mondo e viaggi verso un nuovo pianeta con i passi normali; durante la fuga non ci sono paga, acquisti né Eventi di campagna, ma puoi tirare un Evento del personaggio (p.126). Se non hai i 5 crediti per il carburante puoi vendere equipaggiamento in perdita (1 credito ogni due oggetti) o abbandonare la nave e prendere un passaggio di evacuazione. Senza nave fuggi su una nave di evacuazione: perdi tutti i crediti e 1D6 oggetti a tua scelta tra Deposito ed equipaggiamento. Comunque tu parta, perdi tutti i Rivali, i Patroni e gli altri contatti di questo mondo.",
+      "fallimento": {
+        "solo_passo": "assegna_equipaggiamento",
+        "battaglia_obbligatoria": "invasione"
+      },
+      "successo": {
+        "niente_paga_acquisti_eventi_campagna": true,
+        "evento_personaggio_ammesso": true
+      },
+      "vendita_per_carburante": {
+        "oggetti_per_credito": 2
+      },
+      "evacuazione": {
+        "perde_tutti_crediti": true,
+        "perde_oggetti": "1d6"
+      },
+      "perde_contatti": true
+    },
+    "decidere_viaggio": {
+      "nome": "Decidere se viaggiare",
+      "en": "Decide Whether to Travel",
+      "testo": "Ogni turno si svolge in un solo sistema stellare. All'inizio del turno puoi sempre decidere di lasciare il pianeta: è un nuovo inizio, utile se hai fatto arrabbiare molta gente. Con una nave il viaggio costa 5 crediti (carburante e altro); se non li hai resti bloccato finché non li hai. Se viaggi, tira una volta sulla Tabella degli eventi di viaggio. Senza nave puoi pagare un passaggio commerciale a 1 credito per membro dell'equipaggio: non puoi trasportare pacchi o merci da consegnare ma porti tutti i tuoi averi, e non si tirano eventi di viaggio. Il viaggio non 'consuma tempo': i feriti non recuperano durante il viaggio salvo eventi specifici. Puoi generare le caratteristiche di un nuovo mondo e poi decidere di non andarci: in tal caso aspetti il turno successivo per tracciare una nuova rotta (o, senza nave, cercare un passaggio). Puoi tornare su un mondo già visitato, ripristinando tutti i Patroni e Rivali lasciati lì: annotalo sulla scheda dei mondi.",
+      "costo_nave": 5,
+      "costo_passaggio_per_membro": 1,
+      "passaggio_commerciale": {
+        "niente_consegne": true,
+        "niente_eventi_viaggio": true
+      },
+      "tempo": "Il viaggio non fa recuperare i feriti, salvo eventi specifici.",
+      "ritorno_mondo_noto": "Ripristina Patroni e Rivali lasciati su quel mondo."
+    },
+    "nave_danneggiata": {
+      "nome": "Viaggiare con la nave danneggiata",
+      "en": "Traveling in a Damaged Ship",
+      "testo": "Se la nave ha danni allo Scafo partire è pericoloso: vedi il capitolo 'La tua astronave' (p.59, in nave.json)."
+    }
+  },
+  "eventi_viaggio": {
+    "_dado": "d100",
+    "_nota": "Eventi di viaggio stellare (p.70-72). Si tira una volta quando si viaggia con la propria nave. Chiavi extra: ritira (tira di nuovo su questa tabella), ripetizioni (la prova si ripete N volte e l'esito si applica a ogni tiro), tentativi (si può ritentare fino a N volte, basta un successo), sottotabella (tabella interna con proprio dado), una_volta_per_campagna, prossimo_mondo_non_invadibile.",
+    "righe": [
+      {
+        "da": 1,
+        "a": 7,
+        "nome": "Asteroidi",
+        "en": "Asteroids",
+        "testo": "Detriti rocciosi ovunque. Per evitarli tira 1D6: con 5+ trovi una rotta sicura e tiri di nuovo su questa tabella. Per attraversare il campo scegli un membro dell'equipaggio e tira 1D6+Acume tre volte, serve 4+ ogni volta: ogni fallimento infligge 1D6 danni allo Scafo. (Se il tentativo di evitarli fallisce si attraversa il campo.)",
+        "effetti": {
+          "scelte": [
+            {
+              "testo": "Tenta di evitarli (1D6, 5+)",
+              "effetti": {
+                "prova": {
+                  "stat": null,
+                  "soglia": 5,
+                  "dado": "1d6",
+                  "successo": {
+                    "ritira": true
+                  },
+                  "fallimento": {
+                    "prova": {
+                      "stat": "acume",
+                      "soglia": 4,
+                      "dado": "1d6",
+                      "ripetizioni": 3,
+                      "successo": {},
+                      "fallimento": {
+                        "scafo": "-1d6"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "testo": "Attraversa il campo (3 prove 1D6+Acume, 4+)",
+              "effetti": {
+                "prova": {
+                  "stat": "acume",
+                  "soglia": 4,
+                  "dado": "1d6",
+                  "ripetizioni": 3,
+                  "successo": {},
+                  "fallimento": {
+                    "scafo": "-1d6"
+                  }
+                }
+              }
+            }
+          ]
+        }
+      },
+      {
+        "da": 8,
+        "a": 12,
+        "nome": "Problemi di navigazione",
+        "en": "Navigation trouble",
+        "testo": "Si va alla deriva nel vuoto: perdi 1 punto Storia, poi tira di nuovo su questa tabella. Se la nave ha danni allo Scafo quando esce questo evento, un membro a caso dell'equipaggio tira sulla Tabella delle ferite per i guasti al supporto vitale.",
+        "effetti": {
+          "punti_storia": -1,
+          "ritira": true,
+          "se_scafo_danneggiato": {
+            "tiro_ferite_casuale": 1
+          },
+          "manuale": true
+        }
+      },
+      {
+        "da": 13,
+        "a": 17,
+        "nome": "Abbordaggio pirata",
+        "en": "Raided",
+        "testo": "Dei pirati notano la nave. Puoi tentare di intimidirli: scegli un membro e tira 1D6+Acume, con 6+ eviti lo scontro. Altrimenti combatti in uno spazio angusto contro nemici della Tabella degli incontri criminali (p.94). Numero di nemici: 3D6 tenendo il dado più alto (equipaggio di campagna 5: 2D6 tenendo il più alto; 4: 1D6), più i numeri indicati nella tabella dei nemici, +1 figura extra. Nessun obiettivo: se li respingi fuggono sulla loro nave. Se perdi, perdi tutti i crediti e tutto il Deposito ma tieni la nave. Se vinci ottieni le ricompense normali di una missione d'Opportunità (p.120) più un tiro bonus sulla Tabella del bottino (p.131). È uno scontro 'fuori sequenza' e non conta come Battaglia del turno.",
+        "effetti": {
+          "prova": {
+            "stat": "acume",
+            "soglia": 6,
+            "dado": "1d6",
+            "successo": {},
+            "fallimento": {
+              "battaglia": {
+                "tipo": "fuori_sequenza",
+                "nemici": "criminali",
+                "dado_nemici": {
+                  "6": "3d6_alto",
+                  "5": "2d6_alto",
+                  "4": "1d6"
+                },
+                "nemici_extra": 1,
+                "obiettivo": null,
+                "sconfitta": {
+                  "perde_tutti_crediti": true,
+                  "perde_deposito": true
+                },
+                "vittoria": {
+                  "ricompense": "opportunita",
+                  "oggetti": [
+                    "bottino"
+                  ]
+                }
+              },
+              "manuale": true
+            }
+          }
+        }
+      },
+      {
+        "da": 18,
+        "a": 25,
+        "nome": "Relitto nello spazio profondo",
+        "en": "Deep space wreckage",
+        "testo": "Trovi un vecchio relitto alla deriva: 2 tiri sulla sottotabella Equipaggiamento del bottino (p.132). Entrambi gli oggetti sono danneggiati e vanno Riparati.",
+        "effetti": {
+          "oggetti": [
+            "bottino_equip",
+            "bottino_equip"
+          ],
+          "oggetti_danneggiati": true
+        }
+      },
+      {
+        "da": 26,
+        "a": 29,
+        "nome": "Guasto al motore",
+        "en": "Drive trouble",
+        "testo": "Scegli 3 membri dell'equipaggio: ognuno tira 1D6+Acume, serve 6+. Per ogni fallimento resti bloccato a terra sul prossimo mondo per un turno di campagna mentre il motore viene ripristinato. Decollare prima del ripristino infligge 2D6 danni allo Scafo.",
+        "effetti": {
+          "prova": {
+            "stat": "acume",
+            "soglia": 6,
+            "dado": "1d6",
+            "ripetizioni": 3,
+            "membri_diversi": true,
+            "successo": {},
+            "fallimento": {
+              "turni_a_terra": 1
+            }
+          },
+          "decollo_anticipato": {
+            "scafo": "-2d6"
+          }
+        }
+      },
+      {
+        "da": 30,
+        "a": 38,
+        "nome": "Tempo morto",
+        "en": "Down-time",
+        "testo": "Un membro a scelta riceve +1 XP. C'è tempo per la manutenzione: puoi Riparare 1 oggetto danneggiato senza tiro.",
+        "effetti": {
+          "xp": 1,
+          "ripara_oggetto": 1
+        }
+      },
+      {
+        "da": 39,
+        "a": 44,
+        "nome": "Richiesta di soccorso",
+        "en": "Distress call",
+        "testo": "Se vai in aiuto tira 1D6. 1: il motore dell'altra nave esplode mentre ti avvicini, un'ondata di detriti infligge 1D6+1 danni allo Scafo. 2: trovi solo rottami. 3-4: salvi un membro dell'equipaggio, risolvi come l'evento Capsula di salvataggio. 5-6: arrivi in tempo per aiutare a salvare la nave da un guasto al motore: scegli un membro e tira 1D6+Acume, serve 7+, hai tre tentativi; se riesci l'equipaggio riconoscente ti regala 3 tiri sulla tabella del bottino Equipaggiamento; se fallisci il motore esplode e subisci danni come con 1.",
+        "effetti": {
+          "scelte": [
+            {
+              "testo": "Ignora la richiesta",
+              "effetti": {}
+            },
+            {
+              "testo": "Vai in aiuto",
+              "effetti": {
+                "sottotabella": {
+                  "_dado": "d6",
+                  "righe": [
+                    {
+                      "da": 1,
+                      "a": 1,
+                      "testo": "Il motore esplode: 1D6+1 danni allo Scafo.",
+                      "effetti": {
+                        "scafo": "-1d6-1"
+                      }
+                    },
+                    {
+                      "da": 2,
+                      "a": 2,
+                      "testo": "Solo rottami alla deriva.",
+                      "effetti": {}
+                    },
+                    {
+                      "da": 3,
+                      "a": 4,
+                      "testo": "Salvi un membro dell'equipaggio: risolvi come Capsula di salvataggio (54-60).",
+                      "effetti": {
+                        "evento": "capsula_salvataggio"
+                      }
+                    },
+                    {
+                      "da": 5,
+                      "a": 6,
+                      "testo": "Aiuti a salvare la nave: 1D6+Acume, 7+, fino a tre tentativi. Successo: 3 tiri sulla tabella del bottino Equipaggiamento. Fallimento: 1D6+1 danni allo Scafo.",
+                      "effetti": {
+                        "prova": {
+                          "stat": "acume",
+                          "soglia": 7,
+                          "dado": "1d6",
+                          "tentativi": 3,
+                          "successo": {
+                            "oggetti": [
+                              "bottino_equip",
+                              "bottino_equip",
+                              "bottino_equip"
+                            ]
+                          },
+                          "fallimento": {
+                            "scafo": "-1d6-1"
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      },
+      {
+        "da": 45,
+        "a": 50,
+        "nome": "Nave di pattuglia",
+        "en": "Patrol ship",
+        "testo": "Una nave di pattuglia dell'Unità ti intima l'alt. Tira 1D6-3 due volte: ogni dado sopra 0 indica quel numero di oggetti confiscati come contrabbando (puoi consegnare qualsiasi oggetto portato o nel Deposito). Per la presenza militare, il prossimo mondo che visiti non può essere Invaso.",
+        "effetti": {
+          "confisca": [
+            "1d6-3",
+            "1d6-3"
+          ],
+          "prossimo_mondo_non_invadibile": true,
+          "manuale": true
+        }
+      },
+      {
+        "da": 51,
+        "a": 53,
+        "nome": "Fenomeno cosmico",
+        "en": "Cosmic phenomenon",
+        "testo": "Un membro vede una strana manifestazione nello spazio che nessun altro ha visto. Quel membro aggiunge +1 Fortuna (se può). Se nell'equipaggio c'è un Precursore, lo ritiene un buon presagio: +1 punto Storia. L'evento può accadere una sola volta per campagna; se riesce, non succede nulla.",
+        "effetti": {
+          "stat": {
+            "fortuna": 1
+          },
+          "una_volta_per_campagna": true,
+          "se_specie_in_equipaggio": {
+            "precursore": {
+              "punti_storia": 1
+            }
+          }
+        }
+      },
+      {
+        "da": 54,
+        "a": 60,
+        "nome": "Capsula di salvataggio",
+        "en": "Escape pod",
+        "testo": "Trovi una capsula di salvataggio. Se la recuperi tira 1D6. 1: è un criminale ricercato. Se lo lasci andare al prossimo mondo potrebbe ricambiare: la prossima volta che ottieni un nuovo Rivale, con 4+ su 1D6 lo rimuovi subito dalla campagna. Se lo consegni ottieni 1D6 crediti ma un Rivale dalla sua vecchia banda. 2-3: ti ricompensa con 1D3 crediti e un tiro sulla Tabella del bottino all'arrivo sul mondo più vicino. 4: non ha da pagarti ma ha informazioni interessanti: +1 Diceria di missione e +1 punto Storia. 5: vuole unirsi all'equipaggio: genera un nuovo personaggio, senza alcun equipaggiamento; se non lo assumi se ne va al prossimo mondo. 6: come 5, ma il personaggio inizia con 10 XP non spesi.",
+        "effetti": {
+          "scelte": [
+            {
+              "testo": "Ignora la capsula",
+              "effetti": {}
+            },
+            {
+              "testo": "Recupera la capsula",
+              "effetti": {
+                "sottotabella": {
+                  "_dado": "d6",
+                  "righe": [
+                    {
+                      "da": 1,
+                      "a": 1,
+                      "testo": "Criminale ricercato.",
+                      "effetti": {
+                        "scelte": [
+                          {
+                            "testo": "Lascialo andare: al prossimo nuovo Rivale, 4+ su 1D6 lo rimuove.",
+                            "effetti": {
+                              "favore_rivale": {
+                                "dado": "1d6",
+                                "soglia": 4
+                              },
+                              "manuale": true
+                            }
+                          },
+                          {
+                            "testo": "Consegnalo: 1D6 crediti e un Rivale.",
+                            "effetti": {
+                              "crediti": "1d6",
+                              "rivale": 1
+                            }
+                          }
+                        ]
+                      }
+                    },
+                    {
+                      "da": 2,
+                      "a": 3,
+                      "testo": "1D3 crediti e un tiro sul bottino all'arrivo.",
+                      "effetti": {
+                        "crediti": "1d3",
+                        "oggetti": [
+                          "bottino"
+                        ]
+                      }
+                    },
+                    {
+                      "da": 4,
+                      "a": 4,
+                      "testo": "Informazioni: +1 Diceria e +1 punto Storia.",
+                      "effetti": {
+                        "dicerie": 1,
+                        "punti_storia": 1
+                      }
+                    },
+                    {
+                      "da": 5,
+                      "a": 5,
+                      "testo": "Vuole unirsi: nuovo personaggio senza equipaggiamento (facoltativo).",
+                      "effetti": {
+                        "recluta": {
+                          "equipaggiamento": false,
+                          "xp": 0,
+                          "facoltativo": true
+                        }
+                      }
+                    },
+                    {
+                      "da": 6,
+                      "a": 6,
+                      "testo": "Come 5, con 10 XP non spesi.",
+                      "effetti": {
+                        "recluta": {
+                          "equipaggiamento": false,
+                          "xp": 10,
+                          "facoltativo": true
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      },
+      {
+        "da": 61,
+        "a": 66,
+        "nome": "Incidente",
+        "en": "Accident",
+        "testo": "Un membro dell'equipaggio si ferisce durante una manutenzione di routine: deve riposare un turno di campagna per riprendersi, e un oggetto che porta viene danneggiato.",
+        "effetti": {
+          "ferito_casuale": 1,
+          "danneggia_oggetto": 1
+        }
+      },
+      {
+        "da": 67,
+        "a": 75,
+        "nome": "Lungo avvicinamento",
+        "en": "Travel-time",
+        "testo": "Le condizioni locali costringono a saltare al bordo del sistema e avvicinarsi a motori normali. Tutti i feriti possono riposare per un turno di campagna.",
+        "effetti": {
+          "recupero_tutti": 1
+        }
+      },
+      {
+        "da": 76,
+        "a": 85,
+        "nome": "Viaggio tranquillo",
+        "en": "Uneventful trip",
+        "testo": "Tanto tempo a giocare a carte e pulire le armi. Puoi Riparare un oggetto danneggiato.",
+        "effetti": {
+          "ripara_oggetto": 1
+        }
+      },
+      {
+        "da": 86,
+        "a": 91,
+        "nome": "Tempo per riflettere",
+        "en": "Time to reflect",
+        "testo": "Come si sta sviluppando la storia? +1 punto Storia.",
+        "effetti": {
+          "punti_storia": 1
+        }
+      },
+      {
+        "da": 92,
+        "a": 95,
+        "nome": "Tempo per leggere un libro",
+        "en": "Time to read a book",
+        "testo": "Tira 1D6. 1-2: un membro a caso +3 XP. 3-4: un membro a caso +2 XP e un secondo membro a caso +1 XP. 5-6: tre membri a caso +1 XP ciascuno.",
+        "effetti": {
+          "sottotabella": {
+            "_dado": "d6",
+            "righe": [
+              {
+                "da": 1,
+                "a": 2,
+                "testo": "Un membro a caso +3 XP.",
+                "effetti": {
+                  "xp_casuali": [
+                    3
+                  ]
+                }
+              },
+              {
+                "da": 3,
+                "a": 4,
+                "testo": "Un membro a caso +2 XP, un altro +1 XP.",
+                "effetti": {
+                  "xp_casuali": [
+                    2,
+                    1
+                  ]
+                }
+              },
+              {
+                "da": 5,
+                "a": 6,
+                "testo": "Tre membri a caso +1 XP ciascuno.",
+                "effetti": {
+                  "xp_casuali": [
+                    1,
+                    1,
+                    1
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      },
+      {
+        "da": 96,
+        "a": 100,
+        "nome": "Chiuso di notte nell'archivio dati",
+        "en": "Locked in the library data by night",
+        "testo": "Il capitano scopre informazioni sul settore verso cui sei diretto. Puoi generare le informazioni planetarie (problemi, vantaggi, licenze) di tre mondi e scegliere quale visitare, ma per il carburante devi visitarne uno dei tre. Tutti e tre restano nella campagna e si possono visitare in seguito.",
+        "effetti": {
+          "mondi_da_scegliere": 3,
+          "manuale": true
+        }
+      }
+    ]
+  },
+  "arrivo": {
+    "_nota": "Passi di arrivo su un nuovo mondo (p.72). All'inizio della campagna si saltano i passi 1 e 2.",
+    "passi": [
+      {
+        "id": "rivali_seguono",
+        "nome": "Controlla i Rivali",
+        "en": "Check for Rivals",
+        "testo": "Ogni Rivale tira 1D6: con 5+ decide di seguirti, altrimenti resta indietro.",
+        "tiro": {
+          "dado": "1d6",
+          "soglia": 5,
+          "per_ogni": "rivale",
+          "successo": "segue",
+          "fallimento": "resta"
+        },
+        "salta_a_inizio_campagna": true
+      },
+      {
+        "id": "congeda_patroni",
+        "nome": "Congeda i Patroni",
+        "en": "Dismiss Patrons",
+        "testo": "Tutti i Patroni restano indietro, tranne quelli Persistenti (beneficio 'Persistente').",
+        "eccezione": "persistente",
+        "salta_a_inizio_campagna": true
+      },
+      {
+        "id": "licenza",
+        "nome": "Controlla i requisiti di licenza",
+        "en": "Check for Licensing Requirements",
+        "testo": "Tira 1D6: con 5-6 il mondo richiede una Licenza da libero professionista per svolgere lavori per i Patroni; tira un altro 1D6 per il costo in crediti. Una volta acquistata vale per sempre, anche se torni sul mondo in seguito. Puoi tentare di ottenere una Licenza falsa: scegli un membro e tira 1D6+Acume; con 6+ ottieni la Licenza gratis. Se il dado naturale è 1 devi aggiungere un Rivale su questo mondo (forze dell'ordine, boss criminali o cartelli commerciali non apprezzano). Un solo tentativo.",
+        "tabella": {
+          "_dado": "d6",
+          "righe": [
+            {
+              "da": 1,
+              "a": 4,
+              "nome": "Nessuna licenza",
+              "en": "No License",
+              "testo": "Non serve alcuna licenza.",
+              "effetti": {}
+            },
+            {
+              "da": 5,
+              "a": 6,
+              "nome": "Licenza da libero professionista richiesta",
+              "en": "Freelancer License required",
+              "testo": "Serve una licenza per i lavori dei Patroni; costo 1D6 crediti.",
+              "effetti": {
+                "licenza_richiesta": true,
+                "costo_licenza": "1d6"
+              }
+            }
+          ]
+        },
+        "licenza_falsa": {
+          "stat": "acume",
+          "dado": "1d6",
+          "soglia": 6,
+          "successo": {
+            "licenza": true
+          },
+          "naturale_1": {
+            "rivale": 1
+          },
+          "tentativi": 1
+        },
+        "permanente": true
+      },
+      {
+        "id": "tratti_mondo",
+        "nome": "Tratti del mondo",
+        "en": "World Traits",
+        "testo": "Tira D100 sulla tabella dei tratti del mondo (sezione 'tratti_mondo'). Le restrizioni di visibilità si tirano all'inizio di ogni turno di campagna; se lo scenario applicherebbe una seconda restrizione di visibilità, si usa la più corta."
+      }
+    ]
+  },
+  "tratti_mondo": {
+    "_dado": "d100",
+    "_nota": "Tabella dei tratti del mondo (p.73-75). Le chiavi in 'effetti' sono modificatori permanenti del mondo letti dai relativi sistemi (battaglia, incarichi, viaggio...). Le visibilità si ritirano all'inizio di ogni turno; con due restrizioni vale la più corta.",
+    "righe": [
+      {
+        "da": 1,
+        "a": 3,
+        "nome": "Foschia",
+        "en": "Haze",
+        "testo": "In battaglia la visibilità è ridotta a 1D6+8\".",
+        "effetti": {
+          "visibilita": "1d6+8"
+        }
+      },
+      {
+        "da": 4,
+        "a": 6,
+        "nome": "Vegetazione rigogliosa",
+        "en": "Overgrown",
+        "testo": "Allestendo il tavolo devi aggiungere 1D6+2 piante singole o 1D3 aree di vegetazione (circa 3-5\" di diametro).",
+        "effetti": {
+          "terreno_extra": {
+            "scelte": [
+              "1d6+2 piante",
+              "1d3 aree di vegetazione"
+            ]
+          },
+          "manuale": true
+        }
+      },
+      {
+        "da": 7,
+        "a": 8,
+        "nome": "Zona di guerra",
+        "en": "Warzone",
+        "testo": "Allestendo il tavolo devi aggiungere 1D3 edifici in rovina o crateri.",
+        "effetti": {
+          "terreno_extra": {
+            "rovine_o_crateri": "1d3"
+          },
+          "manuale": true
+        }
+      },
+      {
+        "da": 9,
+        "a": 10,
+        "nome": "Forte presenza della legge",
+        "en": "Heavily enforced",
+        "testo": "Contro avversari della Tabella degli incontri criminali il numero di nemici è ridotto di 1. Quando tiri per vedere se diventano Rivali, tira un solo dado come normale.",
+        "effetti": {
+          "nemici_criminali": -1,
+          "rivali_criminali_un_dado": true
+        }
+      },
+      {
+        "da": 11,
+        "a": 12,
+        "nome": "Criminalità dilagante",
+        "en": "Rampant crime",
+        "testo": "Contro avversari della lista degli incontri criminali aggiungi 1 al numero di nemici.",
+        "effetti": {
+          "nemici_criminali": 1
+        }
+      },
+      {
+        "da": 13,
+        "a": 14,
+        "nome": "Rischio di invasione",
+        "en": "Invasion risk",
+        "testo": "+1 a tutti i tiri di Invasione.",
+        "effetti": {
+          "invasione": 1
+        }
+      },
+      {
+        "da": 15,
+        "a": 16,
+        "nome": "Invasione imminente",
+        "en": "Imminent invasion",
+        "testo": "+2 a tutti i tiri di Invasione; se il mondo viene invaso, i tiri per il progresso della guerra sono a -1.",
+        "effetti": {
+          "invasione": 2,
+          "progresso_guerra": -1
+        }
+      },
+      {
+        "da": 17,
+        "a": 18,
+        "nome": "Mancano strutture per astronavi",
+        "en": "Lacks starship facilities",
+        "testo": "Non puoi spendere più di 3 crediti per turno in riparazioni della nave.",
+        "effetti": {
+          "max_crediti_riparazioni_nave": 3
+        }
+      },
+      {
+        "da": 19,
+        "a": 20,
+        "nome": "Reclutamento facile",
+        "en": "Easy recruiting",
+        "testo": "+1 al tiro per Reclutare.",
+        "effetti": {
+          "recluta": 1
+        }
+      },
+      {
+        "da": 21,
+        "a": 22,
+        "nome": "Scienza medica",
+        "en": "Medical science",
+        "testo": "Le cure mediche accelerate costano solo 3 crediti per personaggio.",
+        "effetti": {
+          "costo_cure": 3
+        }
+      },
+      {
+        "da": 23,
+        "a": 24,
+        "nome": "Conoscenze tecniche",
+        "en": "Technical knowledge",
+        "testo": "+1 a tutti i tentativi di Riparazione.",
+        "effetti": {
+          "ripara": 1
+        }
+      },
+      {
+        "da": 25,
+        "a": 26,
+        "nome": "Opportunità",
+        "en": "Opportunities",
+        "testo": "+1 al tiro per cercare Patroni.",
+        "effetti": {
+          "trova_patrono": 1
+        }
+      },
+      {
+        "da": 27,
+        "a": 29,
+        "nome": "Economia in espansione",
+        "en": "Booming economy",
+        "testo": "Nei tiri per i crediti di ricompensa post-battaglia, ogni 1 sui dadi si ritira finché non esce un valore diverso da 1.",
+        "effetti": {
+          "ricompensa_ritira_1": true
+        }
+      },
+      {
+        "da": 30,
+        "a": 32,
+        "nome": "Mercati affollati",
+        "en": "Busy markets",
+        "testo": "Ogni turno puoi spendere 2 crediti una volta per tirare sulla Tabella del commercio (p.79).",
+        "effetti": {
+          "commercio_extra": {
+            "costo": 2,
+            "max_per_turno": 1
+          }
+        }
+      },
+      {
+        "da": 33,
+        "a": 34,
+        "nome": "Caos burocratico",
+        "en": "Bureaucratic mess",
+        "testo": "Quando tenti di partire tira 2D6: con 2-4 sei trattenuto e non puoi partire in questo turno se non paghi una mazzetta pari al risultato in crediti. Puoi ritentare il turno successivo.",
+        "effetti": {
+          "partenza": {
+            "dado": "2d6",
+            "bloccato_da": 2,
+            "bloccato_a": 4,
+            "mazzetta": "risultato"
+          }
+        }
+      },
+      {
+        "da": 35,
+        "a": 36,
+        "nome": "Istruzione limitata",
+        "en": "Restricted education",
+        "testo": "Per essere ammesso all'Addestramento avanzato su questo mondo serve 6+.",
+        "effetti": {
+          "addestramento_soglia": 6
+        }
+      },
+      {
+        "da": 37,
+        "a": 38,
+        "nome": "Istruzione costosa",
+        "en": "Expensive education",
+        "testo": "L'iscrizione all'Addestramento avanzato costa 3 crediti.",
+        "effetti": {
+          "addestramento_costo": 3
+        }
+      },
+      {
+        "da": 39,
+        "a": 41,
+        "nome": "Spostamenti limitati",
+        "en": "Travel restricted",
+        "testo": "Al massimo un membro dell'equipaggio per turno può scegliere l'incarico Esplorare.",
+        "effetti": {
+          "max_esploratori": 1
+        }
+      },
+      {
+        "da": 42,
+        "a": 43,
+        "nome": "Settore sicuro dell'Unità",
+        "en": "Unity safe sector",
+        "testo": "Il mondo non può essere Invaso.",
+        "effetti": {
+          "non_invadibile": true
+        }
+      },
+      {
+        "da": 44,
+        "a": 46,
+        "nome": "Oscurità",
+        "en": "Gloom",
+        "testo": "In battaglia la visibilità massima è 1D6+6\".",
+        "effetti": {
+          "visibilita": "1d6+6"
+        }
+      },
+      {
+        "da": 47,
+        "a": 48,
+        "nome": "Fabbriche di Bot",
+        "en": "Bot manufacturing",
+        "testo": "Tutti i potenziamenti dei Bot costano 1 credito in meno.",
+        "effetti": {
+          "costo_potenziamenti_bot": -1
+        }
+      },
+      {
+        "da": 49,
+        "a": 51,
+        "nome": "Raffineria di carburante",
+        "en": "Fuel refinery",
+        "testo": "Partire da questo mondo costa solo 3 crediti.",
+        "effetti": {
+          "costo_viaggio": 3
+        }
+      },
+      {
+        "da": 52,
+        "a": 53,
+        "nome": "Specie aliena limitata",
+        "en": "Alien species restricted",
+        "testo": "Tira 1D10 per la specie limitata: 1 Ingegnere, 2-4 K'Erin, 5 Senz'anima, 6 Precursore, 7-9 Ferale, 10 Swift. Personaggi di quel tipo non si possono assumere qui (si generano come Umani base) e non possono svolgere incarichi; in combattimento partecipano normalmente.",
+        "effetti": {
+          "specie_limitata": {
+            "_dado": "d10",
+            "righe": [
+              {
+                "da": 1,
+                "a": 1,
+                "specie": "ingegnere",
+                "en": "Engineer"
+              },
+              {
+                "da": 2,
+                "a": 4,
+                "specie": "kerin",
+                "en": "K'Erin"
+              },
+              {
+                "da": 5,
+                "a": 5,
+                "specie": "senzanima",
+                "en": "Soulless"
+              },
+              {
+                "da": 6,
+                "a": 6,
+                "specie": "precursore",
+                "en": "Precursor"
+              },
+              {
+                "da": 7,
+                "a": 9,
+                "specie": "ferale",
+                "en": "Feral"
+              },
+              {
+                "da": 10,
+                "a": 10,
+                "specie": "swift",
+                "en": "Swift"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "da": 54,
+        "a": 55,
+        "nome": "Licenza per armi",
+        "en": "Weapon licensing",
+        "testo": "Ogni arma ottenuta tramite la Tabella del commercio o acquistata direttamente costa +1 credito.",
+        "effetti": {
+          "costo_armi": 1
+        }
+      },
+      {
+        "da": 56,
+        "a": 57,
+        "nome": "Restrizioni all'importazione",
+        "en": "Import restrictions",
+        "testo": "Non puoi vendere oggetti su questo mondo.",
+        "effetti": {
+          "vendita_vietata": true
+        }
+      },
+      {
+        "da": 58,
+        "a": 59,
+        "nome": "Avamposto militare",
+        "en": "Military outpost",
+        "testo": "+2 ai tiri di Invasione; +2 quando controlli il progresso della guerra.",
+        "effetti": {
+          "invasione": 2,
+          "progresso_guerra": 2
+        }
+      },
+      {
+        "da": 60,
+        "a": 62,
+        "nome": "Pericoloso",
+        "en": "Dangerous",
+        "testo": "Tirando sulla Tabella degli incontri Minacce vaganti, aumenta di +1 il numero di avversari.",
+        "effetti": {
+          "nemici_minacce_vaganti": 1
+        }
+      },
+      {
+        "da": 63,
+        "a": 64,
+        "nome": "Cantieri navali",
+        "en": "Shipyards",
+        "testo": "Il costo di tutti i Componenti della nave è ridotto di 2 crediti.",
+        "effetti": {
+          "costo_componenti_nave": -2
+        }
+      },
+      {
+        "da": 65,
+        "a": 67,
+        "nome": "Arido",
+        "en": "Barren",
+        "testo": "Nessuna pianta può essere usata sul campo di battaglia.",
+        "effetti": {
+          "niente_piante": true
+        }
+      },
+      {
+        "da": 68,
+        "a": 69,
+        "nome": "Sistema delle faide",
+        "en": "Vendetta system",
+        "testo": "Gli avversari diventano tuoi Rivali con un risultato di 1 o 2.",
+        "effetti": {
+          "rivale_soglia": 2
+        }
+      },
+      {
+        "da": 70,
+        "a": 72,
+        "nome": "Zona di libero scambio",
+        "en": "Free trade zone",
+        "testo": "Un membro dell'equipaggio per turno può tirare due volte sulla Tabella del commercio e scegliere uno dei due risultati.",
+        "effetti": {
+          "commercio_tira_due_volte": 1
+        }
+      },
+      {
+        "da": 73,
+        "a": 74,
+        "nome": "Stato corporativo",
+        "en": "Corporate state",
+        "testo": "+2 al tiro per trovare un Patrono. I Patroni sono sempre Corporazioni. Fallire una missione significa finire sulla lista nera: non potrai più avere Patroni qui.",
+        "effetti": {
+          "trova_patrono": 2,
+          "tipo_patrono": "corporazione",
+          "lista_nera_se_fallisci": true
+        }
+      },
+      {
+        "da": 75,
+        "a": 76,
+        "nome": "Popolazione avventurosa",
+        "en": "Adventurous population",
+        "testo": "Quando Recluti con successo puoi generare un personaggio in più e scegliere chi assumere.",
+        "effetti": {
+          "recluta_scelta_extra": 1
+        }
+      },
+      {
+        "da": 77,
+        "a": 79,
+        "nome": "Ghiacciato",
+        "en": "Frozen",
+        "testo": "Un personaggio che fa uno Scatto può scegliere di scivolare: si muove di 1D6\" in linea retta e deve percorrere tutta la distanza. Se urta qualcosa, lui e chi viene urtato sono spinti di 1\" in direzione casuale e diventano Storditi.",
+        "effetti": {
+          "scivolata": "1d6",
+          "manuale": true
+        }
+      },
+      {
+        "da": 80,
+        "a": 81,
+        "nome": "Pianeggiante",
+        "en": "Flat",
+        "testo": "Non piazzare colline né rilievi sul campo di battaglia.",
+        "effetti": {
+          "niente_rilievi": true
+        }
+      },
+      {
+        "da": 82,
+        "a": 84,
+        "nome": "Carenza di carburante",
+        "en": "Fuel shortage",
+        "testo": "Il costo per partire da questo mondo aumenta di 1D3 crediti. Puoi ritirarlo ogni turno.",
+        "effetti": {
+          "costo_viaggio_extra": "1d3"
+        }
+      },
+      {
+        "da": 85,
+        "a": 86,
+        "nome": "Polvere riflettente",
+        "en": "Reflective dust",
+        "testo": "Tutte le armi Laser, a Raggio o Blast hanno -1 a colpire oltre 9\".",
+        "effetti": {
+          "tiro_colpire": {
+            "armi": [
+              "laser",
+              "raggio",
+              "blast"
+            ],
+            "oltre": 9,
+            "mod": -1
+          }
+        }
+      },
+      {
+        "da": 87,
+        "a": 89,
+        "nome": "Costo elevato",
+        "en": "High cost",
+        "testo": "La dimensione dell'equipaggio conta come 2 in più per il calcolo del Mantenimento.",
+        "effetti": {
+          "mantenimento_membri_extra": 2
+        }
+      },
+      {
+        "da": 90,
+        "a": 91,
+        "nome": "Interdizione",
+        "en": "Interdiction",
+        "testo": "Sei autorizzato a restare solo 1D3 turni. Per prolungare la permanenza devi ottenere una licenza: tira 2D6, serve 8+.",
+        "effetti": {
+          "permanenza_max": "1d3",
+          "proroga": {
+            "dado": "2d6",
+            "soglia": 8
+          }
+        }
+      },
+      {
+        "da": 92,
+        "a": 93,
+        "nome": "Zona nulla",
+        "en": "Null zone",
+        "testo": "Nessun dispositivo di teletrasporto funziona.",
+        "effetti": {
+          "niente_teletrasporto": true
+        }
+      },
+      {
+        "da": 94,
+        "a": 96,
+        "nome": "Cristalli",
+        "en": "Crystals",
+        "testo": "Piazza 2D6 cristalli sul campo di battaglia (se non ne hai, usa rocce).",
+        "effetti": {
+          "terreno_extra": {
+            "cristalli": "2d6"
+          },
+          "manuale": true
+        }
+      },
+      {
+        "da": 97,
+        "a": 100,
+        "nome": "Nebbia",
+        "en": "Fog",
+        "testo": "Tutti i tiri oltre 8\" hanno -1 a colpire.",
+        "effetti": {
+          "tiro_colpire": {
+            "oltre": 8,
+            "mod": -1
+          }
+        }
+      }
+    ]
+  },
+  "galassia_selvaggia": {
+    "nome": "Galassia selvaggia",
+    "en": "Wild Galaxy – Optional Rule",
+    "opzionale": true,
+    "testo": "Per una galassia più caotica, puoi tirare due volte sulla tabella dei tratti per ogni mondo visitato. Se i risultati sembrano contraddirsi, ignora il secondo tiro.",
+    "tiri_tratti": 2,
+    "contraddizione": "ignora_secondo"
+  },
+  "mantenimento": {
+    "_nota": "Passo Mondo 1: mantenimento e riparazioni della nave (p.76).",
+    "costo": {
+      "base": 1,
+      "membri_min": 4,
+      "membri_max": 6,
+      "per_membro_oltre": 1,
+      "soglia_oltre": 6,
+      "testo": "Il mantenimento costa 1 credito con 4-6 membri, +1 credito per ogni membro oltre il sesto (es. 5 membri: 1 credito; 8 membri: 3 crediti). I membri in Infermeria non contano. (Con meno di 4 membri il testo non specifica: si assume 1 credito.)",
+      "esclusi": [
+        "infermeria"
+      ]
+    },
+    "vendita": {
+      "crediti_per_oggetto": 1,
+      "testo": "Puoi vendere equipaggiamento per pagare: ogni oggetto venduto vale 1 credito di mantenimento."
+    },
+    "mancato_pagamento": {
+      "testo": "Per ogni credito mancante, un membro dell'equipaggio rifiuta di svolgere incarichi in questo turno.",
+      "membri_senza_incarico_per_credito": 1
+    },
+    "congedo": {
+      "testo": "In questo passo puoi cacciare un membro dell'equipaggio: scegli un oggetto che porta e rimettilo nel Deposito; il resto dell'equipaggiamento se ne va con lui.",
+      "oggetti_trattenuti": 1
+    },
+    "debito_nave": {
+      "testo": "Puoi fare pagamenti sul debito della nave. Dopo averli fatti (o rifiutati), se devi ancora denaro, il debito aumenta di 1 credito (2 crediti se devi 31 crediti o più). Se il totale arriva a 75 crediti o più tira 2D6: con 2-6 la nave viene sequestrata dalle autorità o dai loschi creditori ed è persa per sempre.",
+      "interesse": [
+        {
+          "fino_a": 30,
+          "aumento": 1
+        },
+        {
+          "da": 31,
+          "aumento": 2
+        }
+      ],
+      "sequestro": {
+        "soglia_debito": 75,
+        "dado": "2d6",
+        "sequestro_da": 2,
+        "sequestro_a": 6
+      }
+    },
+    "riparazioni_nave": {
+      "testo": "Se la nave ha danni allo Scafo puoi ripararne 1 punto gratuitamente in questo passo. Inoltre ogni credito speso ripara 1 punto, senza limite di spesa (salvo tratti del mondo).",
+      "gratuita": 1,
+      "crediti_per_punto": 1
+    },
+    "cure_mediche": {
+      "testo": "Se hai membri in Infermeria puoi pagare 4 crediti per togliere 1 turno di recupero a un personaggio, quante volte puoi permetterti. Vale anche per accelerare le riparazioni dei Bot, allo stesso costo. Poi i personaggi in Infermeria e i Bot in riparazione scalano un turno dalla durata: se era l'ultimo possono tornare a combattere ma non possono svolgere un incarico in questo turno.",
+      "costo_per_turno": 4,
+      "ultimo_turno_niente_incarico": true
+    }
+  },
+  "incarichi": {
+    "_nota": "Passo Mondo 2: incarichi dell'equipaggio (p.76-78). Ogni membro non in Infermeria (e non appena uscito) può svolgere un incarico; al massimo due personaggi per incarico. Un personaggio può anche restare sulla nave senza fare nulla.",
+    "regole": {
+      "max_per_incarico": 2,
+      "esclusi": [
+        "infermeria",
+        "appena_dimesso",
+        "rifiuta_per_mantenimento"
+      ]
+    },
+    "trova_patrono": {
+      "nome": "Trovare un Patrono",
+      "en": "Find a Patron",
+      "breve": "Cerca qualcuno che assuma l'equipaggio.",
+      "testo": "Tira 1D6 + numero di membri che cercano. Ogni vecchio Patrono tra i contatti dell'equipaggio dà +1. Dopo il tiro puoi spendere crediti: +1 per ogni credito. Con 5+ trovi un Patrono che ti offre un lavoro (vedi 'patroni'); con 6+ ne trovi due e puoi scegliere uno dei due lavori. Se hai un Patrono esistente, la prima offerta è sua; se le offerte sono due, una è di un Patrono esistente casuale e l'altra di un nuovo Patrono. Dopo aver generato tutti i dettagli puoi rifiutare il lavoro.",
+      "regola": {
+        "dado": "1d6",
+        "mod": [
+          "+membri_assegnati",
+          "+1 per patrono_contatto",
+          "+1 per credito speso (dopo il tiro)"
+        ],
+        "soglie": [
+          {
+            "min": 5,
+            "offerte": 1
+          },
+          {
+            "min": 6,
+            "offerte": 2,
+            "scegli": 1
+          }
+        ],
+        "crediti_dopo_tiro": true,
+        "prima_offerta_da_patrono_esistente": true
+      }
+    },
+    "addestrarsi": {
+      "nome": "Addestrarsi",
+      "en": "Train",
+      "breve": "Poligono e palestra.",
+      "testo": "Il personaggio guadagna 1 XP. Se così può fare un Miglioramento del personaggio (p.123), lo risolve subito.",
+      "regola": {
+        "automatico": true,
+        "effetti": {
+          "xp": 1
+        },
+        "miglioramento_immediato": true
+      }
+    },
+    "commerciare": {
+      "nome": "Commerciare",
+      "en": "Trade",
+      "breve": "Cerca nuovo equipaggiamento.",
+      "testo": "Ogni membro che commercia tira una volta sulla Tabella del commercio (p.79). Puoi ottenere tiri aggiuntivi spendendo 3 crediti ciascuno, purché almeno un membro stia commerciando.",
+      "regola": {
+        "tiri_per_membro": 1,
+        "tabella": "commercio",
+        "tiro_extra_costo": 3,
+        "richiede_almeno_un_membro": true
+      }
+    },
+    "reclutare": {
+      "nome": "Reclutare",
+      "en": "Recruit",
+      "breve": "Amplia l'equipaggio.",
+      "testo": "Se l'equipaggio ha meno di 6 membri, recluti automaticamente un nuovo personaggio per ogni membro mandato a reclutare (fino a tornare a 6). Con 6 o più membri tira 1D6 + numero di membri mandati a reclutare: con 6+ aggiungi una recluta. Vedi 'reclutamento'.",
+      "regola": {
+        "sotto_6": "automatico_1_per_membro_fino_a_6",
+        "da_6": {
+          "dado": "1d6",
+          "mod": [
+            "+membri_assegnati"
+          ],
+          "soglia": 6,
+          "reclute": 1
+        }
+      }
+    },
+    "esplorare": {
+      "nome": "Esplorare",
+      "en": "Explore",
+      "breve": "Visita i dintorni.",
+      "testo": "Ogni membro che esplora tira una volta sulla Tabella dell'esplorazione (p.80).",
+      "regola": {
+        "tiri_per_membro": 1,
+        "tabella": "esplorazione"
+      }
+    },
+    "rintracciare": {
+      "nome": "Rintracciare",
+      "en": "Track",
+      "breve": "Cerca un Rivale per la resa dei conti.",
+      "testo": "Se hai Rivali puoi tentare di rintracciarne uno. Tira 1D6 + numero di membri che rintracciano; puoi spendere crediti prima del tiro per +1 ciascuno. Con 6+ localizzi un Rivale a tua scelta e puoi combatterlo in questo turno.",
+      "regola": {
+        "richiede": "rivali",
+        "dado": "1d6",
+        "mod": [
+          "+membri_assegnati",
+          "+1 per credito speso (prima del tiro)"
+        ],
+        "soglia": 6,
+        "successo": "rivale_a_scelta_attaccabile",
+        "crediti_prima_del_tiro": true
+      }
+    },
+    "riparare": {
+      "nome": "Riparare l'equipaggiamento",
+      "en": "Repair your Kit",
+      "breve": "Tenta di aggiustare oggetti rotti.",
+      "testo": "Per riparare un oggetto danneggiato tira 1D6 + Acume del personaggio; +1 se è un Ingegnere. Ogni credito speso in pezzi di ricambio prima del tiro dà +1. Con 6+ l'oggetto è riparato e di nuovo utilizzabile. Un 1 naturale fallisce sempre e l'oggetto è irrecuperabile.",
+      "regola": {
+        "dado": "1d6",
+        "stat": "acume",
+        "mod": [
+          "+1 se ingegnere",
+          "+1 per credito speso (prima del tiro)"
+        ],
+        "soglia": 6,
+        "naturale_1": "oggetto_distrutto",
+        "crediti_prima_del_tiro": true
+      }
+    },
+    "esca": {
+      "nome": "Fare da esca",
+      "en": "Decoy",
+      "breve": "Aiuta a non farsi trovare dai Rivali.",
+      "testo": "Quando tiri per vedere se i Rivali ti rintracciano (scelta della battaglia), aggiungi +1 al tiro per ogni membro mandato a fare da esca.",
+      "regola": {
+        "mod_controllo_rivali": "+1 per membro_assegnato"
+      }
+    }
+  },
+  "commercio": {
+    "_dado": "d100",
+    "_nota": "Tabella del commercio (p.79-80). Ciò che si ottiene è subito disponibile. Se più oggetti sono in scelta se ne riceve uno solo. Se un risultato costa denaro si può rifiutare. Chiave extra 'monouso': l'oggetto si consuma dopo un uso; 'oggetto_speciale' indica un oggetto di campagna con regole proprie.",
+    "righe": [
+      {
+        "da": 1,
+        "a": 3,
+        "nome": "Un'arma personale",
+        "en": "A personal weapon",
+        "testo": "Tira una volta sulla Tabella delle armi a bassa tecnologia (p.28).",
+        "effetti": {
+          "oggetti": [
+            "arma_bassa"
+          ]
+        }
+      },
+      {
+        "da": 4,
+        "a": 6,
+        "nome": "Vendere un po' di carico",
+        "en": "Sell some cargo",
+        "testo": "Guadagni 2 crediti.",
+        "effetti": {
+          "crediti": 2
+        }
+      },
+      {
+        "da": 7,
+        "a": 9,
+        "nome": "Trovare qualcosa di utile",
+        "en": "Find something useful",
+        "testo": "Tira una volta sulla Tabella dell'equipaggiamento (p.29).",
+        "effetti": {
+          "oggetti": [
+            "equip"
+          ]
+        }
+      },
+      {
+        "da": 10,
+        "a": 11,
+        "nome": "Cibo e alcolici di qualità",
+        "en": "Quality food and booze",
+        "testo": "Recluta un nuovo personaggio nell'equipaggio. Monouso.",
+        "effetti": {
+          "oggetto_speciale": "cibo_qualita",
+          "monouso": true,
+          "manuale": true
+        }
+      },
+      {
+        "da": 12,
+        "a": 14,
+        "nome": "Manuale di istruzioni",
+        "en": "Instruction book",
+        "testo": "Un membro a scelta lo legge e guadagna +1 XP. Monouso.",
+        "effetti": {
+          "xp": 1,
+          "monouso": true
+        }
+      },
+      {
+        "da": 15,
+        "a": 18,
+        "nome": "Rottami",
+        "en": "Bits of scrap",
+        "testo": "Li rivendi a un interessato guadagnando 1 credito.",
+        "effetti": {
+          "crediti": 1
+        }
+      },
+      {
+        "da": 19,
+        "a": 22,
+        "nome": "Kit medico",
+        "en": "Medical pack",
+        "testo": "Scegli uno Stim-pack o un Med-patch.",
+        "effetti": {
+          "scelte": [
+            {
+              "testo": "Stim-pack",
+              "effetti": {
+                "oggetti": [
+                  "stim"
+                ]
+              }
+            },
+            {
+              "testo": "Med-patch",
+              "effetti": {
+                "oggetti": [
+                  "med_patch"
+                ]
+              }
+            }
+          ]
+        }
+      },
+      {
+        "da": 23,
+        "a": 24,
+        "nome": "Ninnolo senza valore",
+        "en": "Worthless trinket",
+        "testo": "Senza valore? Tira 1D6: con 6 guadagni +1 punto Storia.",
+        "effetti": {
+          "prova": {
+            "stat": null,
+            "dado": "1d6",
+            "soglia": 6,
+            "successo": {
+              "punti_storia": 1
+            },
+            "fallimento": {}
+          }
+        }
+      },
+      {
+        "da": 25,
+        "a": 26,
+        "nome": "Mappe locali",
+        "en": "Local maps",
+        "testo": "Se ricevi una Missione su questo mondo o sul successivo, puoi aggiungere subito 1 Diceria. Monouso.",
+        "effetti": {
+          "oggetto_speciale": "mappe_locali",
+          "monouso": true,
+          "manuale": true
+        }
+      },
+      {
+        "da": 27,
+        "a": 28,
+        "nome": "Ninnolo di lusso",
+        "en": "Luxury trinket",
+        "testo": "Se Recluti puoi usarlo come regalo per +2 al tiro. In alternativa puoi venderlo: tira due volte sulla Tabella del commercio e scegli il risultato preferito. Se lo trova un personaggio Swift lo tiene per sé e guadagna +2 XP. Monouso.",
+        "effetti": {
+          "se_specie": {
+            "swift": {
+              "xp": 2
+            }
+          },
+          "oggetto_speciale": "ninnolo_lusso",
+          "monouso": true,
+          "scelte": [
+            {
+              "testo": "Tienilo come regalo (+2 a un tiro per Reclutare)",
+              "effetti": {
+                "manuale": true
+              }
+            },
+            {
+              "testo": "Vendilo: due tiri sul commercio, scegli uno",
+              "effetti": {
+                "tabella": "commercio",
+                "tiri": 2,
+                "scegli": 1
+              }
+            }
+          ]
+        }
+      },
+      {
+        "da": 29,
+        "a": 30,
+        "nome": "Provviste di base",
+        "en": "Basic supplies",
+        "testo": "Salta il Mantenimento per un turno di campagna. Monouso.",
+        "effetti": {
+          "oggetto_speciale": "provviste_base",
+          "monouso": true
+        }
+      },
+      {
+        "da": 31,
+        "a": 34,
+        "nome": "Contrabbando",
+        "en": "Contraband",
+        "testo": "Puoi rifiutarlo; se lo accetti guadagni 1D6 crediti rivendendolo. Se il dado fa 4-6 ricevi anche un Rivale.",
+        "effetti": {
+          "scelte": [
+            {
+              "testo": "Rifiuta",
+              "effetti": {}
+            },
+            {
+              "testo": "Accetta: 1D6 crediti, con 4-6 anche un Rivale",
+              "effetti": {
+                "crediti": "1d6",
+                "rivale_se_dado_almeno": 4
+              }
+            }
+          ]
+        }
+      },
+      {
+        "da": 35,
+        "a": 37,
+        "nome": "Kit di potenziamento per armi",
+        "en": "Gun Upgrade Kit",
+        "testo": "Scegli un Mirino laser, un Bipiede o una Torcia a raggio.",
+        "effetti": {
+          "scelte": [
+            {
+              "testo": "Mirino laser",
+              "effetti": {
+                "oggetti": [
+                  "mirino_laser"
+                ]
+              }
+            },
+            {
+              "testo": "Bipiede",
+              "effetti": {
+                "oggetti": [
+                  "bipiede"
+                ]
+              }
+            },
+            {
+              "testo": "Torcia a raggio",
+              "effetti": {
+                "oggetti": [
+                  "torcia_raggio"
+                ]
+              }
+            }
+          ]
+        }
+      },
+      {
+        "da": 38,
+        "a": 39,
+        "nome": "Ninnolo inutile",
+        "en": "Useless trinket",
+        "testo": "Inutile? Tira 1D6: con 6 guadagni +1 punto Storia.",
+        "effetti": {
+          "prova": {
+            "stat": null,
+            "dado": "1d6",
+            "soglia": 6,
+            "successo": {
+              "punti_storia": 1
+            },
+            "fallimento": {}
+          }
+        }
+      },
+      {
+        "da": 40,
+        "a": 44,
+        "nome": "Merci di scambio",
+        "en": "Trade goods",
+        "testo": "Ogni volta che arrivi su un nuovo pianeta puoi tirare 1D6 per vedere quanti crediti valgono lì (e venderle). Puoi aspettare quanto vuoi, ma se esce 1 si sono deteriorate o danneggiate e non valgono più nulla.",
+        "effetti": {
+          "oggetto_speciale": "merci_scambio",
+          "manuale": true
+        }
+      },
+      {
+        "da": 45,
+        "a": 48,
+        "nome": "Qualcosa di interessante",
+        "en": "Something interesting",
+        "testo": "Tira una volta sulla Tabella del bottino (p.131).",
+        "effetti": {
+          "oggetti": [
+            "bottino"
+          ]
+        }
+      },
+      {
+        "da": 49,
+        "a": 51,
+        "nome": "Carburante",
+        "en": "Fuel",
+        "testo": "Tira 1D6: ottieni carburante per quel numero di crediti, utilizzabile per ridurre i costi di viaggio.",
+        "effetti": {
+          "credito_carburante": "1d6"
+        }
+      },
+      {
+        "da": 52,
+        "a": 53,
+        "nome": "Pezzi di ricambio",
+        "en": "Spare parts",
+        "testo": "+1 a un tentativo di Riparazione. Se il tiro è un 1 naturale, i pezzi si consumano e vanno cancellati dal ruolino.",
+        "effetti": {
+          "oggetto_speciale": "pezzi_ricambio",
+          "manuale": true
+        }
+      },
+      {
+        "da": 54,
+        "a": 55,
+        "nome": "Paccottiglia per turisti",
+        "en": "Tourist garbage",
+        "testo": "Non vale nulla, ma tira 1D6: con 5-6 aggiungi 1 punto Storia.",
+        "effetti": {
+          "prova": {
+            "stat": null,
+            "dado": "1d6",
+            "soglia": 5,
+            "successo": {
+              "punti_storia": 1
+            },
+            "fallimento": {}
+          }
+        }
+      },
+      {
+        "da": 56,
+        "a": 56,
+        "nome": "Di solito non si vedono in vendita",
+        "en": "Don't usually see these for sale",
+        "testo": "Puoi pagare 3 crediti: se lo fai tiri sulla Tabella del bottino (p.131). L'oggetto deve essere usato dal membro che è andato a commerciare.",
+        "effetti": {
+          "scelte": [
+            {
+              "testo": "Rifiuta",
+              "effetti": {}
+            },
+            {
+              "testo": "Paga 3 crediti: tiro sul bottino (solo per chi commerciava)",
+              "effetti": {
+                "crediti": -3,
+                "oggetti": [
+                  "bottino"
+                ],
+                "vincolato_al_personaggio": true
+              }
+            }
+          ]
+        }
+      },
+      {
+        "da": 57,
+        "a": 59,
+        "nome": "Ordigni",
+        "en": "Ordnance",
+        "testo": "Ricevi 3 granate (Frakk o Accecanti, in qualsiasi combinazione).",
+        "effetti": {
+          "granate": {
+            "numero": 3,
+            "tipi": [
+              "granata_frakk",
+              "granata_accecante"
+            ]
+          },
+          "manuale": true
+        }
+      },
+      {
+        "da": 60,
+        "a": 62,
+        "nome": "Armi da fuoco di base",
+        "en": "Basic firearms",
+        "testo": "Scegli una Pistola, un Fucile coloniale o un Fucile a pompa.",
+        "effetti": {
+          "scelte": [
+            {
+              "testo": "Pistola",
+              "effetti": {
+                "oggetti": [
+                  "pistola"
+                ]
+              }
+            },
+            {
+              "testo": "Fucile coloniale",
+              "effetti": {
+                "oggetti": [
+                  "fucile_coloniale"
+                ]
+              }
+            },
+            {
+              "testo": "Fucile a pompa",
+              "effetti": {
+                "oggetti": [
+                  "fucile_pompa"
+                ]
+              }
+            }
+          ]
+        }
+      },
+      {
+        "da": 63,
+        "a": 63,
+        "nome": "Strano congegno",
+        "en": "Odd device",
+        "testo": "Se vuoi comprarlo paga 1 credito e tira 1D6: con 6 tiri sulla Tabella del bottino (p.131); con qualsiasi altro risultato è spazzatura.",
+        "effetti": {
+          "scelte": [
+            {
+              "testo": "Rifiuta",
+              "effetti": {}
+            },
+            {
+              "testo": "Paga 1 credito e tira 1D6",
+              "effetti": {
+                "crediti": -1,
+                "prova": {
+                  "stat": null,
+                  "dado": "1d6",
+                  "soglia": 6,
+                  "successo": {
+                    "oggetti": [
+                      "bottino"
+                    ]
+                  },
+                  "fallimento": {}
+                }
+              }
+            }
+          ]
+        }
+      },
+      {
+        "da": 64,
+        "a": 65,
+        "nome": "Cella di carburante militare",
+        "en": "Military fuel cell",
+        "testo": "Costi di viaggio azzerati per il prossimo salto verso un nuovo pianeta. Monouso.",
+        "effetti": {
+          "oggetto_speciale": "cella_carburante_militare",
+          "monouso": true
+        }
+      },
+      {
+        "da": 66,
+        "a": 69,
+        "nome": "Soffiata",
+        "en": "Hot tip",
+        "testo": "Ottieni 1 Diceria di missione.",
+        "effetti": {
+          "dicerie": 1
+        }
+      },
+      {
+        "da": 70,
+        "a": 71,
+        "nome": "Informazioni riservate",
+        "en": "Insider information",
+        "testo": "Il prossimo turno ottieni automaticamente un Patrono, se ne cerchi uno. Monouso.",
+        "effetti": {
+          "oggetto_speciale": "informazioni_riservate",
+          "monouso": true
+        }
+      },
+      {
+        "da": 72,
+        "a": 75,
+        "nome": "Surplus dell'esercito",
+        "en": "Army surplus",
+        "testo": "Scegli un Fucile automatico, una Pistola blaster o una Spada abbagliante.",
+        "effetti": {
+          "scelte": [
+            {
+              "testo": "Fucile automatico",
+              "effetti": {
+                "oggetti": [
+                  "fucile_automatico"
+                ]
+              }
+            },
+            {
+              "testo": "Pistola blaster",
+              "effetti": {
+                "oggetti": [
+                  "pistola_blaster"
+                ]
+              }
+            },
+            {
+              "testo": "Spada abbagliante",
+              "effetti": {
+                "oggetti": [
+                  "spada_luce"
+                ]
+              }
+            }
+          ]
+        }
+      },
+      {
+        "da": 76,
+        "a": 78,
+        "nome": "Occasione per liberarsi di roba",
+        "en": "A chance to unload some stuff",
+        "testo": "Un rivoluzionario compra qualsiasi arma a 2 crediti l'una, purché non danneggiata.",
+        "effetti": {
+          "vendi_armi": {
+            "prezzo": 2,
+            "non_danneggiate": true
+          },
+          "manuale": true
+        }
+      },
+      {
+        "da": 79,
+        "a": 81,
+        "nome": "Un sacco di lucine lampeggianti",
+        "en": "A lot of blinking lights",
+        "testo": "Tira una volta sulla sottosezione Equipaggiamento della Tabella del bottino (p.132).",
+        "effetti": {
+          "oggetti": [
+            "bottino_equip"
+          ]
+        }
+      },
+      {
+        "da": 82,
+        "a": 86,
+        "nome": "\"Usato con cura\"",
+        "en": "\"Gently used\"",
+        "testo": "Tira una volta sulla sottosezione Equipaggiamento della Tabella del bottino (p.132). L'oggetto è danneggiato e va Riparato.",
+        "effetti": {
+          "oggetti": [
+            "bottino_equip"
+          ],
+          "oggetti_danneggiati": true
+        }
+      },
+      {
+        "da": 87,
+        "a": 91,
+        "nome": "\"Di seconda mano\"",
+        "en": "\"Pre-owned\"",
+        "testo": "Tira una volta sulla Tabella del bottino (p.131). L'oggetto è danneggiato e va Riparato.",
+        "effetti": {
+          "oggetti": [
+            "bottino"
+          ],
+          "oggetti_danneggiati": true
+        }
+      },
+      {
+        "da": 92,
+        "a": 95,
+        "nome": "Riserve mediche",
+        "en": "Medical reserves",
+        "testo": "Ottieni 2 Stim-pack e 2 Med-patch.",
+        "effetti": {
+          "oggetti": [
+            "stim",
+            "stim",
+            "med_patch",
+            "med_patch"
+          ]
+        }
+      },
+      {
+        "da": 96,
+        "a": 100,
+        "nome": "Pezzi di ricambio per astronavi",
+        "en": "Starship repair parts",
+        "testo": "Valgono 1D6 crediti per riparare danni allo Scafo. Monouso.",
+        "effetti": {
+          "credito_riparazioni_scafo": "1d6",
+          "monouso": true
+        }
+      }
+    ]
+  },
+  "esplorazione": {
+    "_dado": "d100",
+    "_nota": "Tabella dell'esplorazione (p.80-82). 'personaggio' = il membro che esplora. Chiavi extra: tabella (tiro su un'altra tabella), se_specie (effetto alternativo per una specie), specie_immuni, infermeria (turni in Infermeria al personaggio), battaglia_rivale, bonus_turno.",
+    "righe": [
+      {
+        "da": 1,
+        "a": 3,
+        "nome": "So riconoscere un affare",
+        "en": "I know a good deal when I see one",
+        "testo": "Tira invece sulla Tabella del commercio.",
+        "effetti": {
+          "tabella": "commercio"
+        }
+      },
+      {
+        "da": 4,
+        "a": 6,
+        "nome": "Incontri un Patrono",
+        "en": "Meet a Patron",
+        "testo": "Ti viene offerto un lavoro da un Patrono.",
+        "effetti": {
+          "offerta_patrono": 1
+        }
+      },
+      {
+        "da": 7,
+        "a": 8,
+        "nome": "Dev'essere stato qualcosa che ho mangiato",
+        "en": "Must've been something I ate",
+        "testo": "Il personaggio mangia cibo avariato e passa 1 turno in Infermeria. Senz'anima e K'Erin ignorano l'evento.",
+        "effetti": {
+          "infermeria": 1,
+          "specie_immuni": [
+            "senzanima",
+            "kerin"
+          ]
+        }
+      },
+      {
+        "da": 9,
+        "a": 11,
+        "nome": "Incontri qualcuno di interessante",
+        "en": "Meet someone interesting",
+        "testo": "Ottieni una Diceria di missione. Un Precursore può tirare 1D6: con 5+ riceve una seconda Diceria.",
+        "effetti": {
+          "dicerie": 1,
+          "se_specie": {
+            "precursore": {
+              "prova": {
+                "stat": null,
+                "dado": "1d6",
+                "soglia": 5,
+                "successo": {
+                  "dicerie": 1
+                },
+                "fallimento": {}
+              }
+            }
+          }
+        }
+      },
+      {
+        "da": 12,
+        "a": 15,
+        "nome": "Una bella chiacchierata",
+        "en": "Had a nice chat",
+        "testo": "Tira 1D6+Acume: con 5+ ottieni +1 punto Storia.",
+        "effetti": {
+          "prova": {
+            "stat": "acume",
+            "dado": "1d6",
+            "soglia": 5,
+            "successo": {
+              "punti_storia": 1
+            },
+            "fallimento": {}
+          }
+        }
+      },
+      {
+        "da": 16,
+        "a": 18,
+        "nome": "Visita i luoghi, goditi il panorama",
+        "en": "See the sights, enjoy the view",
+        "testo": "Nessun effetto.",
+        "effetti": {}
+      },
+      {
+        "da": 19,
+        "a": 21,
+        "nome": "Fai una nuova amicizia",
+        "en": "Make a new friend",
+        "testo": "Genera un nuovo personaggio e aggiungilo all'equipaggio. Se il personaggio che esplora è Ferale, anche il nuovo è Ferale.",
+        "effetti": {
+          "recluta": {
+            "stessa_specie_se": "ferale"
+          },
+          "manuale": true
+        }
+      },
+      {
+        "da": 22,
+        "a": 24,
+        "nome": "Tempo per rilassarsi",
+        "en": "Time to relax",
+        "testo": "Nessun effetto.",
+        "effetti": {}
+      },
+      {
+        "da": 25,
+        "a": 28,
+        "nome": "Possibile affare",
+        "en": "Possible bargain",
+        "testo": "Cedi un'arma a scelta, poi tira 1D6: con 6 tiri sulla Tabella del bottino (p.131), altrimenti ottieni 1 credito.",
+        "effetti": {
+          "costo": "un'arma a scelta",
+          "prova": {
+            "stat": null,
+            "dado": "1d6",
+            "soglia": 6,
+            "successo": {
+              "oggetti": [
+                "bottino"
+              ]
+            },
+            "fallimento": {
+              "crediti": 1
+            }
+          },
+          "manuale": true
+        }
+      },
+      {
+        "da": 29,
+        "a": 31,
+        "nome": "Mercante alieno",
+        "en": "Alien merchant",
+        "testo": "Dagli un oggetto qualsiasi, poi tira sulla Tabella del bottino (p.131).",
+        "effetti": {
+          "costo": "un oggetto a scelta",
+          "oggetti": [
+            "bottino"
+          ],
+          "manuale": true
+        }
+      },
+      {
+        "da": 32,
+        "a": 34,
+        "nome": "Ti sei fatto notare",
+        "en": "Got yourself noticed",
+        "testo": "Se hai Rivali, scegline uno a caso: dovrai combatterlo in questo turno.",
+        "effetti": {
+          "battaglia_rivale": "casuale_obbligatoria"
+        }
+      },
+      {
+        "da": 35,
+        "a": 37,
+        "nome": "Senti una soffiata",
+        "en": "You hear a tip",
+        "testo": "Puoi scegliere di rintracciare automaticamente un Rivale da combattere in questo turno.",
+        "effetti": {
+          "battaglia_rivale": "rintracciato_facoltativo"
+        }
+      },
+      {
+        "da": 38,
+        "a": 40,
+        "nome": "Completamente perso",
+        "en": "Completely lost",
+        "testo": "Tira 1D6+Acume: con 4+ il personaggio ritrova la strada in tempo, altrimenti non può partecipare alla battaglia di questo turno. In ogni caso tira di nuovo su questa tabella per vedere cosa trova vagando per le strade.",
+        "effetti": {
+          "prova": {
+            "stat": "acume",
+            "dado": "1d6",
+            "soglia": 4,
+            "successo": {},
+            "fallimento": {
+              "niente_battaglia": true
+            }
+          },
+          "ritira": true
+        }
+      },
+      {
+        "da": 41,
+        "a": 44,
+        "nome": "Qualcuno vuole far consegnare un pacco",
+        "en": "Someone wants a package delivered",
+        "testo": "Quando viaggi verso un nuovo mondo, se questo membro è ancora nell'equipaggio, guadagni 3 crediti e tiri 1D6: con 1-2 hai acquisito un Rivale e ricevi +1 punto Storia.",
+        "effetti": {
+          "oggetto_speciale": "pacco_da_consegnare",
+          "all_arrivo": {
+            "crediti": 3,
+            "prova": {
+              "stat": null,
+              "dado": "1d6",
+              "soglia": 3,
+              "successo": {},
+              "fallimento": {
+                "rivale": 1,
+                "punti_storia": 1
+              }
+            }
+          },
+          "manuale": true
+        }
+      },
+      {
+        "da": 45,
+        "a": 47,
+        "nome": "Un fanatico della tecnologia offre aiuto",
+        "en": "A tech fanatic offers to help out",
+        "testo": "Scegli un oggetto danneggiato e tira 1D6: con 5-6 viene riparato gratis. Un Ingegnere invece passa il pomeriggio a parlare di tecnica e guadagna +2 XP.",
+        "effetti": {
+          "prova": {
+            "stat": null,
+            "dado": "1d6",
+            "soglia": 5,
+            "successo": {
+              "ripara_oggetto": 1
+            },
+            "fallimento": {}
+          },
+          "se_specie": {
+            "ingegnere": {
+              "xp": 2,
+              "sostituisce": true
+            }
+          }
+        }
+      },
+      {
+        "da": 48,
+        "a": 50,
+        "nome": "Qualche bicchiere",
+        "en": "Got a few drinks",
+        "testo": "Nessun effetto.",
+        "effetti": {}
+      },
+      {
+        "da": 51,
+        "a": 53,
+        "nome": "Non ho un problema col gioco d'azzardo!",
+        "en": "I don't have a gambling problem!",
+        "testo": "Scarta un oggetto dall'equipaggiamento del personaggio o dal Deposito dell'equipaggio. I Senz'anima ignorano l'evento.",
+        "effetti": {
+          "perde_oggetto": 1,
+          "specie_immuni": [
+            "senzanima"
+          ],
+          "manuale": true
+        }
+      },
+      {
+        "da": 54,
+        "a": 57,
+        "nome": "Discorsi origliati",
+        "en": "Overheard some talk",
+        "testo": "Ottieni una Diceria.",
+        "effetti": {
+          "dicerie": 1
+        }
+      },
+      {
+        "da": 58,
+        "a": 60,
+        "nome": "Attacchi briga",
+        "en": "Pick a fight",
+        "testo": "Aggiungi un Rivale alla lista. Se l'evento capita a un K'Erin il Rivale si aggiunge normalmente, ma la prima volta che lo affronti in battaglia ha un nemico in meno, perché ne hai già messo uno al tappeto nella rissa.",
+        "effetti": {
+          "rivale": 1,
+          "se_specie": {
+            "kerin": {
+              "rivale_nemici_prima_battaglia": -1
+            }
+          }
+        }
+      },
+      {
+        "da": 61,
+        "a": 64,
+        "nome": "Trovato un istruttore",
+        "en": "Found a trainer",
+        "testo": "Il personaggio guadagna +2 XP.",
+        "effetti": {
+          "xp": 2
+        }
+      },
+      {
+        "da": 65,
+        "a": 68,
+        "nome": "Mediatore di informazioni",
+        "en": "Information broker",
+        "testo": "Compra fino a 3 Dicerie a 2 crediti l'una.",
+        "effetti": {
+          "acquisto": {
+            "cosa": "dicerie",
+            "max": 3,
+            "prezzo": 2
+          }
+        }
+      },
+      {
+        "da": 69,
+        "a": 71,
+        "nome": "Trafficante d'armi",
+        "en": "Arms dealer",
+        "testo": "Compra quanti tiri vuoi sulla Tabella delle armi militari (p.28) a 3 crediti l'uno.",
+        "effetti": {
+          "acquisto": {
+            "cosa": "arma_militare",
+            "max": null,
+            "prezzo": 3
+          }
+        }
+      },
+      {
+        "da": 72,
+        "a": 75,
+        "nome": "Pista promettente",
+        "en": "Promising lead",
+        "testo": "Guadagni +3 crediti se svolgi una missione d'Opportunità in questo turno.",
+        "effetti": {
+          "bonus_turno": {
+            "se_missione": "opportunita",
+            "crediti": 3
+          }
+        }
+      },
+      {
+        "da": 76,
+        "a": 79,
+        "nome": "Ha solo bisogno di un po' d'amore",
+        "en": "Just needs a little love",
+        "testo": "Tira sulla Tabella dei gadget (p.29), ma l'oggetto è danneggiato e va riparato prima di usarlo. Se il personaggio è un Ingegnere, funziona subito.",
+        "effetti": {
+          "oggetti": [
+            "gadget"
+          ],
+          "oggetti_danneggiati": true,
+          "se_specie": {
+            "ingegnere": {
+              "oggetti_danneggiati": false
+            }
+          }
+        }
+      },
+      {
+        "da": 80,
+        "a": 82,
+        "nome": "Una brutta rissa",
+        "en": "Get in a bad fight",
+        "testo": "Il personaggio passa 1D3 turni in Infermeria e perde un oggetto che porta (a scelta del giocatore).",
+        "effetti": {
+          "infermeria": "1d3",
+          "perde_oggetto": 1,
+          "manuale": true
+        }
+      },
+      {
+        "da": 83,
+        "a": 86,
+        "nome": "Ti offrono un lavoretto",
+        "en": "Offered a small job",
+        "testo": "Combattendo in questo turno, scegli a caso una figura nemica: se l'equipaggio la uccide guadagni 2 crediti. Niente se fugge.",
+        "effetti": {
+          "bonus_turno": {
+            "bersaglio_casuale": true,
+            "crediti_se_ucciso": 2
+          },
+          "manuale": true
+        }
+      },
+      {
+        "da": 87,
+        "a": 90,
+        "nome": "Ti offrono una ricompensa",
+        "en": "Offered a reward",
+        "testo": "Combattendo in questo turno, scegli a caso un elemento di terreno: se un membro dell'equipaggio vi entra in contatto e spende un'Azione di combattimento recupera un pacco e guadagni 2 crediti.",
+        "effetti": {
+          "bonus_turno": {
+            "terreno_casuale": true,
+            "crediti": 2
+          },
+          "manuale": true
+        }
+      },
+      {
+        "da": 91,
+        "a": 94,
+        "nome": "Un contatto utile",
+        "en": "You make a useful contact",
+        "testo": "Il prossimo turno +1 a tua scelta a un tiro per Reclutare, Trovare un Patrono o Rintracciare un Rivale.",
+        "effetti": {
+          "bonus_prossimo_turno": {
+            "mod": 1,
+            "scegli_tra": [
+              "reclutare",
+              "trova_patrono",
+              "rintracciare"
+            ]
+          }
+        }
+      },
+      {
+        "da": 95,
+        "a": 96,
+        "nome": "Chi ha lasciato questo in giro?",
+        "en": "Who left this lying around?",
+        "testo": "Aggiungi a scelta una Pistola, una Lama, un Fucile coloniale o un Fucile a pompa.",
+        "effetti": {
+          "scelte": [
+            {
+              "testo": "Pistola",
+              "effetti": {
+                "oggetti": [
+                  "pistola"
+                ]
+              }
+            },
+            {
+              "testo": "Lama",
+              "effetti": {
+                "oggetti": [
+                  "lama"
+                ]
+              }
+            },
+            {
+              "testo": "Fucile coloniale",
+              "effetti": {
+                "oggetti": [
+                  "fucile_coloniale"
+                ]
+              }
+            },
+            {
+              "testo": "Fucile a pompa",
+              "effetti": {
+                "oggetti": [
+                  "fucile_pompa"
+                ]
+              }
+            }
+          ]
+        }
+      },
+      {
+        "da": 97,
+        "a": 100,
+        "nome": "Questo posto è proprio carino",
+        "en": "This place is rather nice, really.",
+        "testo": "Quando sei pronto a lasciare il mondo, a meno che non sia sotto Invasione, devi pagare 1 punto Storia o questo membro decide di restare. Se resta, tieni il suo equipaggiamento.",
+        "effetti": {
+          "alla_partenza": {
+            "costo_punti_storia": 1,
+            "altrimenti": "personaggio_resta_equipaggiamento_tenuto",
+            "tranne_se": "invasione"
+          },
+          "manuale": true
+        }
+      }
+    ]
+  },
+  "reclutamento": {
+    "_nota": "Incarico Reclutare (p.78).",
+    "sotto_6_membri": "Una recluta automatica per ogni membro mandato a reclutare, fino a tornare a 6 membri.",
+    "da_6_membri": {
+      "dado": "1d6",
+      "mod": "+numero di membri mandati a reclutare",
+      "soglia": 6,
+      "testo": "Con 6+ si aggiunge una recluta."
+    },
+    "generazione": "Ogni recluta si genera con il metodo casuale della creazione dei personaggi (p.14): profilo base della sua specie/tipo, armata di una Pistola. Non tira sulle tabelle casuali di background, motivazione e classe del capitolo 'Creazione del personaggio'.",
+    "equipaggiamento_iniziale": [
+      "pistola"
+    ],
+    "tabelle_background": false,
+    "modificatori": [
+      {
+        "fonte": "tratto 'Reclutamento facile'",
+        "mod": 1
+      },
+      {
+        "fonte": "Ninnolo di lusso (commercio) usato come regalo",
+        "mod": 2
+      },
+      {
+        "fonte": "Un contatto utile (esplorazione), turno successivo",
+        "mod": 1
+      },
+      {
+        "fonte": "tratto 'Popolazione avventurosa'",
+        "effetto": "si genera un personaggio in più e si sceglie chi assumere"
+      },
+      {
+        "fonte": "tratto 'Specie aliena limitata'",
+        "effetto": "la specie limitata non si può assumere: si genera un Umano base"
+      }
+    ],
+    "altre_fonti": [
+      "Commercio 10-11 'Cibo e alcolici di qualità'",
+      "Esplorazione 19-21 'Fai una nuova amicizia'",
+      "Evento di viaggio 54-60 'Capsula di salvataggio' (5-6)"
+    ]
+  },
+  "patroni": {
+    "_nota": "Passo Mondo 3: offerte di lavoro dei Patroni (p.83-84). Ogni tabella si tira con 1D10. Se lavori di nuovo per lo stesso Patrono il Beneficio (se c'è) resta sempre lo stesso.",
+    "procedura": "Se hai ricevuto un'offerta di lavoro da un Patrono (o la campagna è iniziata con una) determina: tipo di Patrono, Paga di pericolo, Tempistica, poi Benefici, Rischi e Condizioni. Dopo aver generato tutti i dettagli puoi rifiutare il lavoro.",
+    "tipo": {
+      "_dado": "d10",
+      "righe": [
+        {
+          "da": 1,
+          "a": 2,
+          "id": "corporazione",
+          "nome": "Corporazione",
+          "en": "Corporation",
+          "testo": "+1 al tiro sulla Tabella della paga di pericolo.",
+          "effetti": {
+            "paga_pericolo": 1
+          }
+        },
+        {
+          "da": 3,
+          "a": 4,
+          "id": "governo_locale",
+          "nome": "Governo locale",
+          "en": "Local Government",
+          "testo": "Nessuna nota.",
+          "effetti": {}
+        },
+        {
+          "da": 5,
+          "a": 5,
+          "id": "governo_settore",
+          "nome": "Governo di settore",
+          "en": "Sector Government",
+          "testo": "Nessuna nota.",
+          "effetti": {}
+        },
+        {
+          "da": 6,
+          "a": 7,
+          "id": "individuo_facoltoso",
+          "nome": "Individuo facoltoso",
+          "en": "Wealthy Individual",
+          "testo": "Nessuna nota.",
+          "effetti": {}
+        },
+        {
+          "da": 8,
+          "a": 9,
+          "id": "organizzazione_privata",
+          "nome": "Organizzazione privata",
+          "en": "Private Organization",
+          "testo": "Nessuna nota.",
+          "effetti": {}
+        },
+        {
+          "da": 10,
+          "a": 10,
+          "id": "gruppo_segreto",
+          "nome": "Gruppo segreto",
+          "en": "Secretive Group",
+          "testo": "+1 al tiro sulla Tabella della tempistica.",
+          "effetti": {
+            "tempistica": 1
+          }
+        }
+      ]
+    },
+    "paga_pericolo": {
+      "_dado": "d10",
+      "_mod": "+1 se il Patrono è una Corporazione",
+      "testo": "Si aggiunge ai normali guadagni della battaglia. Salvo indicazione contraria si paga anche se la missione fallisce, ma solo se viene tentata.",
+      "righe": [
+        {
+          "da": 1,
+          "a": 4,
+          "nome": "+1 credito",
+          "en": "+1 credit",
+          "testo": "+1 credito.",
+          "effetti": {
+            "crediti": 1
+          }
+        },
+        {
+          "da": 5,
+          "a": 8,
+          "nome": "+2 crediti",
+          "en": "+2 credits",
+          "testo": "+2 crediti.",
+          "effetti": {
+            "crediti": 2
+          }
+        },
+        {
+          "da": 9,
+          "a": 9,
+          "nome": "+3 crediti",
+          "en": "+3 credits",
+          "testo": "+3 crediti.",
+          "effetti": {
+            "crediti": 3
+          }
+        },
+        {
+          "da": 10,
+          "a": 99,
+          "nome": "+3 crediti e paga migliore",
+          "en": "+3 credits and roll twice",
+          "testo": "+3 crediti; inoltre tirando per la paga della missione dopo la battaglia tira due volte e tieni il dado più alto.",
+          "effetti": {
+            "crediti": 3,
+            "paga_missione_tira_due_volte": true
+          }
+        }
+      ]
+    },
+    "tempistica": {
+      "_dado": "d10",
+      "_mod": "+1 se il Patrono è un Gruppo segreto",
+      "testo": "Numero di turni di campagna entro cui finire il lavoro; se il tempo scade senza averlo svolto, conta come fallimento.",
+      "righe": [
+        {
+          "da": 1,
+          "a": 5,
+          "nome": "Questo turno",
+          "en": "This campaign turn",
+          "testo": "Questo turno di campagna.",
+          "turni": 1
+        },
+        {
+          "da": 6,
+          "a": 7,
+          "nome": "Questo o il prossimo turno",
+          "en": "This or the next campaign turn",
+          "testo": "Questo o il prossimo turno di campagna.",
+          "turni": 2
+        },
+        {
+          "da": 8,
+          "a": 9,
+          "nome": "Questo o i due turni successivi",
+          "en": "This or the following 2 campaign turns",
+          "testo": "Questo o i 2 turni di campagna successivi.",
+          "turni": 3
+        },
+        {
+          "da": 10,
+          "a": 99,
+          "nome": "Quando vuoi",
+          "en": "Any time",
+          "testo": "In qualsiasi momento.",
+          "turni": null
+        }
+      ]
+    },
+    "bhc_soglie": {
+      "_nota": "Benefici, Rischi e Condizioni (BHC): tira 1D10 per ogni categoria; se il risultato raggiunge la soglia indicata per il tipo di Patrono, tira sulla relativa sottotabella.",
+      "_dado": "d10",
+      "corporazione": {
+        "benefici": 8,
+        "rischi": 8,
+        "condizioni": 5
+      },
+      "governo_locale": {
+        "benefici": 8,
+        "rischi": 8,
+        "condizioni": 8
+      },
+      "governo_settore": {
+        "benefici": 8,
+        "rischi": 8,
+        "condizioni": 8
+      },
+      "individuo_facoltoso": {
+        "benefici": 5,
+        "rischi": 8,
+        "condizioni": 8
+      },
+      "organizzazione_privata": {
+        "benefici": 8,
+        "rischi": 8,
+        "condizioni": 8
+      },
+      "gruppo_segreto": {
+        "benefici": 8,
+        "rischi": 5,
+        "condizioni": 8
+      }
+    },
+    "benefici": {
+      "_dado": "d10",
+      "testo": "I Benefici si ottengono SOLO se la missione riesce.",
+      "righe": [
+        {
+          "da": 1,
+          "a": 2,
+          "id": "beneficio_accessorio",
+          "nome": "Beneficio accessorio",
+          "en": "Fringe Benefit",
+          "testo": "Tira sulla Tabella del bottino (p.131).",
+          "effetti": {
+            "oggetti": [
+              "bottino"
+            ]
+          }
+        },
+        {
+          "da": 3,
+          "a": 4,
+          "id": "contatti",
+          "nome": "Contatti",
+          "en": "Connections",
+          "testo": "Ottieni una Diceria.",
+          "effetti": {
+            "dicerie": 1
+          }
+        },
+        {
+          "da": 5,
+          "a": 5,
+          "id": "spaccio_aziendale",
+          "nome": "Spaccio aziendale",
+          "en": "Company Store",
+          "testo": "Tira sulla Tabella del commercio (p.79).",
+          "effetti": {
+            "tabella": "commercio"
+          }
+        },
+        {
+          "da": 6,
+          "a": 6,
+          "id": "assicurazione_sanitaria",
+          "nome": "Assicurazione sanitaria",
+          "en": "Health Insurance",
+          "testo": "Togli 2 turni di recupero dalle ferite, distribuiti come preferisci.",
+          "effetti": {
+            "recupero_distribuito": 2,
+            "manuale": true
+          }
+        },
+        {
+          "da": 7,
+          "a": 7,
+          "id": "squadra_sicurezza",
+          "nome": "Squadra di sicurezza",
+          "en": "Security Team",
+          "testo": "Riduci di 1 il numero delle forze nemiche.",
+          "effetti": {
+            "nemici": -1
+          }
+        },
+        {
+          "da": 8,
+          "a": 9,
+          "id": "persistente",
+          "nome": "Persistente",
+          "en": "Persistent",
+          "testo": "Il Patrono resta disponibile se viaggi.",
+          "effetti": {
+            "persistente": true
+          }
+        },
+        {
+          "da": 10,
+          "a": 10,
+          "id": "negoziabile",
+          "nome": "Negoziabile",
+          "en": "Negotiable",
+          "testo": "Se accetti il lavoro puoi ritirare la Paga di pericolo e tenere il migliore dei due tiri.",
+          "effetti": {
+            "ritira_paga_pericolo": true
+          }
+        }
+      ]
+    },
+    "rischi": {
+      "_dado": "d10",
+      "righe": [
+        {
+          "da": 1,
+          "a": 2,
+          "id": "lavoro_pericoloso",
+          "nome": "Lavoro pericoloso",
+          "en": "Dangerous Job",
+          "testo": "Aumenta di +1 il numero delle forze nemiche.",
+          "effetti": {
+            "nemici": 1
+          }
+        },
+        {
+          "da": 3,
+          "a": 4,
+          "id": "lavoro_scottante",
+          "nome": "Lavoro scottante",
+          "en": "Hot Job",
+          "testo": "Dopo il lavoro ti fai un nemico (Rivale) con 1-2 invece del normale 1.",
+          "effetti": {
+            "rivale_soglia": 2
+          }
+        },
+        {
+          "da": 5,
+          "a": 5,
+          "id": "vip",
+          "nome": "VIP",
+          "en": "VIP",
+          "testo": "Un nemico casuale ha +1 Robustezza e Abilità di combattimento finale +2 (indipendentemente dal valore attuale).",
+          "effetti": {
+            "nemico_casuale": {
+              "robustezza": 1,
+              "combattimento_fisso": 2
+            }
+          }
+        },
+        {
+          "da": 6,
+          "a": 6,
+          "id": "avversari_veterani",
+          "nome": "Avversari veterani",
+          "en": "Veteran Opposition",
+          "testo": "Il nemico ha -1 alla soglia di panico.",
+          "effetti": {
+            "panico": -1
+          }
+        },
+        {
+          "da": 7,
+          "a": 7,
+          "id": "bassa_priorita",
+          "nome": "Bassa priorità",
+          "en": "Low Priority",
+          "testo": "Riduci di 1 il numero delle forze nemiche.",
+          "effetti": {
+            "nemici": -1
+          }
+        },
+        {
+          "da": 8,
+          "a": 10,
+          "id": "trasporto_privato",
+          "nome": "Trasporto privato",
+          "en": "Private Transport",
+          "testo": "Se hai Rivali, non possono rintracciarti in questo turno.",
+          "effetti": {
+            "rivali_non_attaccano": true
+          }
+        }
+      ]
+    },
+    "condizioni": {
+      "_dado": "d10",
+      "righe": [
+        {
+          "da": 1,
+          "a": 1,
+          "id": "vendicativo",
+          "nome": "Vendicativo",
+          "en": "Vengeful",
+          "testo": "Se la missione fallisce il Patrono diventa un Rivale.",
+          "effetti": {
+            "fallimento_diventa_rivale": true
+          }
+        },
+        {
+          "da": 2,
+          "a": 3,
+          "id": "esigente",
+          "nome": "Esigente",
+          "en": "Demanding",
+          "testo": "La Paga di pericolo si riceve solo in caso di successo.",
+          "effetti": {
+            "paga_pericolo_solo_successo": true
+          }
+        },
+        {
+          "da": 4,
+          "a": 4,
+          "id": "squadra_ridotta",
+          "nome": "Squadra ridotta",
+          "en": "Small Squad",
+          "testo": "Non puoi schierare più di 4 membri dell'equipaggio.",
+          "effetti": {
+            "max_schierati": 4
+          }
+        },
+        {
+          "da": 5,
+          "a": 5,
+          "id": "squadra_completa",
+          "nome": "Squadra completa",
+          "en": "Full Squad",
+          "testo": "Devi avere 6 membri dell'equipaggio disponibili.",
+          "effetti": {
+            "min_disponibili": 6
+          }
+        },
+        {
+          "da": 6,
+          "a": 6,
+          "id": "pulito",
+          "nome": "Fedina pulita",
+          "en": "Clean",
+          "testo": "Non devi mai esserti fatto Rivali tra le forze dell'ordine.",
+          "effetti": {
+            "vietato_rivali_forze_ordine": true
+          }
+        },
+        {
+          "da": 7,
+          "a": 8,
+          "id": "impegnato",
+          "nome": "Molto impegnato",
+          "en": "Busy",
+          "testo": "Se la missione riesce, il Patrono offre un nuovo lavoro il turno successivo.",
+          "effetti": {
+            "nuovo_lavoro_se_successo": true
+          }
+        },
+        {
+          "da": 9,
+          "a": 9,
+          "id": "contratto_unico",
+          "nome": "Contratto una tantum",
+          "en": "One-time Contract",
+          "testo": "Questo Patrono non può essere mantenuto come contatto.",
+          "effetti": {
+            "non_contatto": true
+          }
+        },
+        {
+          "da": 10,
+          "a": 10,
+          "id": "reputazione_richiesta",
+          "nome": "Reputazione richiesta",
+          "en": "Reputation Required",
+          "testo": "Devi aver completato un precedente lavoro per un Patrono su questo mondo.",
+          "effetti": {
+            "richiede_lavoro_precedente_mondo": true
+          }
+        }
+      ]
+    },
+    "regole_correlate": {
+      "licenza": "Se il mondo richiede una Licenza da libero professionista, servono la licenza per svolgere lavori per i Patroni (vedi 'arrivo').",
+      "persistenti": "Solo i Patroni con il beneficio Persistente seguono l'equipaggio quando viaggia.",
+      "contatti": "Ogni vecchio Patrono tra i contatti dà +1 al tiro per Trovare un Patrono.",
+      "stato_corporativo": "Con il tratto 'Stato corporativo' i Patroni sono sempre Corporazioni e fallire una missione mette in lista nera."
+    }
+  },
+  "assegna_equipaggiamento": {
+    "nome": "Assegnare l'equipaggiamento",
+    "en": "Assign Equipment",
+    "testo": "Puoi riassegnare tutto l'equipaggiamento: scambiare oggetti tra personaggi, lasciarli nel Deposito o prenderli dal Deposito. Con una nave il Deposito ha spazio illimitato; senza nave al massimo 5 oggetti (i duplicati di consumabili contano come un solo oggetto). Gli oggetti nel Deposito non sono disponibili in battaglia. Finite le assegnazioni, ogni personaggio tiene i suoi oggetti fino all'inizio del turno successivo: ciò che ha ora è ciò che porta in battaglia.",
+    "deposito_max_senza_nave": 5,
+    "consumabili_duplicati_contano_uno": true
+  },
+  "dicerie_missione": {
+    "_nota": "Dicerie di missione e Missioni (p.64 e p.85). Per la progressione della Missione dopo la battaglia vedi la sequenza post-battaglia (p.120).",
+    "testo": "Le Dicerie (Quest Rumors) sono una riserva unica dell'equipaggio. Se non sei in una Missione, nel passo 'Risolvere le Dicerie' tira 1D6: se il risultato è pari o inferiore al numero di Dicerie, rimuovi tutte le Dicerie dal ruolino: hai ricevuto una Missione che puoi perseguire subito. Finché la Missione non è risolta, ogni volta che riceveresti una Diceria ricevi invece una Diceria di Missione (p.120), che aiuta a risolvere la Missione in corso.",
+    "tiro": {
+      "dado": "1d6",
+      "condizione": "nessuna_missione_attiva",
+      "successo_se": "risultato <= numero_dicerie",
+      "successo": {
+        "azzera_dicerie": true,
+        "missione": true
+      }
+    },
+    "durante_missione": "Le nuove Dicerie diventano Dicerie di Missione.",
+    "natura_diceria": {
+      "_dado": "d10",
+      "_nota": "Solo colore narrativo, nessun effetto di gioco.",
+      "righe": [
+        {
+          "da": 1,
+          "a": 2,
+          "nome": "Un file di dati estratto",
+          "en": "An extracted data file"
+        },
+        {
+          "da": 3,
+          "a": 4,
+          "nome": "Un taccuino con informazioni segrete",
+          "en": "Notebook with secret information"
+        },
+        {
+          "da": 5,
+          "a": 6,
+          "nome": "Una vecchia mappa che indica un luogo",
+          "en": "Old map showing a location"
+        },
+        {
+          "da": 7,
+          "a": 8,
+          "nome": "Una soffiata da un contatto",
+          "en": "A tip from a contact"
+        },
+        {
+          "da": 9,
+          "a": 10,
+          "nome": "Una trasmissione intercettata",
+          "en": "An intercepted transmission"
+        }
+      ]
+    }
+  },
+  "scelta_battaglia": {
+    "_nota": "Passo Mondo 6: scegliere la battaglia (p.85).",
+    "controllo_rivali": {
+      "testo": "Conta i Rivali e tira 1D6 (+1 per ogni membro che ha fatto da Esca). Se il risultato è pari o inferiore al numero di Rivali, uno di loro ti ha rintracciato e dovrai combatterlo, rinunciando a ciò che volevi fare in questo turno. Missioni e Dicerie restano; un lavoro per un Patrono fallisce se il suo tempo è scaduto. Il Rivale si sceglie a caso tra quelli della lista.",
+      "dado": "1d6",
+      "mod": [
+        "+1 per membro esca"
+      ],
+      "attacco_se": "risultato <= numero_rivali",
+      "rivale": "casuale",
+      "eccezioni": [
+        "Rischio 'Trasporto privato' del Patrono: i Rivali non possono rintracciarti in questo turno.",
+        "Esplorazione 'Ti sei fatto notare': battaglia obbligatoria contro un Rivale casuale."
+      ]
+    },
+    "opzioni": [
+      {
+        "id": "opportunita",
+        "nome": "Missione d'Opportunità",
+        "en": "Carry out an Opportunity mission",
+        "disponibile": "sempre"
+      },
+      {
+        "id": "attacca_rivale",
+        "nome": "Attaccare un Rivale",
+        "en": "Attack a Rival",
+        "disponibile": "se lo hai Rintracciato con successo"
+      },
+      {
+        "id": "missione",
+        "nome": "Proseguire una Missione",
+        "en": "Continue a Quest",
+        "disponibile": "se hai una Missione attiva"
+      },
+      {
+        "id": "lavoro_patrono",
+        "nome": "Lavoro per un Patrono",
+        "en": "Carry out a Patron job",
+        "disponibile": "se hai un Patrono attivo (offerta accettata)"
+      }
+    ],
+    "regola_scelta": "Se non vieni attaccato dai Rivali scegli UNA sola delle opzioni disponibili.",
+    "schieramento": {
+      "testo": "Puoi portare in battaglia al massimo 6 membri (o 5/4 se la dimensione di campagna è 5 o 4); gli altri restano sulla nave. Puoi sempre portarne meno, senza bonus né aggiustamenti.",
+      "max": "dimensione_equipaggio_campagna"
+    }
+  }
+}

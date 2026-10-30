@@ -1,0 +1,1153 @@
+{
+ "_nota": "Bottino (Loot), regolamento p.131-134 stampate (PDF 133-136). Si tira la categoria, poi la sottotabella, poi l'oggetto; con più tiri di Bottino si tengono tutti gli oggetti. Righe: 'tabella' = tira su quella sottotabella di questo file (con 'tiri' = numero di tiri, default 1; 'danneggiato' = gli oggetti ottenuti richiedono Riparazione); 'arma' = id in armi.json; 'oggetto' = id in equipaggiamento.json; 'quantita' = numero di copie/usi (granate x3, consumabili 2 usi); 'effetti' = vedi LEGGIMI_DATI.md, più: crediti '2d6_max' (tira 2D6 e prendi il dado più alto), sconto_componente (sconto sul prossimo Componente della nave, da tirare subito). Punto d'ingresso: 'bottino'.",
+ "bottino": {
+  "_dado": "d100",
+  "_pagina": 131,
+  "en": "Loot Table",
+  "righe": [
+   {
+    "da": 1,
+    "a": 25,
+    "nome": "Arma",
+    "en": "Weapon",
+    "tabella": "categoria_armi"
+   },
+   {
+    "da": 26,
+    "a": 35,
+    "nome": "Armi danneggiate",
+    "en": "Damaged weapons",
+    "tabella": "categoria_armi",
+    "tiri": 2,
+    "danneggiato": true
+   },
+   {
+    "da": 36,
+    "a": 45,
+    "nome": "Equipaggiamento danneggiato",
+    "en": "Damaged gear",
+    "tabella": "equipaggiamento",
+    "tiri": 2,
+    "danneggiato": true
+   },
+   {
+    "da": 46,
+    "a": 65,
+    "nome": "Equipaggiamento",
+    "en": "Gear",
+    "tabella": "equipaggiamento"
+   },
+   {
+    "da": 66,
+    "a": 80,
+    "nome": "Cianfrusaglie",
+    "en": "Odds and ends",
+    "tabella": "cianfrusaglie"
+   },
+   {
+    "da": 81,
+    "a": 100,
+    "nome": "Ricompense",
+    "en": "Rewards",
+    "tabella": "ricompense"
+   }
+  ]
+ },
+ "categoria_armi": {
+  "_dado": "d100",
+  "_pagina": 131,
+  "en": "Weapon Category Subtable",
+  "righe": [
+   {
+    "da": 1,
+    "a": 35,
+    "nome": "Armi a proiettili",
+    "en": "Slug Weapons",
+    "tabella": "armi_proiettili"
+   },
+   {
+    "da": 36,
+    "a": 50,
+    "nome": "Armi a energia",
+    "en": "Energy Weapons",
+    "tabella": "armi_energia"
+   },
+   {
+    "da": 51,
+    "a": 65,
+    "nome": "Armi speciali",
+    "en": "Special Weapons",
+    "tabella": "armi_speciali"
+   },
+   {
+    "da": 66,
+    "a": 85,
+    "nome": "Armi da mischia",
+    "en": "Melee Weapons",
+    "tabella": "armi_mischia"
+   },
+   {
+    "da": 86,
+    "a": 100,
+    "nome": "Granate",
+    "en": "Grenades",
+    "tabella": "granate"
+   }
+  ]
+ },
+ "armi_proiettili": {
+  "_dado": "d100",
+  "_pagina": 131,
+  "en": "Slug Weapons Subtable",
+  "righe": [
+   {
+    "da": 1,
+    "a": 5,
+    "arma": "pistola_tascabile",
+    "nome": "Pistola tascabile",
+    "en": "Hold out pistol"
+   },
+   {
+    "da": 6,
+    "a": 13,
+    "arma": "pistola",
+    "nome": "Pistola",
+    "en": "Hand gun"
+   },
+   {
+    "da": 14,
+    "a": 18,
+    "arma": "pistola_rottami",
+    "nome": "Pistola di rottami",
+    "en": "Scrap pistol"
+   },
+   {
+    "da": 19,
+    "a": 26,
+    "arma": "pistola_mitragliatrice",
+    "nome": "Pistola mitragliatrice",
+    "en": "Machine pistol"
+   },
+   {
+    "da": 27,
+    "a": 32,
+    "arma": "pistola_duello",
+    "nome": "Pistola da duello",
+    "en": "Duelling pistol"
+   },
+   {
+    "da": 33,
+    "a": 37,
+    "arma": "cannone_mano",
+    "nome": "Cannone a mano",
+    "en": "Hand cannon"
+   },
+   {
+    "da": 38,
+    "a": 46,
+    "arma": "fucile_coloniale",
+    "nome": "Fucile coloniale",
+    "en": "Colony rifle"
+   },
+   {
+    "da": 47,
+    "a": 56,
+    "arma": "fucile_militare",
+    "nome": "Fucile militare",
+    "en": "Military rifle"
+   },
+   {
+    "da": 57,
+    "a": 65,
+    "arma": "fucile_pompa",
+    "nome": "Fucile a pompa",
+    "en": "Shotgun"
+   },
+   {
+    "da": 66,
+    "a": 70,
+    "arma": "cannone_flak",
+    "nome": "Fucile flak",
+    "en": "Flak gun"
+   },
+   {
+    "da": 71,
+    "a": 78,
+    "arma": "fucile_caccia",
+    "nome": "Fucile da caccia",
+    "en": "Hunting rifle"
+   },
+   {
+    "da": 79,
+    "a": 83,
+    "arma": "fucile_precisione",
+    "nome": "Fucile di precisione",
+    "en": "Marksman's rifle"
+   },
+   {
+    "da": 84,
+    "a": 92,
+    "arma": "fucile_automatico",
+    "nome": "Fucile automatico",
+    "en": "Auto rifle"
+   },
+   {
+    "da": 93,
+    "a": 100,
+    "arma": "mitragliatrice",
+    "nome": "Mitragliatrice",
+    "en": "Rattle gun"
+   }
+  ]
+ },
+ "armi_energia": {
+  "_dado": "d100",
+  "_pagina": 131,
+  "en": "Energy Weapons Subtable",
+  "righe": [
+   {
+    "da": 1,
+    "a": 20,
+    "arma": "laser_mano",
+    "nome": "Laser a mano",
+    "en": "Hand laser"
+   },
+   {
+    "da": 21,
+    "a": 35,
+    "arma": "pistola_raggi",
+    "nome": "Pistola a raggi",
+    "en": "Beam pistol"
+   },
+   {
+    "da": 36,
+    "a": 55,
+    "arma": "laser_fanteria",
+    "nome": "Laser da fanteria",
+    "en": "Infantry laser"
+   },
+   {
+    "da": 56,
+    "a": 70,
+    "arma": "pistola_blaster",
+    "nome": "Pistola blaster",
+    "en": "Blast pistol"
+   },
+   {
+    "da": 71,
+    "a": 90,
+    "arma": "fucile_blaster",
+    "nome": "Fucile blaster",
+    "en": "Blast rifle"
+   },
+   {
+    "da": 91,
+    "a": 100,
+    "arma": "iperblaster",
+    "nome": "Iperblaster",
+    "en": "Hyper blaster"
+   }
+  ]
+ },
+ "armi_speciali": {
+  "_dado": "d100",
+  "_pagina": 132,
+  "en": "Special Weapons Subtable",
+  "righe": [
+   {
+    "da": 1,
+    "a": 20,
+    "arma": "fucile_aghi",
+    "nome": "Fucile ad aghi",
+    "en": "Needle rifle"
+   },
+   {
+    "da": 21,
+    "a": 45,
+    "arma": "fucile_plasma",
+    "nome": "Fucile al plasma",
+    "en": "Plasma rifle"
+   },
+   {
+    "da": 46,
+    "a": 60,
+    "arma": "fucile_furia",
+    "nome": "Fucile Furia",
+    "en": "Fury rifle"
+   },
+   {
+    "da": 61,
+    "a": 75,
+    "arma": "lanciaproiettili",
+    "nome": "Lanciagranate",
+    "en": "Shell gun"
+   },
+   {
+    "da": 76,
+    "a": 90,
+    "arma": "pistola_fuoco",
+    "nome": "Pistola a fuoco adesivo",
+    "en": "Cling fire pistol"
+   },
+   {
+    "da": 91,
+    "a": 100,
+    "arma": "lanciafiamme_mano",
+    "nome": "Lanciafiamme a mano",
+    "en": "Hand flamer"
+   }
+  ]
+ },
+ "armi_mischia": {
+  "_dado": "d100",
+  "_pagina": 132,
+  "en": "Melee Weapons Subtable",
+  "righe": [
+   {
+    "da": 1,
+    "a": 20,
+    "arma": "lama",
+    "nome": "Lama",
+    "en": "Blade"
+   },
+   {
+    "da": 21,
+    "a": 40,
+    "arma": "arma_brutale",
+    "nome": "Arma da mischia brutale",
+    "en": "Brutal melee weapon"
+   },
+   {
+    "da": 41,
+    "a": 55,
+    "arma": "sciabola",
+    "nome": "Sciabola d'arrembaggio",
+    "en": "Boarding saber"
+   },
+   {
+    "da": 56,
+    "a": 75,
+    "arma": "spada_squarcio",
+    "nome": "Spada dentata",
+    "en": "Ripper sword"
+   },
+   {
+    "da": 76,
+    "a": 85,
+    "arma": "ascia_frantumatrice",
+    "nome": "Ascia frantumatrice",
+    "en": "Shatter axe"
+   },
+   {
+    "da": 86,
+    "a": 90,
+    "arma": "artiglio_potenziato",
+    "nome": "Artiglio potenziato",
+    "en": "Power claw"
+   },
+   {
+    "da": 91,
+    "a": 95,
+    "arma": "spada_luce",
+    "nome": "Spada abbagliante",
+    "en": "Glare sword"
+   },
+   {
+    "da": 96,
+    "a": 100,
+    "arma": "mazza_soppressione",
+    "nome": "Mazza di soppressione",
+    "en": "Suppression maul"
+   }
+  ]
+ },
+ "granate": {
+  "_dado": "d100",
+  "_pagina": 132,
+  "en": "Grenades Subtable",
+  "righe": [
+   {
+    "da": 1,
+    "a": 60,
+    "arma": "granata_frakk",
+    "nome": "Granata Frakk",
+    "en": "Frakk grenade",
+    "quantita": 3
+   },
+   {
+    "da": 61,
+    "a": 100,
+    "arma": "granata_accecante",
+    "nome": "Granata accecante",
+    "en": "Dazzle grenade",
+    "quantita": 3
+   }
+  ]
+ },
+ "equipaggiamento": {
+  "_dado": "d100",
+  "_pagina": 132,
+  "en": "Gear Subtable",
+  "righe": [
+   {
+    "da": 1,
+    "a": 20,
+    "nome": "Mod per armi",
+    "en": "Gun Mods",
+    "tabella": "mod_armi"
+   },
+   {
+    "da": 21,
+    "a": 40,
+    "nome": "Mirini",
+    "en": "Gun Sights",
+    "tabella": "mirini"
+   },
+   {
+    "da": 41,
+    "a": 75,
+    "nome": "Protezioni",
+    "en": "Protective Items",
+    "tabella": "protezioni"
+   },
+   {
+    "da": 76,
+    "a": 100,
+    "nome": "Dispositivi di utilità",
+    "en": "Utility Items",
+    "tabella": "utilita"
+   }
+  ]
+ },
+ "mod_armi": {
+  "_dado": "d100",
+  "_pagina": 132,
+  "en": "Gun Mods Subtable",
+  "righe": [
+   {
+    "da": 1,
+    "a": 10,
+    "oggetto": "lama_assalto",
+    "nome": "Lama d'assalto",
+    "en": "Assault blade"
+   },
+   {
+    "da": 11,
+    "a": 20,
+    "oggetto": "torcia",
+    "nome": "Torcia tattica",
+    "en": "Beam light"
+   },
+   {
+    "da": 21,
+    "a": 35,
+    "oggetto": "bipode",
+    "nome": "Bipode",
+    "en": "Bipod"
+   },
+   {
+    "da": 36,
+    "a": 55,
+    "oggetto": "pacco_hot_shot",
+    "nome": "Pacco hot shot",
+    "en": "Hot shot pack"
+   },
+   {
+    "da": 56,
+    "a": 65,
+    "oggetto": "nano_fango",
+    "nome": "Nano-fango configurabile",
+    "en": "Cyber-configurable nano-sludge"
+   },
+   {
+    "da": 66,
+    "a": 80,
+    "oggetto": "stabilizzatore",
+    "nome": "Stabilizzatore",
+    "en": "Stabilizer"
+   },
+   {
+    "da": 81,
+    "a": 90,
+    "oggetto": "attacco_shock",
+    "nome": "Attacco shock",
+    "en": "Shock attachment"
+   },
+   {
+    "da": 91,
+    "a": 100,
+    "oggetto": "kit_potenziamento",
+    "nome": "Kit di potenziamento",
+    "en": "Upgrade kit"
+   }
+  ]
+ },
+ "mirini": {
+  "_dado": "d100",
+  "_pagina": 132,
+  "en": "Gun Sights Subtable",
+  "righe": [
+   {
+    "da": 1,
+    "a": 20,
+    "oggetto": "mirino_laser",
+    "nome": "Mirino laser",
+    "en": "Laser sight"
+   },
+   {
+    "da": 21,
+    "a": 45,
+    "oggetto": "mirino_qualita",
+    "nome": "Mirino di qualità",
+    "en": "Quality sight"
+   },
+   {
+    "da": 46,
+    "a": 70,
+    "oggetto": "mirino_cercatore",
+    "nome": "Mirino cercatore",
+    "en": "Seeker sight"
+   },
+   {
+    "da": 71,
+    "a": 85,
+    "oggetto": "mirino_tracciante",
+    "nome": "Mirino tracciante",
+    "en": "Tracker sight"
+   },
+   {
+    "da": 86,
+    "a": 100,
+    "oggetto": "mirino_unity",
+    "nome": "Mirino da battaglia Unity",
+    "en": "Unity battle sight"
+   }
+  ]
+ },
+ "protezioni": {
+  "_dado": "d100",
+  "_pagina": 132,
+  "en": "Protective Items Subtable",
+  "righe": [
+   {
+    "da": 1,
+    "a": 5,
+    "oggetto": "corazza_battaglia",
+    "nome": "Armatura da battaglia",
+    "en": "Battle dress"
+   },
+   {
+    "da": 6,
+    "a": 15,
+    "oggetto": "mantello_mimetico",
+    "nome": "Mantello mimetico",
+    "en": "Camo cloak"
+   },
+   {
+    "da": 16,
+    "a": 40,
+    "oggetto": "corazza_combattimento",
+    "nome": "Corazza da combattimento",
+    "en": "Combat armor"
+   },
+   {
+    "da": 41,
+    "a": 50,
+    "oggetto": "schermo_deflettore",
+    "nome": "Campo deflettore",
+    "en": "Deflector field"
+   },
+   {
+    "da": 51,
+    "a": 65,
+    "oggetto": "schermo_flak",
+    "nome": "Schermo flak",
+    "en": "Flak screen"
+   },
+   {
+    "da": 66,
+    "a": 75,
+    "oggetto": "flex_armor",
+    "nome": "Flex-armor",
+    "en": "Flex-armor"
+   },
+   {
+    "da": 76,
+    "a": 90,
+    "oggetto": "corazza_frag",
+    "nome": "Giubbotto antischegge",
+    "en": "Frag vest"
+   },
+   {
+    "da": 91,
+    "a": 95,
+    "oggetto": "generatore_schermo",
+    "nome": "Generatore di schermo",
+    "en": "Screen generator"
+   },
+   {
+    "da": 96,
+    "a": 100,
+    "oggetto": "equip_furtivo",
+    "nome": "Equipaggiamento furtivo",
+    "en": "Stealth gear"
+   }
+  ]
+ },
+ "utilita": {
+  "_dado": "d100",
+  "_pagina": 133,
+  "en": "Utility Items Subtable",
+  "righe": [
+   {
+    "da": 1,
+    "a": 6,
+    "oggetto": "sensore_auto",
+    "nome": "Sensore automatico",
+    "en": "Auto sensor"
+   },
+   {
+    "da": 7,
+    "a": 11,
+    "oggetto": "visore_battaglia",
+    "nome": "Visore da battaglia",
+    "en": "Battle visor"
+   },
+   {
+    "da": 12,
+    "a": 17,
+    "oggetto": "comunicatore",
+    "nome": "Comunicatore",
+    "en": "Communicator"
+   },
+   {
+    "da": 18,
+    "a": 23,
+    "oggetto": "lama_nascosta",
+    "nome": "Lama nascosta",
+    "en": "Concealed blade"
+   },
+   {
+    "da": 24,
+    "a": 29,
+    "oggetto": "dislocatore",
+    "nome": "Dislocatore",
+    "en": "Displacer"
+   },
+   {
+    "da": 30,
+    "a": 34,
+    "oggetto": "bot_distrazione",
+    "nome": "Bot diversivo",
+    "en": "Distraction bot"
+   },
+   {
+    "da": 35,
+    "a": 38,
+    "oggetto": "rampino",
+    "nome": "Lancia-rampino",
+    "en": "Grapple launcher"
+   },
+   {
+    "da": 39,
+    "a": 43,
+    "oggetto": "smorzatore_grav",
+    "nome": "Smorzatore gravitazionale",
+    "en": "Grav dampener"
+   },
+   {
+    "da": 44,
+    "a": 49,
+    "oggetto": "tuta_ambientale",
+    "nome": "Tuta antirischio",
+    "en": "Hazard suit"
+   },
+   {
+    "da": 50,
+    "a": 54,
+    "oggetto": "hoverboard",
+    "nome": "Hoverboard",
+    "en": "Hover board"
+   },
+   {
+    "da": 55,
+    "a": 57,
+    "oggetto": "insta_muro",
+    "nome": "Insta-muro",
+    "en": "Insta-wall"
+   },
+   {
+    "da": 58,
+    "a": 63,
+    "oggetto": "jump_belt",
+    "nome": "Cintura a reazione",
+    "en": "Jump belt"
+   },
+   {
+    "da": 64,
+    "a": 70,
+    "oggetto": "motion_tracker",
+    "nome": "Rilevatore di movimento",
+    "en": "Motion tracker"
+   },
+   {
+    "da": 71,
+    "a": 75,
+    "oggetto": "multitaglio",
+    "nome": "Multi-taglierina",
+    "en": "Multi-cutter"
+   },
+   {
+    "da": 76,
+    "a": 79,
+    "oggetto": "zampa_coniglio",
+    "nome": "Robo-zampa di coniglio",
+    "en": "Robo-rabbit's foot"
+   },
+   {
+    "da": 80,
+    "a": 84,
+    "oggetto": "scanner_bot",
+    "nome": "Bot scanner",
+    "en": "Scanner bot"
+   },
+   {
+    "da": 85,
+    "a": 89,
+    "oggetto": "bot_spia",
+    "nome": "Bot spia",
+    "en": "Snooper bot"
+   },
+   {
+    "da": 90,
+    "a": 93,
+    "oggetto": "emettitore_sonico",
+    "nome": "Emettitore sonico",
+    "en": "Sonic emitter"
+   },
+   {
+    "da": 94,
+    "a": 96,
+    "oggetto": "stivali_acciaio",
+    "nome": "Stivali d'acciaio",
+    "en": "Steel boots"
+   },
+   {
+    "da": 97,
+    "a": 100,
+    "oggetto": "distorsore_temporale",
+    "nome": "Distorsore temporale",
+    "en": "Time distorter"
+   }
+  ]
+ },
+ "cianfrusaglie": {
+  "_dado": "d100",
+  "_pagina": 133,
+  "en": "Odds and Ends Table",
+  "righe": [
+   {
+    "da": 1,
+    "a": 55,
+    "nome": "Consumabili (2 usi)",
+    "en": "Consumables (2 uses)",
+    "tabella": "consumabili",
+    "quantita": 2
+   },
+   {
+    "da": 56,
+    "a": 70,
+    "nome": "Impianti",
+    "en": "Implants",
+    "tabella": "impianti"
+   },
+   {
+    "da": 71,
+    "a": 100,
+    "nome": "Oggetti di bordo",
+    "en": "Ship Items",
+    "tabella": "oggetti_nave"
+   }
+  ]
+ },
+ "consumabili": {
+  "_dado": "d100",
+  "_pagina": 133,
+  "en": "Consumables Subtable",
+  "righe": [
+   {
+    "da": 1,
+    "a": 20,
+    "oggetto": "booster",
+    "nome": "Pillole booster",
+    "en": "Booster pills"
+   },
+   {
+    "da": 21,
+    "a": 30,
+    "oggetto": "combat_serum",
+    "nome": "Siero da combattimento",
+    "en": "Combat serum"
+   },
+   {
+    "da": 31,
+    "a": 40,
+    "oggetto": "cristalli_kiranin",
+    "nome": "Cristalli Kiranin",
+    "en": "Kiranin crystals"
+   },
+   {
+    "da": 41,
+    "a": 55,
+    "oggetto": "rage_out",
+    "nome": "Rage Out",
+    "en": "Rage out"
+   },
+   {
+    "da": 56,
+    "a": 70,
+    "oggetto": "still",
+    "nome": "Still",
+    "en": "Still"
+   },
+   {
+    "da": 71,
+    "a": 100,
+    "oggetto": "stim",
+    "nome": "Stim-pack",
+    "en": "Stim-pack"
+   }
+  ]
+ },
+ "impianti": {
+  "_dado": "d100",
+  "_pagina": 133,
+  "en": "Implants Subtable",
+  "righe": [
+   {
+    "da": 1,
+    "a": 10,
+    "oggetto": "compagno_ia",
+    "nome": "Compagno IA",
+    "en": "AI companion"
+   },
+   {
+    "da": 11,
+    "a": 16,
+    "oggetto": "filo_corporeo",
+    "nome": "Filo corporeo",
+    "en": "Body wire"
+   },
+   {
+    "da": 17,
+    "a": 28,
+    "oggetto": "impianto_muscoli",
+    "nome": "Braccio potenziato",
+    "en": "Boosted arm"
+   },
+   {
+    "da": 29,
+    "a": 40,
+    "oggetto": "impianto_gambe",
+    "nome": "Gamba potenziata",
+    "en": "Boosted leg"
+   },
+   {
+    "da": 41,
+    "a": 50,
+    "oggetto": "mano_cibernetica",
+    "nome": "Mano cibernetica",
+    "en": "Cyber hand"
+   },
+   {
+    "da": 51,
+    "a": 61,
+    "oggetto": "difese_genetiche",
+    "nome": "Difese genetiche",
+    "en": "Genetic defenses"
+   },
+   {
+    "da": 62,
+    "a": 71,
+    "oggetto": "potenziamento_salute",
+    "nome": "Potenziamento della salute",
+    "en": "Health boost"
+   },
+   {
+    "da": 72,
+    "a": 79,
+    "oggetto": "regolatore_nervi",
+    "nome": "Regolatore nervoso",
+    "en": "Nerve adjuster"
+   },
+   {
+    "da": 80,
+    "a": 85,
+    "oggetto": "impianto_riflessi",
+    "nome": "Ottimizzazione neurale",
+    "en": "Neural optimization"
+   },
+   {
+    "da": 86,
+    "a": 94,
+    "oggetto": "visore_notturno",
+    "nome": "Vista notturna",
+    "en": "Night sight"
+   },
+   {
+    "da": 95,
+    "a": 100,
+    "oggetto": "soppressore_dolore",
+    "nome": "Soppressore del dolore",
+    "en": "Pain suppressor"
+   }
+  ]
+ },
+ "oggetti_nave": {
+  "_dado": "d100",
+  "_pagina": 134,
+  "en": "Ship Items Subtable",
+  "righe": [
+   {
+    "da": 1,
+    "a": 4,
+    "oggetto": "analizzatore",
+    "nome": "Analizzatore",
+    "en": "Analyzer"
+   },
+   {
+    "da": 5,
+    "a": 11,
+    "oggetto": "razioni_coloniali",
+    "nome": "Razioni coloniali",
+    "en": "Colonist ration packs"
+   },
+   {
+    "da": 12,
+    "a": 17,
+    "oggetto": "duplicatore",
+    "nome": "Duplicatore",
+    "en": "Duplicator"
+   },
+   {
+    "da": 18,
+    "a": 24,
+    "oggetto": "documenti_falsi",
+    "nome": "Documenti falsi",
+    "en": "Fake ID"
+   },
+   {
+    "da": 25,
+    "a": 31,
+    "oggetto": "fixer",
+    "nome": "Fixer",
+    "en": "Fixer"
+   },
+   {
+    "da": 32,
+    "a": 34,
+    "oggetto": "kit_riconfigurazione",
+    "nome": "Kit di riconfigurazione genetica",
+    "en": "Genetic reconfiguration kit"
+   },
+   {
+    "da": 35,
+    "a": 39,
+    "oggetto": "dadi_truccati",
+    "nome": "Dadi truccati",
+    "en": "Loaded dice"
+   },
+   {
+    "da": 40,
+    "a": 44,
+    "oggetto": "dadi_fortunati",
+    "nome": "Dadi fortunati",
+    "en": "Lucky dice"
+   },
+   {
+    "da": 45,
+    "a": 48,
+    "oggetto": "traduttore_mk2",
+    "nome": "Traduttore Mk II",
+    "en": "Mk II translator"
+   },
+   {
+    "da": 49,
+    "a": 56,
+    "oggetto": "medikit",
+    "nome": "Med-patch",
+    "en": "Med-patch"
+   },
+   {
+    "da": 57,
+    "a": 60,
+    "oggetto": "sfera_meditazione",
+    "nome": "Sfera di meditazione",
+    "en": "Meditation orb"
+   },
+   {
+    "da": 61,
+    "a": 67,
+    "oggetto": "nano_doc",
+    "nome": "Nano-doc",
+    "en": "Nano-doc"
+   },
+   {
+    "da": 68,
+    "a": 71,
+    "oggetto": "peluche",
+    "nome": "Peluche stravagante",
+    "en": "Novelty stuffed animal"
+   },
+   {
+    "da": 72,
+    "a": 74,
+    "oggetto": "purificatore",
+    "nome": "Purificatore",
+    "en": "Purifier"
+   },
+   {
+    "da": 75,
+    "a": 78,
+    "oggetto": "kit_riparazione",
+    "nome": "Bot riparatore",
+    "en": "Repair Bot"
+   },
+   {
+    "da": 79,
+    "a": 83,
+    "oggetto": "permesso_settore",
+    "nome": "Permesso di settore",
+    "en": "Sector permit"
+   },
+   {
+    "da": 84,
+    "a": 91,
+    "oggetto": "pezzi_ricambio",
+    "nome": "Pezzi di ricambio",
+    "en": "Spare parts"
+   },
+   {
+    "da": 92,
+    "a": 96,
+    "oggetto": "teach_bot",
+    "nome": "Bot istruttore",
+    "en": "Teach-bot"
+   },
+   {
+    "da": 97,
+    "a": 100,
+    "oggetto": "trascensore",
+    "nome": "Trascensore",
+    "en": "Transcender"
+   }
+  ]
+ },
+ "ricompense": {
+  "_dado": "d100",
+  "_pagina": 134,
+  "en": "Rewards Table",
+  "righe": [
+   {
+    "da": 1,
+    "a": 10,
+    "nome": "Documenti",
+    "en": "Documents",
+    "testo": "1 Diceria.",
+    "effetti": {
+     "dicerie": 1
+    }
+   },
+   {
+    "da": 11,
+    "a": 20,
+    "nome": "File di dati",
+    "en": "Data Files",
+    "testo": "2 Dicerie.",
+    "effetti": {
+     "dicerie": 2
+    }
+   },
+   {
+    "da": 21,
+    "a": 25,
+    "nome": "Rottami",
+    "en": "Scrap",
+    "testo": "3 crediti.",
+    "effetti": {
+     "crediti": 3
+    }
+   },
+   {
+    "da": 26,
+    "a": 40,
+    "nome": "Cassa di merci",
+    "en": "Cargo Crate",
+    "testo": "1D6 crediti.",
+    "effetti": {
+     "crediti": "1d6"
+    }
+   },
+   {
+    "da": 41,
+    "a": 55,
+    "nome": "Materiali preziosi",
+    "en": "Valuable Materials",
+    "testo": "1D6+2 crediti.",
+    "effetti": {
+     "crediti": "1d6+2"
+    }
+   },
+   {
+    "da": 56,
+    "a": 70,
+    "nome": "Sostanza rara",
+    "en": "Rare Substance",
+    "testo": "Tira 2D6: ricevi crediti pari al dado più alto.",
+    "effetti": {
+     "crediti": "2d6_max"
+    }
+   },
+   {
+    "da": 71,
+    "a": 85,
+    "nome": "Pezzi di nave",
+    "en": "Ship Parts",
+    "testo": "Sconto di 1D6 crediti sul prossimo acquisto di un Componente della nave. Stabilisci subito il valore.",
+    "effetti": {
+     "sconto_componente": "1d6"
+    }
+   },
+   {
+    "da": 86,
+    "a": 90,
+    "nome": "Pezzo di nave militare",
+    "en": "Military Ship Part",
+    "testo": "Sconto di 1D6+2 crediti sul prossimo acquisto di un Componente della nave. Stabilisci subito il valore.",
+    "effetti": {
+     "sconto_componente": "1d6+2"
+    }
+   },
+   {
+    "da": 91,
+    "a": 95,
+    "nome": "Oggetti misteriosi",
+    "en": "Mysterious Items",
+    "testo": "2 punti Storia.",
+    "effetti": {
+     "punti_storia": 2
+    }
+   },
+   {
+    "da": 96,
+    "a": 100,
+    "nome": "Oggetto personale",
+    "en": "Personal Item",
+    "testo": "3 punti Storia.",
+    "effetti": {
+     "punti_storia": 3
+    }
+   }
+  ]
+ }
+}

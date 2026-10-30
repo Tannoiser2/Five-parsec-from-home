@@ -1,0 +1,1036 @@
+{
+ "_nota": "Tabelle di creazione dei personaggi (Five Parsecs from Home 3a ed., pp.24-32 stampate = file PDF 26-34). Background, Motivazione e Classe: d100, un tiro per ciascuna (salvo eccezioni delle specie, vedi specie.json). Effetti secondo LEGGIMI_DATI.md: 'stat' modifiche immediate; crediti, patrono, rivale, dicerie (Quest Rumors, nel libro anche solo 'Rumor') e punti_storia vanno nella riserva comune dell'equipaggio; 'xp' va al personaggio; 'oggetti' sono tiri sulle tabelle (Starting Rolls). Corrispondenza con le tabelle di armi/equipaggiamento del libro (pp.28-29): arma_bassa = 'Low-tech Weapon' (tabella LOW TECH WEAPON), arma_militare = 'Military Weapon' (MILITARY WEAPON), arma_alta = 'High-tech Weapon' (HIGH-TECH WEAPON), equip = 'Gear' (Gear Table), gadget = 'Gadget' (Gadget Table). limiti_stat e costi_avanzamento vengono dalla Ability Increase Table di p.123 (fortuna max 1, 3 per gli Umani).",
+ "background": {
+  "_dado": "d100",
+  "righe": [
+   {
+    "da": 1,
+    "a": 4,
+    "nome": "Colonia pacifica ad alta tecnologia",
+    "en": "Peaceful, High-Tech Colony",
+    "testo": "+1 Acume, +1D6 crediti.",
+    "effetti": {
+     "stat": {
+      "acume": 1
+     },
+     "crediti": "1d6"
+    }
+   },
+   {
+    "da": 5,
+    "a": 9,
+    "nome": "Città gigante, sovraffollata e distopica",
+    "en": "Giant, Overcrowded, Dystopian City",
+    "testo": "+1 Velocità.",
+    "effetti": {
+     "stat": {
+      "velocita": 1
+     }
+    }
+   },
+   {
+    "da": 10,
+    "a": 13,
+    "nome": "Colonia a bassa tecnologia",
+    "en": "Low-Tech Colony",
+    "testo": "1 tiro sulla tabella Armi a bassa tecnologia.",
+    "effetti": {
+     "oggetti": [
+      "arma_bassa"
+     ]
+    }
+   },
+   {
+    "da": 14,
+    "a": 17,
+    "nome": "Colonia mineraria",
+    "en": "Mining Colony",
+    "testo": "+1 Robustezza.",
+    "effetti": {
+     "stat": {
+      "robustezza": 1
+     }
+    }
+   },
+   {
+    "da": 18,
+    "a": 21,
+    "nome": "Figlio di militari",
+    "en": "Military Brat",
+    "testo": "+1 Combattimento.",
+    "effetti": {
+     "stat": {
+      "combattimento": 1
+     }
+    }
+   },
+   {
+    "da": 22,
+    "a": 25,
+    "nome": "Stazione spaziale",
+    "en": "Space Station",
+    "testo": "1 tiro sulla tabella Equipaggiamento.",
+    "effetti": {
+     "oggetti": [
+      "equip"
+     ]
+    }
+   },
+   {
+    "da": 26,
+    "a": 29,
+    "nome": "Avamposto militare",
+    "en": "Military Outpost",
+    "testo": "+1 Reazioni.",
+    "effetti": {
+     "stat": {
+      "reazioni": 1
+     }
+    }
+   },
+   {
+    "da": 30,
+    "a": 34,
+    "nome": "Vagabondo",
+    "en": "Drifter",
+    "testo": "1 tiro sulla tabella Equipaggiamento.",
+    "effetti": {
+     "oggetti": [
+      "equip"
+     ]
+    }
+   },
+   {
+    "da": 35,
+    "a": 39,
+    "nome": "Bassifondi di una megalopoli",
+    "en": "Lower Megacity Class",
+    "testo": "1 tiro sulla tabella Armi a bassa tecnologia.",
+    "effetti": {
+     "oggetti": [
+      "arma_bassa"
+     ]
+    }
+   },
+   {
+    "da": 40,
+    "a": 42,
+    "nome": "Famiglia di ricchi mercanti",
+    "en": "Wealthy Merchant Family",
+    "testo": "+2D6 crediti.",
+    "effetti": {
+     "crediti": "2d6"
+    }
+   },
+   {
+    "da": 43,
+    "a": 46,
+    "nome": "Banda di frontiera",
+    "en": "Frontier Gang",
+    "testo": "+1 Combattimento.",
+    "effetti": {
+     "stat": {
+      "combattimento": 1
+     }
+    }
+   },
+   {
+    "da": 47,
+    "a": 49,
+    "nome": "Culto religioso",
+    "en": "Religious Cult",
+    "testo": "1 Patrono, +1 punto Storia.",
+    "effetti": {
+     "patrono": 1,
+     "punti_storia": 1
+    }
+   },
+   {
+    "da": 50,
+    "a": 52,
+    "nome": "Inferno dilaniato dalla guerra",
+    "en": "War-Torn Hell-Hole",
+    "testo": "+1 Reazioni, 1 tiro sulla tabella Armi militari.",
+    "effetti": {
+     "stat": {
+      "reazioni": 1
+     },
+     "oggetti": [
+      "arma_militare"
+     ]
+    }
+   },
+   {
+    "da": 53,
+    "a": 55,
+    "nome": "Gilda tecnologica",
+    "en": "Tech Guild",
+    "testo": "+1 Acume, +1D6 crediti, 1 tiro sulla tabella Armi ad alta tecnologia.",
+    "effetti": {
+     "stat": {
+      "acume": 1
+     },
+     "crediti": "1d6",
+     "oggetti": [
+      "arma_alta"
+     ]
+    }
+   },
+   {
+    "da": 56,
+    "a": 59,
+    "nome": "Colonia sottomessa su un mondo alieno",
+    "en": "Subjugated Colony on Alien World",
+    "testo": "1 tiro sulla tabella Gadget.",
+    "effetti": {
+     "oggetti": [
+      "gadget"
+     ]
+    }
+   },
+   {
+    "da": 60,
+    "a": 64,
+    "nome": "Missione spaziale di lunga durata",
+    "en": "Long-Term Space Mission",
+    "testo": "+1 Acume.",
+    "effetti": {
+     "stat": {
+      "acume": 1
+     }
+    }
+   },
+   {
+    "da": 65,
+    "a": 68,
+    "nome": "Avamposto di ricerca",
+    "en": "Research Outpost",
+    "testo": "+1 Acume, 1 tiro sulla tabella Gadget.",
+    "effetti": {
+     "stat": {
+      "acume": 1
+     },
+     "oggetti": [
+      "gadget"
+     ]
+    }
+   },
+   {
+    "da": 69,
+    "a": 72,
+    "nome": "Mondo primitivo o regredito",
+    "en": "Primitive or Regressed World",
+    "testo": "+1 Robustezza, 1 tiro sulla tabella Armi a bassa tecnologia.",
+    "effetti": {
+     "stat": {
+      "robustezza": 1
+     },
+     "oggetti": [
+      "arma_bassa"
+     ]
+    }
+   },
+   {
+    "da": 73,
+    "a": 76,
+    "nome": "Programma di assistenza per orfani",
+    "en": "Orphan Utility Program",
+    "testo": "1 Patrono, +1 punto Storia.",
+    "effetti": {
+     "patrono": 1,
+     "punti_storia": 1
+    }
+   },
+   {
+    "da": 77,
+    "a": 80,
+    "nome": "Enclave isolazionista",
+    "en": "Isolationist Enclave",
+    "testo": "2 Dicerie.",
+    "effetti": {
+     "dicerie": 2
+    }
+   },
+   {
+    "da": 81,
+    "a": 84,
+    "nome": "Ceto medio agiato di una megalopoli",
+    "en": "Comfortable Megacity Class",
+    "testo": "+1D6 crediti.",
+    "effetti": {
+     "crediti": "1d6"
+    }
+   },
+   {
+    "da": 85,
+    "a": 89,
+    "nome": "Mondo industriale",
+    "en": "Industrial World",
+    "testo": "1 tiro sulla tabella Equipaggiamento.",
+    "effetti": {
+     "oggetti": [
+      "equip"
+     ]
+    }
+   },
+   {
+    "da": 90,
+    "a": 93,
+    "nome": "Burocrate",
+    "en": "Bureaucrat",
+    "testo": "+1D6 crediti.",
+    "effetti": {
+     "crediti": "1d6"
+    }
+   },
+   {
+    "da": 94,
+    "a": 97,
+    "nome": "Nomadi delle terre desolate",
+    "en": "Wasteland Nomads",
+    "testo": "+1 Reazioni, 1 tiro sulla tabella Armi a bassa tecnologia.",
+    "effetti": {
+     "stat": {
+      "reazioni": 1
+     },
+     "oggetti": [
+      "arma_bassa"
+     ]
+    }
+   },
+   {
+    "da": 98,
+    "a": 100,
+    "nome": "Cultura aliena",
+    "en": "Alien Culture",
+    "testo": "1 tiro sulla tabella Armi ad alta tecnologia.",
+    "effetti": {
+     "oggetti": [
+      "arma_alta"
+     ]
+    }
+   }
+  ]
+ },
+ "motivazione": {
+  "_dado": "d100",
+  "righe": [
+   {
+    "da": 1,
+    "a": 8,
+    "nome": "Ricchezza",
+    "en": "Wealth",
+    "testo": "+1D6 crediti.",
+    "effetti": {
+     "crediti": "1d6"
+    }
+   },
+   {
+    "da": 9,
+    "a": 14,
+    "nome": "Fama",
+    "en": "Fame",
+    "testo": "+1 punto Storia.",
+    "effetti": {
+     "punti_storia": 1
+    }
+   },
+   {
+    "da": 15,
+    "a": 19,
+    "nome": "Gloria",
+    "en": "Glory",
+    "testo": "+1 Combattimento, 1 tiro sulla tabella Armi militari.",
+    "effetti": {
+     "stat": {
+      "combattimento": 1
+     },
+     "oggetti": [
+      "arma_militare"
+     ]
+    }
+   },
+   {
+    "da": 20,
+    "a": 26,
+    "nome": "Sopravvivenza",
+    "en": "Survival",
+    "testo": "+1 Robustezza.",
+    "effetti": {
+     "stat": {
+      "robustezza": 1
+     }
+    }
+   },
+   {
+    "da": 27,
+    "a": 32,
+    "nome": "Fuga",
+    "en": "Escape",
+    "testo": "+1 Velocità.",
+    "effetti": {
+     "stat": {
+      "velocita": 1
+     }
+    }
+   },
+   {
+    "da": 33,
+    "a": 39,
+    "nome": "Avventura",
+    "en": "Adventure",
+    "testo": "+1D6 crediti, 1 tiro sulla tabella Armi a bassa tecnologia.",
+    "effetti": {
+     "crediti": "1d6",
+     "oggetti": [
+      "arma_bassa"
+     ]
+    }
+   },
+   {
+    "da": 40,
+    "a": 44,
+    "nome": "Verità",
+    "en": "Truth",
+    "testo": "1 Diceria, +1 punto Storia.",
+    "effetti": {
+     "dicerie": 1,
+     "punti_storia": 1
+    }
+   },
+   {
+    "da": 45,
+    "a": 49,
+    "nome": "Tecnologia",
+    "en": "Technology",
+    "testo": "+1 Acume, 1 tiro sulla tabella Gadget.",
+    "effetti": {
+     "stat": {
+      "acume": 1
+     },
+     "oggetti": [
+      "gadget"
+     ]
+    }
+   },
+   {
+    "da": 50,
+    "a": 56,
+    "nome": "Scoperta",
+    "en": "Discovery",
+    "testo": "+1 Acume, 1 tiro sulla tabella Equipaggiamento.",
+    "effetti": {
+     "stat": {
+      "acume": 1
+     },
+     "oggetti": [
+      "equip"
+     ]
+    }
+   },
+   {
+    "da": 57,
+    "a": 63,
+    "nome": "Lealtà",
+    "en": "Loyalty",
+    "testo": "1 Patrono, +1 punto Storia.",
+    "effetti": {
+     "patrono": 1,
+     "punti_storia": 1
+    }
+   },
+   {
+    "da": 64,
+    "a": 69,
+    "nome": "Vendetta",
+    "en": "Revenge",
+    "testo": "+2 XP, 1 Rivale.",
+    "effetti": {
+     "xp": 2,
+     "rivale": 1
+    }
+   },
+   {
+    "da": 70,
+    "a": 74,
+    "nome": "Romanticismo",
+    "en": "Romance",
+    "testo": "1 Diceria, +1 punto Storia.",
+    "effetti": {
+     "dicerie": 1,
+     "punti_storia": 1
+    }
+   },
+   {
+    "da": 75,
+    "a": 79,
+    "nome": "Fede",
+    "en": "Faith",
+    "testo": "1 Diceria, +1 punto Storia.",
+    "effetti": {
+     "dicerie": 1,
+     "punti_storia": 1
+    }
+   },
+   {
+    "da": 80,
+    "a": 84,
+    "nome": "Politica",
+    "en": "Political",
+    "testo": "1 Patrono, +1 punto Storia.",
+    "effetti": {
+     "patrono": 1,
+     "punti_storia": 1
+    }
+   },
+   {
+    "da": 85,
+    "a": 90,
+    "nome": "Potere",
+    "en": "Power",
+    "testo": "+2 XP, 1 Rivale.",
+    "effetti": {
+     "xp": 2,
+     "rivale": 1
+    }
+   },
+   {
+    "da": 91,
+    "a": 95,
+    "nome": "Ordine",
+    "en": "Order",
+    "testo": "1 Patrono, +1 punto Storia.",
+    "effetti": {
+     "patrono": 1,
+     "punti_storia": 1
+    }
+   },
+   {
+    "da": 96,
+    "a": 100,
+    "nome": "Libertà",
+    "en": "Freedom",
+    "testo": "+2 XP.",
+    "effetti": {
+     "xp": 2
+    }
+   }
+  ]
+ },
+ "classe": {
+  "_dado": "d100",
+  "righe": [
+   {
+    "da": 1,
+    "a": 5,
+    "nome": "Classe operaia",
+    "en": "Working Class",
+    "testo": "+1 Acume, +1 Fortuna.",
+    "effetti": {
+     "stat": {
+      "acume": 1,
+      "fortuna": 1
+     }
+    }
+   },
+   {
+    "da": 6,
+    "a": 9,
+    "nome": "Tecnico",
+    "en": "Technician",
+    "testo": "+1 Acume, 1 tiro sulla tabella Equipaggiamento.",
+    "effetti": {
+     "stat": {
+      "acume": 1
+     },
+     "oggetti": [
+      "equip"
+     ]
+    }
+   },
+   {
+    "da": 10,
+    "a": 13,
+    "nome": "Scienziato",
+    "en": "Scientist",
+    "testo": "+1 Acume, 1 tiro sulla tabella Gadget.",
+    "effetti": {
+     "stat": {
+      "acume": 1
+     },
+     "oggetti": [
+      "gadget"
+     ]
+    }
+   },
+   {
+    "da": 14,
+    "a": 17,
+    "nome": "Hacker",
+    "en": "Hacker",
+    "testo": "+1 Acume, 1 Rivale.",
+    "effetti": {
+     "stat": {
+      "acume": 1
+     },
+     "rivale": 1
+    }
+   },
+   {
+    "da": 18,
+    "a": 22,
+    "nome": "Soldato",
+    "en": "Soldier",
+    "testo": "+1 Combattimento, +1D6 crediti.",
+    "effetti": {
+     "stat": {
+      "combattimento": 1
+     },
+     "crediti": "1d6"
+    }
+   },
+   {
+    "da": 23,
+    "a": 27,
+    "nome": "Mercenario",
+    "en": "Mercenary",
+    "testo": "+1 Combattimento, 1 tiro sulla tabella Armi militari.",
+    "effetti": {
+     "stat": {
+      "combattimento": 1
+     },
+     "oggetti": [
+      "arma_militare"
+     ]
+    }
+   },
+   {
+    "da": 28,
+    "a": 32,
+    "nome": "Agitatore",
+    "en": "Agitator",
+    "testo": "1 Rivale.",
+    "effetti": {
+     "rivale": 1
+    }
+   },
+   {
+    "da": 33,
+    "a": 36,
+    "nome": "Primitivo",
+    "en": "Primitive",
+    "testo": "+1 Velocità, 1 tiro sulla tabella Armi a bassa tecnologia.",
+    "effetti": {
+     "stat": {
+      "velocita": 1
+     },
+     "oggetti": [
+      "arma_bassa"
+     ]
+    }
+   },
+   {
+    "da": 37,
+    "a": 40,
+    "nome": "Artista",
+    "en": "Artist",
+    "testo": "+1D6 crediti.",
+    "effetti": {
+     "crediti": "1d6"
+    }
+   },
+   {
+    "da": 41,
+    "a": 44,
+    "nome": "Negoziatore",
+    "en": "Negotiator",
+    "testo": "1 Patrono, +1 punto Storia.",
+    "effetti": {
+     "patrono": 1,
+     "punti_storia": 1
+    }
+   },
+   {
+    "da": 45,
+    "a": 49,
+    "nome": "Commerciante",
+    "en": "Trader",
+    "testo": "+2D6 crediti.",
+    "effetti": {
+     "crediti": "2d6"
+    }
+   },
+   {
+    "da": 50,
+    "a": 54,
+    "nome": "Equipaggio di astronave",
+    "en": "Starship Crew",
+    "testo": "+1 Acume.",
+    "effetti": {
+     "stat": {
+      "acume": 1
+     }
+    }
+   },
+   {
+    "da": 55,
+    "a": 58,
+    "nome": "Piccolo criminale",
+    "en": "Petty Criminal",
+    "testo": "+1 Velocità.",
+    "effetti": {
+     "stat": {
+      "velocita": 1
+     }
+    }
+   },
+   {
+    "da": 59,
+    "a": 63,
+    "nome": "Membro di gang",
+    "en": "Ganger",
+    "testo": "+1 Reazioni, 1 tiro sulla tabella Armi a bassa tecnologia.",
+    "effetti": {
+     "stat": {
+      "reazioni": 1
+     },
+     "oggetti": [
+      "arma_bassa"
+     ]
+    }
+   },
+   {
+    "da": 64,
+    "a": 67,
+    "nome": "Furfante",
+    "en": "Scoundrel",
+    "testo": "+1 Velocità.",
+    "effetti": {
+     "stat": {
+      "velocita": 1
+     }
+    }
+   },
+   {
+    "da": 68,
+    "a": 71,
+    "nome": "Sgherro",
+    "en": "Enforcer",
+    "testo": "+1 Combattimento, 1 Patrono.",
+    "effetti": {
+     "stat": {
+      "combattimento": 1
+     },
+     "patrono": 1
+    }
+   },
+   {
+    "da": 72,
+    "a": 75,
+    "nome": "Agente speciale",
+    "en": "Special Agent",
+    "testo": "+1 Reazioni, 1 Patrono, 1 tiro sulla tabella Gadget.",
+    "effetti": {
+     "stat": {
+      "reazioni": 1
+     },
+     "patrono": 1,
+     "oggetti": [
+      "gadget"
+     ]
+    }
+   },
+   {
+    "da": 76,
+    "a": 79,
+    "nome": "Risolviguai",
+    "en": "Troubleshooter",
+    "testo": "+1 Reazioni, 1 tiro sulla tabella Armi a bassa tecnologia.",
+    "effetti": {
+     "stat": {
+      "reazioni": 1
+     },
+     "oggetti": [
+      "arma_bassa"
+     ]
+    }
+   },
+   {
+    "da": 80,
+    "a": 83,
+    "nome": "Cacciatore di taglie",
+    "en": "Bounty Hunter",
+    "testo": "+1 Velocità, 1 Diceria, 1 tiro sulla tabella Armi a bassa tecnologia.",
+    "effetti": {
+     "stat": {
+      "velocita": 1
+     },
+     "dicerie": 1,
+     "oggetti": [
+      "arma_bassa"
+     ]
+    }
+   },
+   {
+    "da": 84,
+    "a": 88,
+    "nome": "Nomade",
+    "en": "Nomad",
+    "testo": "1 tiro sulla tabella Equipaggiamento.",
+    "effetti": {
+     "oggetti": [
+      "equip"
+     ]
+    }
+   },
+   {
+    "da": 89,
+    "a": 92,
+    "nome": "Esploratore",
+    "en": "Explorer",
+    "testo": "+2 XP, 1 tiro sulla tabella Equipaggiamento.",
+    "effetti": {
+     "xp": 2,
+     "oggetti": [
+      "equip"
+     ]
+    }
+   },
+   {
+    "da": 93,
+    "a": 96,
+    "nome": "Punk",
+    "en": "Punk",
+    "testo": "+2 XP, 1 Rivale.",
+    "effetti": {
+     "xp": 2,
+     "rivale": 1
+    }
+   },
+   {
+    "da": 97,
+    "a": 100,
+    "nome": "Recuperatore",
+    "en": "Scavenger",
+    "testo": "1 Diceria, 1 tiro sulla tabella Armi ad alta tecnologia.",
+    "effetti": {
+     "dicerie": 1,
+     "oggetti": [
+      "arma_alta"
+     ]
+    }
+   }
+  ]
+ },
+ "equipaggiamento_iniziale": {
+  "_nota": "p.28 stampata (file 30). Tiri per l'intero equipaggio, oltre agli oggetti dati da Background/Motivazione/Classe; tutto si distribuisce liberamente.",
+  "tiri": [
+   "arma_militare",
+   "arma_militare",
+   "arma_militare",
+   "arma_bassa",
+   "arma_bassa",
+   "arma_bassa",
+   "equip",
+   "gadget"
+  ],
+  "sostituzione_alta_tecnologia": {
+   "da": "arma_militare",
+   "a": "arma_alta",
+   "testo": "Per ogni membro dell'equipaggio che ha ottenuto almeno un aumento di Acume durante la creazione, uno dei 3 tiri sulle Armi militari può essere fatto, a scelta, sulle Armi ad alta tecnologia.",
+   "condizione": "aumento_acume_creazione"
+  },
+  "crediti_per_membro": 1,
+  "crediti_testo": "1 credito per membro dell'equipaggio (+1 credito per ogni membro reclutato dopo l'inizio del gioco), più i crediti ottenuti dalle tabelle."
+ },
+ "limiti_stat": {
+  "reazioni": 6,
+  "velocita": 8,
+  "combattimento": 5,
+  "robustezza": 6,
+  "acume": 5,
+  "fortuna": 1,
+  "fortuna_umani": 3
+ },
+ "costi_avanzamento": {
+  "reazioni": 7,
+  "velocita": 5,
+  "combattimento": 7,
+  "robustezza": 6,
+  "acume": 5,
+  "fortuna": 10
+ },
+ "dettagli_colore": {
+  "_nota": "p.32 stampata (file 34): Crew Table, solo colore, nessun effetto di gioco.",
+  "ci_siamo_conosciuti": {
+   "_dado": "d100",
+   "righe": [
+    {
+     "da": 1,
+     "a": 10,
+     "nome": "Assunti da un membro a caso del gruppo",
+     "en": "Hired by a random member of the group"
+    },
+    {
+     "da": 11,
+     "a": 20,
+     "nome": "Inseguendo la motivazione di un membro a caso",
+     "en": "Pursuit of random group member's motivation"
+    },
+    {
+     "da": 21,
+     "a": 30,
+     "nome": "Essendo nei guai con le autorità",
+     "en": "Being in trouble with the authorities"
+    },
+    {
+     "da": 31,
+     "a": 40,
+     "nome": "Un nemico comune",
+     "en": "A common enemy"
+    },
+    {
+     "da": 41,
+     "a": 50,
+     "nome": "Una causa o una fede comune",
+     "en": "A common cause or belief"
+    },
+    {
+     "da": 51,
+     "a": 65,
+     "nome": "Un incontro casuale in un bar",
+     "en": "A random meeting in a bar"
+    },
+    {
+     "da": 66,
+     "a": 75,
+     "nome": "Un lavoro precedente",
+     "en": "A previous job"
+    },
+    {
+     "da": 76,
+     "a": 90,
+     "nome": "Protezione reciproca in un universo ostile",
+     "en": "Mutual protection in a hostile universe"
+    },
+    {
+     "da": 91,
+     "a": 100,
+     "nome": "Essendo vecchi compagni di guerra",
+     "en": "Being old war buddies"
+    }
+   ]
+  },
+  "siamo_descritti_come": {
+   "_dado": "d100",
+   "righe": [
+    {
+     "da": 1,
+     "a": 12,
+     "nome": "Simpatiche canaglie",
+     "en": "Lovable rogues"
+    },
+    {
+     "da": 13,
+     "a": 21,
+     "nome": "Professionisti impeccabili",
+     "en": "Consummate professionals"
+    },
+    {
+     "da": 22,
+     "a": 28,
+     "nome": "Fuorilegge spietati",
+     "en": "Cut-throat outlaws"
+    },
+    {
+     "da": 29,
+     "a": 34,
+     "nome": "Difensori degli oppressi",
+     "en": "Defenders of the down-trodden"
+    },
+    {
+     "da": 35,
+     "a": 48,
+     "nome": "Ribelli incalliti",
+     "en": "Hardened rebels"
+    },
+    {
+     "da": 49,
+     "a": 58,
+     "nome": "Feccia da spazioporto",
+     "en": "Starport scum"
+    },
+    {
+     "da": 59,
+     "a": 72,
+     "nome": "Banditi abbastanza onorevoli",
+     "en": "Somewhat honorable bandits"
+    },
+    {
+     "da": 73,
+     "a": 87,
+     "nome": "Qui per i crediti",
+     "en": "In it for the credits"
+    },
+    {
+     "da": 88,
+     "a": 100,
+     "nome": "Viviamo il sogno!",
+     "en": "Living the dream!"
+    }
+   ]
+  }
+ },
+ "nomi": [
+  "Ada",
+  "Bram",
+  "Cass",
+  "Dex",
+  "Esko",
+  "Fen",
+  "Gala",
+  "Hollis",
+  "Iri",
+  "Jax",
+  "Kora",
+  "Lune",
+  "Mako",
+  "Nix",
+  "Orla",
+  "Pike",
+  "Quill",
+  "Rhea",
+  "Sable",
+  "Tarn",
+  "Uma",
+  "Vey",
+  "Wren",
+  "Xan",
+  "Yara",
+  "Zed",
+  "Brann",
+  "Cyra",
+  "Dalla",
+  "Eno",
+  "Faro",
+  "Grix",
+  "Hale",
+  "Ivo",
+  "Juno",
+  "Kell",
+  "Lio",
+  "Mira",
+  "Nova",
+  "Oren",
+  "Pax",
+  "Rook",
+  "Sela",
+  "Tov",
+  "Vika",
+  "Wade",
+  "Zia",
+  "Corvo",
+  "Lira",
+  "Taddeo"
+ ]
+}

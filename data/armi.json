@@ -1,0 +1,1146 @@
+{
+ "_nota": "Armi (regolamento p.49-52 stampate = PDF 51-54; tabelle di creazione p.28 stampata = PDF 30; riepilogo p.185 = PDF 187). gittata in pollici (= caselle, vedi LEGGIMI_DATI.md); 0 = solo Rissa (Brawl). colpi 0 = arma da Rissa ('-' nel libro). danno = bonus al tiro di danno. 'costo' presente solo dove il libro lo dà: Pistola, Lama, Fucile coloniale e Fucile a pompa si comprano a 1 credito l'una (p.125); per tutto il resto si paga 3 crediti per un tiro sulla tabella Militare, Equipaggiamento o Gadget. 'danno_na': il libro indica NA (granata accecante). 'solo_nemici': armi naturali/disarmato, non da tabella armi. Limiti: un personaggio porta 2 armi, più un'arma di classe Pistola o una Lama (p.49). Chi non ha armi da mischia o pistole colpisce in Rissa con Danno +0. mod_armi e mirini hanno gli stessi id degli oggetti in equipaggiamento.json.",
+ "armi": {
+  "fucile_automatico": {
+   "nome": "Fucile automatico",
+   "en": "Auto rifle",
+   "gittata": 24,
+   "colpi": 2,
+   "danno": 0,
+   "tratti": [],
+   "testo": "Fucile pesante con caricatore a tamburo, usato per il fuoco di supporto a media distanza."
+  },
+  "pistola_raggi": {
+   "nome": "Pistola a raggi",
+   "en": "Beam pistol",
+   "gittata": 10,
+   "colpi": 1,
+   "danno": 1,
+   "tratti": [
+    "pistola",
+    "critica"
+   ],
+   "testo": "Pistola a energia pesante di livello militare, con un raggio molto concentrato."
+  },
+  "lama": {
+   "nome": "Lama",
+   "en": "Blade",
+   "gittata": 0,
+   "colpi": 0,
+   "danno": 0,
+   "tratti": [
+    "mischia"
+   ],
+   "costo": 1,
+   "testo": "Lama robusta e leggera da scherma o da taglio, preferita negli arrembaggi."
+  },
+  "pistola_blaster": {
+   "nome": "Pistola blaster",
+   "en": "Blast pistol",
+   "gittata": 8,
+   "colpi": 1,
+   "danno": 1,
+   "tratti": [
+    "pistola"
+   ],
+   "testo": "Spara un dardo di energia rovente che esplode all'impatto; si dissipa in fretta, quindi ha gittata ridotta."
+  },
+  "fucile_blaster": {
+   "nome": "Fucile blaster",
+   "en": "Blast rifle",
+   "gittata": 16,
+   "colpi": 1,
+   "danno": 1,
+   "tratti": [],
+   "testo": "Fucile o carabina a dardi di energia. Chi lo porta fa sul serio."
+  },
+  "sciabola": {
+   "nome": "Sciabola d'arrembaggio",
+   "en": "Boarding saber",
+   "gittata": 0,
+   "colpi": 0,
+   "danno": 1,
+   "tratti": [
+    "mischia",
+    "elegante"
+   ],
+   "testo": "Spada pesante ma ben bilanciata, spesso con paramano."
+  },
+  "arma_brutale": {
+   "nome": "Arma da mischia brutale",
+   "en": "Brutal melee weapon",
+   "gittata": 0,
+   "colpi": 0,
+   "danno": 1,
+   "tratti": [
+    "mischia",
+    "goffa"
+   ],
+   "testo": "Arma pesante e dall'aspetto sgradevole, per spaccare e rompere cose... o persone."
+  },
+  "pistola_fuoco": {
+   "nome": "Pistola a fuoco adesivo",
+   "en": "Cling fire pistol",
+   "gittata": 12,
+   "colpi": 2,
+   "danno": 1,
+   "tratti": [
+    "concentrata",
+    "terrificante"
+   ],
+   "testo": "Arma da fianco che spruzza sostanze chimiche appiccicose e infuocate."
+  },
+  "fucile_coloniale": {
+   "nome": "Fucile coloniale",
+   "en": "Colony rifle",
+   "gittata": 18,
+   "colpi": 1,
+   "danno": 0,
+   "tratti": [],
+   "costo": 1,
+   "testo": "Fucile difensivo standard, diffuso tra coloni e gente di frontiera. Facile da mantenere, di solito semiautomatico."
+  },
+  "granata_accecante": {
+   "nome": "Granata accecante",
+   "en": "Dazzle grenade",
+   "gittata": 6,
+   "colpi": 1,
+   "danno": 0,
+   "tratti": [
+    "area",
+    "stordente",
+    "monouso"
+   ],
+   "danno_na": true,
+   "testo": "Carica d'urto che emette un lampo e un suono assordante. Danno: NA (non si tira il danno, i bersagli sono storditi)."
+  },
+  "pistola_duello": {
+   "nome": "Pistola da duello",
+   "en": "Duelling pistol",
+   "gittata": 8,
+   "colpi": 1,
+   "danno": 0,
+   "tratti": [
+    "pistola",
+    "critica"
+   ],
+   "testo": "Pistola su misura costruita per la mira accurata. Apprezzata dai ricchissimi e dai nostalgici."
+  },
+  "cannone_flak": {
+   "nome": "Fucile flak",
+   "en": "Flak gun",
+   "gittata": 8,
+   "colpi": 2,
+   "danno": 1,
+   "tratti": [
+    "concentrata",
+    "critica"
+   ],
+   "testo": "Potente fucile a canna liscia militare, progettato per arrembaggi e cacce agli insetti nei luoghi stretti."
+  },
+  "granata_frakk": {
+   "nome": "Granata Frakk",
+   "en": "Frakk grenade",
+   "gittata": 6,
+   "colpi": 2,
+   "danno": 0,
+   "tratti": [
+    "pesante",
+    "area",
+    "monouso"
+   ],
+   "testo": "Carica esplosiva in un involucro metallico, spesso improvvisata."
+  },
+  "fucile_furia": {
+   "nome": "Fucile Furia",
+   "en": "Fury rifle",
+   "gittata": 24,
+   "colpi": 1,
+   "danno": 2,
+   "tratti": [
+    "pesante",
+    "perforante"
+   ],
+   "testo": "Arma a raggio ad alta potenza derivata da modelli militari anticarro. Si carica lentamente prima di sparare."
+  },
+  "spada_luce": {
+   "nome": "Spada abbagliante",
+   "en": "Glare sword",
+   "gittata": 0,
+   "colpi": 0,
+   "danno": 0,
+   "tratti": [
+    "mischia",
+    "elegante",
+    "perforante"
+   ],
+   "testo": "Elegante arma da scherma con la lama avvolta da un campo di energia disgregante, che taglia con grande precisione."
+  },
+  "cannone_mano": {
+   "nome": "Cannone a mano",
+   "en": "Hand cannon",
+   "gittata": 8,
+   "colpi": 1,
+   "danno": 2,
+   "tratti": [
+    "pistola"
+   ],
+   "testo": "Pistola pesante di calibro enorme. Apprezzata dai cacciatori di insetti."
+  },
+  "lanciafiamme_mano": {
+   "nome": "Lanciafiamme a mano",
+   "en": "Hand flamer",
+   "gittata": 12,
+   "colpi": 2,
+   "danno": 1,
+   "tratti": [
+    "concentrata",
+    "area"
+   ],
+   "testo": "Lanciafiamme portatile a getto largo, per effetto ad area."
+  },
+  "laser_mano": {
+   "nome": "Laser a mano",
+   "en": "Hand laser",
+   "gittata": 12,
+   "colpi": 1,
+   "danno": 0,
+   "tratti": [
+    "tiro_rapido",
+    "pistola"
+   ],
+   "testo": "Pistola a energia portatile, popolare perché facile da usare e senza rinculo."
+  },
+  "pistola": {
+   "nome": "Pistola",
+   "en": "Hand gun",
+   "gittata": 12,
+   "colpi": 1,
+   "danno": 0,
+   "tratti": [
+    "pistola"
+   ],
+   "costo": 1,
+   "testo": "Pistola semiautomatica convenzionale di medio calibro."
+  },
+  "pistola_tascabile": {
+   "nome": "Pistola tascabile",
+   "en": "Hold out pistol",
+   "gittata": 4,
+   "colpi": 1,
+   "danno": 0,
+   "tratti": [
+    "pistola",
+    "mischia"
+   ],
+   "testo": "Pistola compatta da tasca per la difesa personale."
+  },
+  "fucile_caccia": {
+   "nome": "Fucile da caccia",
+   "en": "Hunting rifle",
+   "gittata": 30,
+   "colpi": 1,
+   "danno": 1,
+   "tratti": [
+    "pesante"
+   ],
+   "testo": "Fucile di grosso calibro per cacciare animali grandi e pericolosi."
+  },
+  "iperblaster": {
+   "nome": "Iperblaster",
+   "en": "Hyper blaster",
+   "gittata": 24,
+   "colpi": 3,
+   "danno": 1,
+   "tratti": [],
+   "testo": "Arma blaster a fuoco rapido; quasi tutti i modelli hanno tre canne rotanti per disperdere il calore."
+  },
+  "laser_fanteria": {
+   "nome": "Laser da fanteria",
+   "en": "Infantry laser",
+   "gittata": 30,
+   "colpi": 1,
+   "danno": 0,
+   "tratti": [
+    "tiro_rapido"
+   ],
+   "testo": "Fucile a energia militare con batteria staccabile."
+  },
+  "pistola_mitragliatrice": {
+   "nome": "Pistola mitragliatrice",
+   "en": "Machine pistol",
+   "gittata": 8,
+   "colpi": 2,
+   "danno": 0,
+   "tratti": [
+    "pistola",
+    "concentrata"
+   ],
+   "testo": "Arma compatta completamente automatica, in calibro da pistola."
+  },
+  "fucile_precisione": {
+   "nome": "Fucile di precisione",
+   "en": "Marksman's rifle",
+   "gittata": 36,
+   "colpi": 1,
+   "danno": 0,
+   "tratti": [
+    "pesante"
+   ],
+   "testo": "Fucile militare per il tiro scelto; comune arma di supporto a livello di plotone."
+  },
+  "fucile_militare": {
+   "nome": "Fucile militare",
+   "en": "Military rifle",
+   "gittata": 24,
+   "colpi": 1,
+   "danno": 0,
+   "tratti": [],
+   "testo": "Fucile automatico militare convenzionale, di solito a munizioni senza bossolo."
+  },
+  "fucile_aghi": {
+   "nome": "Fucile ad aghi",
+   "en": "Needle rifle",
+   "gittata": 18,
+   "colpi": 2,
+   "danno": 0,
+   "tratti": [
+    "critica"
+   ],
+   "testo": "Usa il magnetismo per lanciare una raffica di aghi affilatissimi."
+  },
+  "fucile_plasma": {
+   "nome": "Fucile al plasma",
+   "en": "Plasma rifle",
+   "gittata": 20,
+   "colpi": 2,
+   "danno": 1,
+   "tratti": [
+    "concentrata",
+    "perforante"
+   ],
+   "testo": "Fucile pesante che spara dardi di energia bianco-azzurra. Ottima arma da combattimento, ma costosa e difficile da raffreddare."
+  },
+  "artiglio_potenziato": {
+   "nome": "Artiglio potenziato",
+   "en": "Power claw",
+   "gittata": 0,
+   "colpi": 0,
+   "danno": 3,
+   "tratti": [
+    "mischia",
+    "goffa"
+   ],
+   "testo": "Pesante guanto servoassistito che avvolge tutto il braccio. Può sfondare l'acciaio."
+  },
+  "mitragliatrice": {
+   "nome": "Mitragliatrice",
+   "en": "Rattle gun",
+   "gittata": 24,
+   "colpi": 3,
+   "danno": 0,
+   "tratti": [
+    "pesante"
+   ],
+   "testo": "Mitragliatrice convenzionale a nastro; i modelli di frontiera sono vecchi e rabberciati."
+  },
+  "spada_squarcio": {
+   "nome": "Spada dentata",
+   "en": "Ripper sword",
+   "gittata": 0,
+   "colpi": 0,
+   "danno": 1,
+   "tratti": [
+    "mischia"
+   ],
+   "testo": "Lama corta da fendente con 'denti' microscopici per strappare e lacerare. Popolare tra i marine K'Erin."
+  },
+  "pistola_rottami": {
+   "nome": "Pistola di rottami",
+   "en": "Scrap pistol",
+   "gittata": 9,
+   "colpi": 1,
+   "danno": 0,
+   "tratti": [
+    "pistola"
+   ],
+   "testo": "Pistola assemblata con pezzi di recupero. Comune sulle frontiere."
+  },
+  "ascia_frantumatrice": {
+   "nome": "Ascia frantumatrice",
+   "en": "Shatter axe",
+   "gittata": 0,
+   "colpi": 0,
+   "danno": 2,
+   "tratti": [
+    "mischia"
+   ],
+   "testo": "Arma ingombrante che scarica un'esplosione di energia quando colpisce; nata per le operazioni di sfondamento."
+  },
+  "lanciaproiettili": {
+   "nome": "Lanciagranate",
+   "en": "Shell gun",
+   "gittata": 30,
+   "colpi": 2,
+   "danno": 0,
+   "tratti": [
+    "pesante",
+    "area"
+   ],
+   "testo": "Lanciagranate autonomo, spesso costruito su misura."
+  },
+  "fucile_pompa": {
+   "nome": "Fucile a pompa",
+   "en": "Shotgun",
+   "gittata": 12,
+   "colpi": 2,
+   "danno": 1,
+   "tratti": [
+    "concentrata"
+   ],
+   "costo": 1,
+   "testo": "Arma a canna liscia che spara una rosa di pallini. Comune per caccia e difesa."
+  },
+  "mazza_soppressione": {
+   "nome": "Mazza di soppressione",
+   "en": "Suppression maul",
+   "gittata": 0,
+   "colpi": 0,
+   "danno": 1,
+   "tratti": [
+    "mischia",
+    "impatto"
+   ],
+   "testo": "Arma antisommossa che sovraccarica i recettori del dolore della maggior parte delle forme di vita biologiche."
+  },
+  "zanne_artigli": {
+   "nome": "Zanne / artigli",
+   "en": "Claws / Fangs (Damage +0)",
+   "gittata": 0,
+   "colpi": 0,
+   "danno": 0,
+   "tratti": [],
+   "solo_nemici": true,
+   "testo": "Armi naturali di animali e alieni (tabelle dei nemici): si usano solo in Rissa, con Danno +0. Nessun bonus da arma da mischia."
+  },
+  "zanne_grandi": {
+   "nome": "Zanne / artigli (+1)",
+   "en": "Claws / Fangs (Damage +1)",
+   "gittata": 0,
+   "colpi": 0,
+   "danno": 1,
+   "tratti": [],
+   "solo_nemici": true,
+   "testo": "Armi naturali di animali e alieni (tabelle dei nemici): si usano solo in Rissa, con Danno +1. Nessun bonus da arma da mischia."
+  },
+  "artigli_possenti": {
+   "nome": "Artigli possenti (+2)",
+   "en": "Claws (Damage +2)",
+   "gittata": 0,
+   "colpi": 0,
+   "danno": 2,
+   "tratti": [],
+   "solo_nemici": true,
+   "testo": "Armi naturali di grosse bestie (es. Krorg, tabelle dei nemici): si usano solo in Rissa, con Danno +2. Nessun bonus da arma da mischia."
+  },
+  "disarmato": {
+   "nome": "Mani nude",
+   "en": "Unarmed",
+   "gittata": 0,
+   "colpi": 0,
+   "danno": 0,
+   "tratti": [],
+   "solo_nemici": true,
+   "testo": "Chi non ha armi da mischia o pistole combatte in Rissa con Danno +0 e senza bonus (p.45)."
+  }
+ },
+ "tratti": {
+  "area": "Area: tutti i colpi vanno risolti contro il bersaglio iniziale (non si possono ripartire). Poi si risolve un colpo bonus contro ogni figura entro 2\" dal bersaglio.",
+  "goffa": "Goffa: -1 ai tiri di Rissa se l'avversario ha Velocità maggiore.",
+  "critica": "Critica: un 6 naturale sul tiro per colpire infligge 2 colpi al bersaglio.",
+  "elegante": "Elegante: in Rissa chi la usa può ritirare il dado. I nemici ritirano sempre se hanno un totale inferiore a quello dell'avversario, e possono migliorare il risultato.",
+  "concentrata": "Concentrata: tutti i colpi devono essere diretti contro un solo bersaglio.",
+  "pesante": "Pesante: -1 per colpire se chi spara si è mosso in questo round.",
+  "impatto": "Impatto: se il bersaglio è Stordito, si piazza un secondo segnalino Stordito.",
+  "mischia": "Mischia: +2 ai tiri di Rissa.",
+  "perforante": "Perforante: ignora i tiri salvezza delle corazze.",
+  "pistola": "Pistola: +1 ai tiri di Rissa.",
+  "monouso": "Monouso: l'oggetto si può usare una sola volta e va tolto dalla scorta disponibile. Con le armi monouso non si può usare la regola del Fuoco nel panico (p.46).",
+  "tiro_rapido": "Tiro rapido: +1 per colpire entro 6\".",
+  "stordente": "Stordente: tutti i bersagli sono automaticamente Storditi. Non si tira il danno.",
+  "terrificante": "Terrificante: ogni bersaglio colpito deve ritirarsi di 1D6\" allontanandosi da chi ha sparato."
+ },
+ "tabelle": {
+  "arma_militare": {
+   "_dado": "d100",
+   "_pagina": 28,
+   "righe": [
+    {
+     "da": 1,
+     "a": 25,
+     "arma": "fucile_militare",
+     "nome": "Fucile militare",
+     "en": "Military rifle"
+    },
+    {
+     "da": 26,
+     "a": 45,
+     "arma": "laser_fanteria",
+     "nome": "Laser da fanteria",
+     "en": "Infantry laser"
+    },
+    {
+     "da": 46,
+     "a": 50,
+     "arma": "fucile_precisione",
+     "nome": "Fucile di precisione",
+     "en": "Marksman's rifle"
+    },
+    {
+     "da": 51,
+     "a": 60,
+     "arma": "fucile_aghi",
+     "nome": "Fucile ad aghi",
+     "en": "Needle rifle"
+    },
+    {
+     "da": 61,
+     "a": 75,
+     "arma": "fucile_automatico",
+     "nome": "Fucile automatico",
+     "en": "Auto rifle"
+    },
+    {
+     "da": 76,
+     "a": 80,
+     "arma": "mitragliatrice",
+     "nome": "Mitragliatrice",
+     "en": "Rattle gun"
+    },
+    {
+     "da": 81,
+     "a": 95,
+     "arma": "sciabola",
+     "nome": "Sciabola d'arrembaggio",
+     "en": "Boarding saber"
+    },
+    {
+     "da": 96,
+     "a": 100,
+     "arma": "ascia_frantumatrice",
+     "nome": "Ascia frantumatrice",
+     "en": "Shatter axe"
+    }
+   ]
+  },
+  "arma_bassa": {
+   "_dado": "d100",
+   "_pagina": 28,
+   "righe": [
+    {
+     "da": 1,
+     "a": 15,
+     "arma": "pistola",
+     "nome": "Pistola",
+     "en": "Hand gun"
+    },
+    {
+     "da": 16,
+     "a": 35,
+     "arma": "pistola_rottami",
+     "nome": "Pistola di rottami",
+     "en": "Scrap pistol"
+    },
+    {
+     "da": 36,
+     "a": 40,
+     "arma": "pistola_mitragliatrice",
+     "nome": "Pistola mitragliatrice",
+     "en": "Machine pistol"
+    },
+    {
+     "da": 41,
+     "a": 65,
+     "arma": "fucile_coloniale",
+     "nome": "Fucile coloniale",
+     "en": "Colony rifle"
+    },
+    {
+     "da": 66,
+     "a": 75,
+     "arma": "fucile_pompa",
+     "nome": "Fucile a pompa",
+     "en": "Shotgun"
+    },
+    {
+     "da": 76,
+     "a": 80,
+     "arma": "fucile_caccia",
+     "nome": "Fucile da caccia",
+     "en": "Hunting rifle"
+    },
+    {
+     "da": 81,
+     "a": 95,
+     "arma": "lama",
+     "nome": "Lama",
+     "en": "Blade"
+    },
+    {
+     "da": 96,
+     "a": 100,
+     "arma": "arma_brutale",
+     "nome": "Arma da mischia brutale",
+     "en": "Brutal melee weapon"
+    }
+   ]
+  },
+  "arma_alta": {
+   "_dado": "d100",
+   "_pagina": 28,
+   "righe": [
+    {
+     "da": 1,
+     "a": 5,
+     "arma": "pistola_duello",
+     "nome": "Pistola da duello",
+     "en": "Duelling pistol"
+    },
+    {
+     "da": 6,
+     "a": 15,
+     "arma": "cannone_mano",
+     "nome": "Cannone a mano",
+     "en": "Hand cannon"
+    },
+    {
+     "da": 16,
+     "a": 30,
+     "arma": "laser_mano",
+     "nome": "Laser a mano",
+     "en": "Hand laser"
+    },
+    {
+     "da": 31,
+     "a": 45,
+     "arma": "pistola_raggi",
+     "nome": "Pistola a raggi",
+     "en": "Beam pistol"
+    },
+    {
+     "da": 46,
+     "a": 55,
+     "arma": "laser_fanteria",
+     "nome": "Laser da fanteria",
+     "en": "Infantry laser"
+    },
+    {
+     "da": 56,
+     "a": 70,
+     "arma": "pistola_blaster",
+     "nome": "Pistola blaster",
+     "en": "Blast pistol"
+    },
+    {
+     "da": 71,
+     "a": 80,
+     "arma": "fucile_blaster",
+     "nome": "Fucile blaster",
+     "en": "Blast rifle"
+    },
+    {
+     "da": 81,
+     "a": 85,
+     "arma": "fucile_plasma",
+     "nome": "Fucile al plasma",
+     "en": "Plasma rifle"
+    },
+    {
+     "da": 86,
+     "a": 100,
+     "arma": "spada_luce",
+     "nome": "Spada abbagliante",
+     "en": "Glare sword"
+    }
+   ]
+  }
+ },
+ "mod_armi": {
+  "_regole": "Si montano su un'arma non da mischia e non monouso; non si possono rimuovere né annullare. Un'arma può avere una sola mod.",
+  "lama_assalto": {
+   "nome": "Lama d'assalto",
+   "en": "Assault blade",
+   "tipo": "mod_arma",
+   "testo": "L'arma ottiene il tratto Mischia, Danno +1 e vince la Rissa in caso di pareggio. Solo armi non Pistola.",
+   "effetto": {
+    "tratti_aggiunti": [
+     "mischia"
+    ],
+    "danno_rissa": 1,
+    "vince_pareggio_rissa": true,
+    "solo": "non_pistola"
+   }
+  },
+  "torcia": {
+   "nome": "Torcia tattica",
+   "en": "Beam light",
+   "tipo": "mod_arma",
+   "testo": "Usando l'arma con visibilità ridotta, la visibilità aumenta di +3\".",
+   "effetto": {
+    "visibilita": 3
+   }
+  },
+  "bipode": {
+   "nome": "Bipode",
+   "en": "Bipod",
+   "tipo": "mod_arma",
+   "testo": "+1 per colpire a distanze oltre 8\" quando si Mira o si spara da una Copertura. Solo armi non Pistola.",
+   "effetto": {
+    "colpire_oltre": {
+     "distanza": 8,
+     "bonus": 1,
+     "se": [
+      "mira",
+      "copertura"
+     ]
+    },
+    "solo": "non_pistola"
+   }
+  },
+  "pacco_hot_shot": {
+   "nome": "Pacco hot shot",
+   "en": "Hot shot pack",
+   "tipo": "mod_arma",
+   "testo": "Se montato su Pistola blaster, Fucile blaster, Laser a mano o Laser da fanteria: Danno +1. Ogni 6 naturale sui dadi di tiro causa un surriscaldamento: l'arma è inutilizzabile per il resto dello scontro.",
+   "effetto": {
+    "danno": 1,
+    "solo_armi": [
+     "pistola_blaster",
+     "fucile_blaster",
+     "laser_mano",
+     "laser_fanteria"
+    ],
+    "surriscalda_su_6": true
+   }
+  },
+  "nano_fango": {
+   "nome": "Nano-fango configurabile",
+   "en": "Cyber-configurable nano-sludge",
+   "tipo": "mod_arma",
+   "testo": "L'arma riceve un bonus permanente di +1 per colpire.",
+   "effetto": {
+    "colpire": 1
+   }
+  },
+  "stabilizzatore": {
+   "nome": "Stabilizzatore",
+   "en": "Stabilizer",
+   "tipo": "mod_arma",
+   "testo": "L'arma può ignorare il tratto Pesante.",
+   "effetto": {
+    "ignora_tratti": [
+     "pesante"
+    ]
+   }
+  },
+  "attacco_shock": {
+   "nome": "Attacco shock",
+   "en": "Shock attachment",
+   "tipo": "mod_arma",
+   "testo": "L'arma ottiene il tratto Impatto contro bersagli entro 8\".",
+   "effetto": {
+    "tratti_entro": {
+     "tratto": "impatto",
+     "distanza": 8
+    }
+   }
+  },
+  "kit_potenziamento": {
+   "nome": "Kit di potenziamento",
+   "en": "Upgrade kit",
+   "tipo": "mod_arma",
+   "testo": "Gittata +2\".",
+   "effetto": {
+    "gittata": 2
+   }
+  }
+ },
+ "mirini": {
+  "_regole": "Si montano su un'arma non da mischia e non monouso. Si possono montare o spostare su un'altra arma quando si assegna l'equipaggiamento nel turno di campagna, non durante la battaglia. Se l'arma è danneggiata, anche il mirino lo è. Un'arma può avere un solo mirino alla volta.",
+  "mirino_laser": {
+   "nome": "Mirino laser",
+   "en": "Laser sight",
+   "tipo": "mirino",
+   "testo": "L'arma ottiene il tratto Tiro rapido. Solo Pistole.",
+   "effetto": {
+    "tratti_aggiunti": [
+     "tiro_rapido"
+    ],
+    "solo": "pistola"
+   }
+  },
+  "mirino_qualita": {
+   "nome": "Mirino di qualità",
+   "en": "Quality sight",
+   "tipo": "mirino",
+   "testo": "Gittata +2\". Si ritirano gli 1 quando si spara un solo colpo.",
+   "effetto": {
+    "gittata": 2,
+    "ritira_1_se_colpo_singolo": true
+   }
+  },
+  "mirino_cercatore": {
+   "nome": "Mirino cercatore",
+   "en": "Seeker sight",
+   "tipo": "mirino",
+   "testo": "+1 per colpire se chi spara non si è Mosso in questo round.",
+   "effetto": {
+    "colpire_se_fermo": 1
+   }
+  },
+  "mirino_tracciante": {
+   "nome": "Mirino tracciante",
+   "en": "Tracker sight",
+   "tipo": "mirino",
+   "testo": "+1 per colpire se nel round precedente hai sparato allo stesso bersaglio.",
+   "effetto": {
+    "colpire_stesso_bersaglio": 1
+   }
+  },
+  "mirino_unity": {
+   "nome": "Mirino da battaglia Unity",
+   "en": "Unity battle sight",
+   "tipo": "mirino",
+   "testo": "+1 a tutti i tiri per colpire.",
+   "effetto": {
+    "colpire": 1
+   }
+  }
+ },
+ "armi_nemici": {
+  "_nota": "Armi dei nemici (Enemy Weapons, p.104). Il codice di un nemico (es. '2B') = colonna Arma '2' per le figure base + colonna Specialista 'B' per gli Specialisti. Si tira 1D6 una volta per tutte le figure base e una volta per gli Specialisti.",
+  "_regole": [
+   "Tira una volta 1D6 sulla colonna numerica per tutte le figure base (non Specialisti), poi tira per l'arma degli Specialisti sulla colonna con la lettera.",
+   "I nemici con IA Aggressiva portano una Lama oltre alle armi elencate, a meno che il loro Combattimento sia +0.",
+   "I nemici con IA 'Psycho' portano sempre una Lama oltre alle altre armi (nel libro non esiste un'IA Psycho: vedi note).",
+   "Alcuni nemici hanno un'arma specifica: la portano sempre e non si tira.",
+   "Se sono elencate due armi, la seconda è per gli Specialisti.",
+   "Regola opzionale Armamento Vario: dividi le figure non Specialiste in due gruppi e tira l'arma per ciascun gruppo."
+  ],
+  "1": {
+   "nome": "Arma 1",
+   "en": "Weapon 1",
+   "tipo": "base",
+   "_dado": "d6",
+   "righe": [
+    {
+     "da": 1,
+     "a": 1,
+     "armi": [
+      "pistola_rottami"
+     ]
+    },
+    {
+     "da": 2,
+     "a": 2,
+     "armi": [
+      "pistola"
+     ]
+    },
+    {
+     "da": 3,
+     "a": 3,
+     "armi": [
+      "fucile_coloniale"
+     ]
+    },
+    {
+     "da": 4,
+     "a": 4,
+     "armi": [
+      "fucile_militare"
+     ]
+    },
+    {
+     "da": 5,
+     "a": 5,
+     "armi": [
+      "pistola_rottami",
+      "lama"
+     ]
+    },
+    {
+     "da": 6,
+     "a": 6,
+     "armi": [
+      "fucile_pompa"
+     ]
+    }
+   ]
+  },
+  "2": {
+   "nome": "Arma 2",
+   "en": "Weapon 2",
+   "tipo": "base",
+   "_dado": "d6",
+   "righe": [
+    {
+     "da": 1,
+     "a": 1,
+     "armi": [
+      "fucile_coloniale"
+     ]
+    },
+    {
+     "da": 2,
+     "a": 2,
+     "armi": [
+      "fucile_militare"
+     ]
+    },
+    {
+     "da": 3,
+     "a": 3,
+     "armi": [
+      "fucile_militare"
+     ]
+    },
+    {
+     "da": 4,
+     "a": 4,
+     "armi": [
+      "fucile_militare"
+     ]
+    },
+    {
+     "da": 5,
+     "a": 5,
+     "armi": [
+      "laser_mano"
+     ]
+    },
+    {
+     "da": 6,
+     "a": 6,
+     "armi": [
+      "laser_fanteria"
+     ]
+    }
+   ]
+  },
+  "3": {
+   "nome": "Arma 3",
+   "en": "Weapon 3",
+   "tipo": "base",
+   "_dado": "d6",
+   "righe": [
+    {
+     "da": 1,
+     "a": 1,
+     "armi": [
+      "laser_mano"
+     ]
+    },
+    {
+     "da": 2,
+     "a": 2,
+     "armi": [
+      "laser_mano"
+     ]
+    },
+    {
+     "da": 3,
+     "a": 3,
+     "armi": [
+      "laser_fanteria"
+     ]
+    },
+    {
+     "da": 4,
+     "a": 4,
+     "armi": [
+      "laser_fanteria"
+     ]
+    },
+    {
+     "da": 5,
+     "a": 5,
+     "armi": [
+      "fucile_blaster"
+     ]
+    },
+    {
+     "da": 6,
+     "a": 6,
+     "armi": [
+      "fucile_blaster"
+     ]
+    }
+   ]
+  },
+  "A": {
+   "nome": "Specialista A",
+   "en": "Specialist A",
+   "tipo": "specialista",
+   "_dado": "d6",
+   "righe": [
+    {
+     "da": 1,
+     "a": 1,
+     "armi": [
+      "artiglio_potenziato"
+     ]
+    },
+    {
+     "da": 2,
+     "a": 2,
+     "armi": [
+      "fucile_pompa"
+     ]
+    },
+    {
+     "da": 3,
+     "a": 3,
+     "armi": [
+      "fucile_automatico"
+     ]
+    },
+    {
+     "da": 4,
+     "a": 4,
+     "armi": [
+      "pistola_fuoco"
+     ]
+    },
+    {
+     "da": 5,
+     "a": 5,
+     "armi": [
+      "fucile_caccia"
+     ]
+    },
+    {
+     "da": 6,
+     "a": 6,
+     "armi": [
+      "pistola",
+      "spada_squarcio"
+     ]
+    }
+   ]
+  },
+  "B": {
+   "nome": "Specialista B",
+   "en": "Specialist B",
+   "tipo": "specialista",
+   "_dado": "d6",
+   "righe": [
+    {
+     "da": 1,
+     "a": 1,
+     "armi": [
+      "fucile_precisione"
+     ]
+    },
+    {
+     "da": 2,
+     "a": 2,
+     "armi": [
+      "fucile_automatico"
+     ]
+    },
+    {
+     "da": 3,
+     "a": 3,
+     "armi": [
+      "lanciaproiettili"
+     ]
+    },
+    {
+     "da": 4,
+     "a": 4,
+     "armi": [
+      "lanciafiamme_mano"
+     ]
+    },
+    {
+     "da": 5,
+     "a": 5,
+     "armi": [
+      "mitragliatrice"
+     ]
+    },
+    {
+     "da": 6,
+     "a": 6,
+     "armi": [
+      "mitragliatrice"
+     ]
+    }
+   ]
+  },
+  "C": {
+   "nome": "Specialista C",
+   "en": "Specialist C",
+   "tipo": "specialista",
+   "_dado": "d6",
+   "righe": [
+    {
+     "da": 1,
+     "a": 1,
+     "armi": [
+      "fucile_precisione"
+     ]
+    },
+    {
+     "da": 2,
+     "a": 2,
+     "armi": [
+      "lanciaproiettili"
+     ]
+    },
+    {
+     "da": 3,
+     "a": 3,
+     "armi": [
+      "fucile_furia"
+     ]
+    },
+    {
+     "da": 4,
+     "a": 4,
+     "armi": [
+      "fucile_plasma"
+     ]
+    },
+    {
+     "da": 5,
+     "a": 5,
+     "armi": [
+      "fucile_plasma"
+     ]
+    },
+    {
+     "da": 6,
+     "a": 6,
+     "armi": [
+      "iperblaster"
+     ]
+    }
+   ]
+  },
+  "luogotenente": {
+   "nome": "Luogotenente",
+   "en": "Lieutenant",
+   "tipo": "luogotenente",
+   "testo": "Un Luogotenente porta la sua arma normale (quella delle figure base) più una Lama e ha Combattimento +1. È Impavido. Se i nemici sono animali senza armi, è un capobranco: solo Combattimento +1.",
+   "armi_extra": [
+    "lama"
+   ],
+   "stat": {
+    "combattimento": 1
+   },
+   "impavido": true
+  }
+ }
+}
