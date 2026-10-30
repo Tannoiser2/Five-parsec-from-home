@@ -47,6 +47,11 @@ pedine segnaposto (colore, sagoma e iniziali). Per aggiungere un'immagine basta 
 (quadrata, soggetto al centro: viene ritagliata in un cerchio). I nomi dei file e i prompt per generarle con ChatGPT
 sono in **[PROMPT_PEDINE.md](PROMPT_PEDINE.md)** (125 immagini: 26 specie, 82 nemici, 13 neutrali/VIP, 4 segnalini facoltativi).
 
+Altri prompt per la grafica, con istruzioni per Codex (il gioco non li usa ancora: l'integrazione è descritta in ogni file):
+- **[PROMPT_EQUIPAGGIAMENTO.md](PROMPT_EQUIPAGGIAMENTO.md)**: 114 icone di armi, modifiche, mirini e oggetti (`assets/oggetti/`);
+- **[PROMPT_SCENARI.md](PROMPT_SCENARI.md)**: 66 illustrazioni di tipi di battaglia, obiettivi, condizioni, luoghi notevoli, eventi e zone (`assets/scenari/`);
+- **[PROMPT_MAPPE.md](PROMPT_MAPPE.md)**: 45 immagini del campo di battaglia: suoli per 7 ambienti, plance, elementi di terreno, sovrapposizioni (`assets/mappe/`).
+
 ## Salvataggi nel cloud
 Stesso progetto Firebase degli altri giochi (`flammerouge-f8669`, Realtime Database, accesso anonimo), radice
 `fiveparsecs/campagne/<codice>` con `{nome, turno, aggiornato, uid, dati}` (lo stato completo è un testo JSON).
