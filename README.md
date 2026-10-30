@@ -41,16 +41,23 @@ La pubblicazione non parte da sola: Actions → **Pubblica** → *Run workflow*.
 - **Salvataggi**: automatici sul dispositivo (anche nel browser) e **nel cloud** (Firebase): ogni campagna ha un codice di
   6 lettere con cui la si riapre da qualsiasi dispositivo.
 
-## Pedine
-Niente miniature 3D per ora: le figure sono **pedine viste dall'alto**. Finché non ci sono le immagini il gioco disegna
-pedine segnaposto (colore, sagoma e iniziali). Per aggiungere un'immagine basta salvarla come `assets/pedine/<nome>.png`
-(quadrata, soggetto al centro: viene ritagliata in un cerchio). I nomi dei file e i prompt per generarle con ChatGPT
-sono in **[PROMPT_PEDINE.md](PROMPT_PEDINE.md)** (125 immagini: 26 specie, 82 nemici, 13 neutrali/VIP, 4 segnalini facoltativi).
+## Grafica
+Tutte le immagini sono state generate con i prompt dei file `PROMPT_*.md` e ridotte per il web (WebP); il gioco le carica
+da `scripts/ui/immagini.gd` e, se un file manca, torna al disegno di ripiego (pedine con iniziali, terreno a colori).
+- **Pedine** (`assets/pedine/`, 384 px): figure viste dall'alto per specie, nemici, Individui Unici, neutrali, VIP e segnalini
+  di obiettivo (console, pacco, luogo notevole, punti da perquisire e da pattugliare). Prompt in **[PROMPT_PEDINE.md](PROMPT_PEDINE.md)**.
+- **Icone dell'equipaggiamento** (`assets/oggetti/<id>.webp`, 256 px): nelle schede dei personaggi, nel deposito e negli
+  acquisti. Prompt in **[PROMPT_EQUIPAGGIAMENTO.md](PROMPT_EQUIPAGGIAMENTO.md)**.
+- **Scenari** (`assets/scenari/`, 1024 px): tipo di battaglia nella scelta, tipo e obiettivo nella preparazione, condizione di
+  schieramento e luogo notevole accanto al testo; in battaglia l'obiettivo e poi l'ultimo evento. Prompt in
+  **[PROMPT_SCENARI.md](PROMPT_SCENARI.md)**.
+- **Mappe** (`assets/mappe/`): plancia dell'ambiente (frontiera, arido, ghiacciato, rigoglioso, cristalli, zona di guerra,
+  urbano, scelto dai tratti del mondo e dal tipo di scontro; solo grafica), elementi di terreno sopra le caselle che occupano
+  e sovrapposizioni per nebbia, buio, polvere e gas. Prompt in **[PROMPT_MAPPE.md](PROMPT_MAPPE.md)**.
 
-Altri prompt per la grafica, con istruzioni per Codex (il gioco non li usa ancora: l'integrazione è descritta in ogni file):
-- **[PROMPT_EQUIPAGGIAMENTO.md](PROMPT_EQUIPAGGIAMENTO.md)**: 114 icone di armi, modifiche, mirini e oggetti (`assets/oggetti/`);
-- **[PROMPT_SCENARI.md](PROMPT_SCENARI.md)**: 66 illustrazioni di tipi di battaglia, obiettivi, condizioni, luoghi notevoli, eventi e zone (`assets/scenari/`);
-- **[PROMPT_MAPPE.md](PROMPT_MAPPE.md)**: 45 immagini del campo di battaglia: suoli per 7 ambienti, plance, elementi di terreno, sovrapposizioni (`assets/mappe/`).
+Per aggiungere o sostituire un'immagine basta salvarla con lo stesso nome (`.webp` o `.png`); nella versione da computer si
+possono provare anche nella cartella dati dell'utente (`user://pedine/`, `user://oggetti/`...). L'importazione usa
+compressione con perdita e mipmap (`[importer_defaults]` in `project.godot`).
 
 ## Salvataggi nel cloud
 Stesso progetto Firebase degli altri giochi (`flammerouge-f8669`, Realtime Database, accesso anonimo), radice
@@ -68,6 +75,7 @@ carattere degli script e dei dati contro i due font (va eseguito prima di pubbli
 godot --headless --path . -s tests/test_regole.gd     # regole, tabelle, linea di vista, tiro, rissa, 20 battaglie automatiche
 godot --headless --path . -s tests/sim_campagna.gd    # 6 campagne automatiche da 15 turni (tutte le difficoltà), salvataggio e ripresa
 xvfb-run godot --path . -s tests/shot.gd              # screenshot di menu, creazione, campagna, battaglia
+xvfb-run godot --path . -s tests/shot_mappe.gd        # il campo di battaglia in tutti gli ambienti
 python3 tools/controlla_glifi.py                      # glifi
 ```
 
@@ -82,7 +90,7 @@ scripts/core/campagna.gd     motore della campagna: creazione, turno, effetti de
 scripts/core/battaglia.gd    battaglia su griglia: terreno, round, movimento, vista, tiro, rissa, morale, obiettivi
 scripts/core/ia.gd           IA dei nemici (e dell'equipaggio in automatico)
 scripts/net/                 Firebase e salvataggi
-scripts/ui/                  interfaccia (menu, creazione, campagna, battaglia, regole, pedine)
+scripts/ui/                  interfaccia (menu, creazione, campagna, battaglia, regole, pedine, immagini)
 tools/                       controllo dei glifi, pubblicazione su Cloudflare
 ```
 

@@ -35,6 +35,9 @@ var primo_colpo := ""      # id della prima figura dell'equipaggio che ha messo 
 var unico_ucciso := ""
 var ia_script = null
 var eventi_battaglia := true
+var ambiente := "frontiera"  # aspetto del campo (grafica): frontiera, arido, ghiacciato, rigoglioso, cristalli, zona_guerra, urbano
+var tratti_mondo: Array = []  # nomi dei tratti del mondo (per l'interfaccia)
+var ultimo_evento := {}      # ultima riga della tabella degli eventi della battaglia uscita (per l'interfaccia)
 var _id := 0
 
 func _init(seme := 0) -> void:
@@ -441,6 +444,23 @@ func per_uid(uid: int) -> Dictionary:
 ## ===================== preparazione da una campagna =====================
 
 ## Prepara la battaglia dalla campagna: setup = Campagna.s.battaglia; pgs = personaggi schierati.
+## Aspetto del campo di battaglia secondo i tratti del mondo e il tipo di scontro (solo grafica, nessun effetto sulle regole).
+static func scegli_ambiente(tratti: Array, obiettivo_: String) -> String:
+	var t := " ".join(tratti).to_lower()
+	if obiettivo_ == "invasione" or t.contains("zona di guerra"):
+		return "zona_guerra"
+	if t.contains("ghiacciato"):
+		return "ghiacciato"
+	if t.contains("arido"):
+		return "arido"
+	if t.contains("vegetazione"):
+		return "rigoglioso"
+	if t.contains("cristalli"):
+		return "cristalli"
+	if obiettivo_ in ["assalto", "incursione"]:
+		return "urbano"
+	return "frontiera"
+
 func prepara(setup_: Dictionary, pgs: Array, lato := 24, opzioni := {}) -> void:
 	setup = setup_
 	obiettivo = str(setup.get("obiettivo", "respingere"))
@@ -449,6 +469,8 @@ func prepara(setup_: Dictionary, pgs: Array, lato := 24, opzioni := {}) -> void:
 	var tratti := []
 	for t in opzioni.get("tratti_mondo", []):
 		tratti.append(str(t))
+	tratti_mondo = tratti
+	ambiente = scegli_ambiente(tratti, obiettivo)
 	genera_terreno(lato, tratti)
 	var cond: Dictionary = setup.get("condizione", {}).get("effetti", {})
 	if cond.has("visibilita"):
@@ -1271,6 +1293,7 @@ func fine_round() -> void:
 		if not tab.is_empty():
 			var r := dadi.su_tabella(tab)
 			scrivi("Evento della battaglia (%d): %s - %s" % [r.tiro, r.riga.get("nome", ""), r.riga.get("testo", "")], "evento")
+			ultimo_evento = r.riga
 			_applica_evento(r.riga)
 	# resa del nemico dopo l'obiettivo
 	if stato_obj.get("fatto", false) and not figure(NEM).is_empty():
