@@ -91,12 +91,28 @@ func _run() -> void:
 		bv._reset_iniziativa()
 		b.inizia_round()
 	bv.aggiorna()
-	# seleziona il primo da attivare e mostra le caselle raggiungibili
-	var att := b.da_attivare()
-	if not att.is_empty():
-		bv.sel = att[0]
-		bv.aggiorna()
-		await shot("battaglia_selezione")
+	await shot("battaglia_reazioni")
+	b.conferma_reazioni()
+	bv._prossimo()
+	await wait(4)
+	await shot("battaglia_azioni")
+	# un movimento e un tiro del primo personaggio attivo
+	if not bv.sel.is_empty():
+		var u = bv.sel
+		var celle := b.celle_azione(u, "muovi")
+		if celle.size() > 1:
+			var dest: Vector2i = celle[0]
+			for q in celle:
+				if q.y < dest.y:
+					dest = q
+			bv._esegui("muovi", dest)
+			await wait(10)
+		for a in b.azioni_disponibili(u):
+			if str(a.id).begins_with("spara:"):
+				bv.modo = a.id
+				bv.aggiorna()
+				await shot("battaglia_mira")
+				break
 	await bv._automatico()
 	await wait(10)
 	await shot("battaglia_fine")

@@ -55,12 +55,17 @@ const COL := {
 	3: Color(0.33, 0.35, 0.40),   # blocco
 	4: Color(0.30, 0.26, 0.20),   # singolo
 	5: Color(0.20, 0.26, 0.30),   # campo
+	6: Color(0.16, 0.15, 0.14),   # muro
+	7: Color(0.45, 0.30, 0.16),   # porta
+	8: Color(0.30, 0.42, 0.50),   # finestra
+	9: Color(0.24, 0.22, 0.20),   # interno
+	10: Color(0.25, 0.70, 0.85),  # muro di forza
 }
 
 ## Grafica del campo (assets/mappe/): nome dell'elemento del motore -> immagine.
-const ELEMENTI_IMG := {"Edificio": "edificio", "Navetta atterrata": "navetta_atterrata", "Container": "container",
+const ELEMENTI_IMG := {"Edificio chiuso": "edificio", "Navetta atterrata": "navetta_atterrata", "Container": "container",
 	"Masso": "masso", "Bosco": "bosco", "Rovine": "rovine", "Cespugli": "cespugli", "Vegetazione": "vegetazione"}
-const PER_CELLA := {"Deposito di casse": "cassa", "Barili": "barile", "Alberi": "albero", "Casse della navetta": "casse_navetta"}
+const PER_CELLA := {"Muro in rovina": "rovine_muro", "Deposito di casse": "cassa", "Barili": "barile", "Alberi": "albero", "Casse della navetta": "casse_navetta"}
 const LINEARI := {"Barricata": "barricata", "Recinzione": "recinzione", "Muretto": "muretto", "Siepe": "siepe",
 	"Sacchi di sabbia": "sacchi_sabbia", "Muro di forza": "muro_forza"}
 const ORIENTABILI := ["edificio", "edificio_grande", "navetta_atterrata", "container", "masso"]
@@ -103,7 +108,18 @@ func _draw() -> void:
 					draw_arc(r.get_center(), lato * 0.2, 0, TAU, 16, Color(0.36, 0.24, 0.13), 1.5)
 				Battaglia.T.CAMPO:
 					draw_line(r.position + Vector2(lato * 0.2, lato * 0.5), r.position + Vector2(lato * 0.8, lato * 0.5), Color(0.4, 0.55, 0.65, 0.6), 2.0)
+				Battaglia.T.INTERNO:
+					draw_rect(r, Color(0.27, 0.25, 0.22))
+					draw_rect(r.grow(-lato * 0.06), Color(0.33, 0.30, 0.26))
+					draw_line(r.position + Vector2(lato * 0.5, lato * 0.06), r.position + Vector2(lato * 0.5, lato * 0.94), Color(0.25, 0.22, 0.19), 1.0)
+				Battaglia.T.MURO, Battaglia.T.PORTA, Battaglia.T.FINESTRA:
+					_disegna_muro(p, r, t)
+				Battaglia.T.MURO_FORZA:
+					draw_rect(r.grow(-2), Color(0.25, 0.70, 0.85, 0.45))
+			if b.impraticabili.has(p):
+				draw_rect(r, Color(0.35, 0.75, 0.20, 0.35))
 	_sovrapposizione(tot)
+	_altezze()
 	# griglia
 	for x in b.W + 1:
 		draw_line(origine + Vector2(x * lato, 0), origine + Vector2(x * lato, b.H * lato), Color(0, 0, 0, 0.22), 1.0)
@@ -135,6 +151,17 @@ func _draw() -> void:
 		if bersagli.has(u.uid):
 			draw_circle(c, lato * 0.5, Color(0.9, 0.2, 0.2, 0.35))
 		Pedine.disegna(self, c, lato * 0.42, str(u.pedina), str(u.nome), nem, ev, u.lato == Battaglia.EQ and u.attivato)
+		if u.lato == Battaglia.MOSTRI:
+			draw_arc(c, lato * 0.47, 0, TAU, 24, Color(0.6, 0.9, 0.3), 2.5)
+		if b._congelato(u):
+			draw_arc(c, lato * 0.5, 0, TAU, 24, Color(0.5, 0.8, 1.0), 3.0)
+		if u.get("attesa", "") == "snap":
+			draw_arc(c, lato * 0.5, -PI * 0.8, -PI * 0.2, 12, UI.AMBRA, 3.0)
+		if b.a_at(u.pos) > 0:
+			var fa: Font = UI.font_titoli
+			var hs := "%d" % b.a_at(u.pos)
+			draw_string_outline(fa, c + Vector2(lato * 0.22, lato * 0.46), hs, HORIZONTAL_ALIGNMENT_LEFT, -1, int(lato * 0.32), 3, Color.BLACK)
+			draw_string(fa, c + Vector2(lato * 0.22, lato * 0.46), hs, HORIZONTAL_ALIGNMENT_LEFT, -1, int(lato * 0.32), Color(0.75, 0.9, 1.0))
 		# stordimento: piccoli cerchi grigi
 		for i in int(u.stordito):
 			draw_circle(c + Vector2(-lato * 0.36 + i * lato * 0.2, -lato * 0.42), lato * 0.09, Color(0.85, 0.85, 0.85))
@@ -231,6 +258,8 @@ func _elementi_grafici() -> Dictionary:
 	for e in ordinati:
 		var nome := str(e.nome)
 		var celle: Array = e.celle
+		if e.get("interno", false):
+			continue
 		if e.tipo in [Battaglia.T.BLOCCO, Battaglia.T.SINGOLO]:
 			for c in celle:
 				solidi[c] = true
@@ -341,3 +370,49 @@ func _marcatori() -> void:
 		if not Pedine.disegna_segnalino(self, c, lato * 0.42, "segnalino_luogo", UI.ACQUA):
 			draw_circle(c, lato * 0.28, Color(0.36, 0.78, 0.80, 0.9))
 			draw_circle(c, lato * 0.14, Color(0.05, 0.1, 0.12))
+
+## Altezza dei blocchi scalabili (in pollici), al centro dell'elemento.
+func _altezze() -> void:
+	var f: Font = UI.font_titoli
+	for e in b.elementi:
+		if e.tipo != Battaglia.T.BLOCCO or e.celle.is_empty():
+			continue
+		var c := _bbox(e.celle).get_center()
+		var s := "%d\"" % int(e.get("altezza", b.a_at(e.celle[0])))
+		var dim := int(lato * 0.42)
+		draw_string_outline(f, c + Vector2(-lato * 0.25, lato * 0.15), s, HORIZONTAL_ALIGNMENT_LEFT, -1, dim, 4, Color(0, 0, 0, 0.9))
+		draw_string(f, c + Vector2(-lato * 0.25, lato * 0.15), s, HORIZONTAL_ALIGNMENT_LEFT, -1, dim, Color(0.85, 0.92, 1.0))
+	for sg in b.segnalini:
+		var c := centro_cella(sg.pos)
+		if sg.tipo == "rinforzi":
+			draw_colored_polygon(PackedVector2Array([c + Vector2(0, -lato * 0.35), c + Vector2(lato * 0.32, lato * 0.28), c + Vector2(-lato * 0.32, lato * 0.28)]), Color(0.88, 0.33, 0.30, 0.85))
+		else:
+			if not Pedine.disegna_segnalino(self, c, lato * 0.4, "segnalino_pacco", Color(0.95, 0.85, 0.3)):
+				_rombo(c, lato * 0.3, Color(0.95, 0.85, 0.3))
+	if not b.nebbia.is_empty():
+		var nc := centro_cella(b.nebbia.centro)
+		draw_circle(nc, lato * (float(b.nebbia.raggio) + 0.5), Color(0.8, 0.82, 0.85, 0.22))
+
+## Muro di un edificio: lastra scura continua con bordo ambrato; porte e finestre come strisce lungo il muro.
+func _disegna_muro(p: Vector2i, r: Rect2, t: int) -> void:
+	draw_rect(r, Color(0.10, 0.10, 0.11))
+	var oriz := b.t_at(p + Vector2i.LEFT) in [Battaglia.T.MURO, Battaglia.T.PORTA, Battaglia.T.FINESTRA] or b.t_at(p + Vector2i.RIGHT) in [Battaglia.T.MURO, Battaglia.T.PORTA, Battaglia.T.FINESTRA]
+	var vert := b.t_at(p + Vector2i.UP) in [Battaglia.T.MURO, Battaglia.T.PORTA, Battaglia.T.FINESTRA] or b.t_at(p + Vector2i.DOWN) in [Battaglia.T.MURO, Battaglia.T.PORTA, Battaglia.T.FINESTRA]
+	var piastra := Color(0.30, 0.31, 0.33)
+	draw_rect(r.grow(-lato * 0.08), piastra)
+	draw_rect(r.grow(-lato * 0.08), UI.BORDO.darkened(0.35), false, 1.5)
+	var striscia: Rect2
+	if oriz and not vert:
+		striscia = Rect2(r.position + Vector2(lato * 0.08, lato * 0.36), Vector2(lato * 0.84, lato * 0.28))
+	else:
+		striscia = Rect2(r.position + Vector2(lato * 0.36, lato * 0.08), Vector2(lato * 0.28, lato * 0.84))
+	if t == Battaglia.T.FINESTRA:
+		draw_rect(striscia, Color(0.50, 0.72, 0.82, 0.95))
+		draw_rect(striscia, Color(0.85, 0.95, 1.0, 0.8), false, 1.0)
+	elif t == Battaglia.T.PORTA:
+		if b.porte_aperte.has(p):
+			draw_rect(r.grow(-lato * 0.08), Color(0.33, 0.30, 0.26))
+		else:
+			var porta := Rect2(r.position + Vector2(lato * 0.14, lato * 0.14), Vector2(lato * 0.72, lato * 0.72))
+			draw_rect(porta, Color(0.58, 0.38, 0.18))
+			draw_rect(porta, Color(0.95, 0.68, 0.28), false, 2.0)
