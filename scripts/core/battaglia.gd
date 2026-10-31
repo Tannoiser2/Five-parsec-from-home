@@ -2414,6 +2414,45 @@ func azioni_disponibili(u: Dictionary) -> Array:
 		r.append({"id": "esci", "nome": "Esci dal campo di battaglia", "tipo": "speciale", "bersaglio": "nessuno"})
 	return r
 
+## Perché le azioni di combattimento principali non sono possibili ora (testi per l'interfaccia, nessun effetto sulle regole).
+func azioni_impossibili(u: Dictionary) -> Array:
+	var r := []
+	if u.lato != EQ or not u.attiva or u.vip:
+		return r
+	if u.agito:
+		return ["Azione di combattimento già usata in questa attivazione."]
+	if u.get("no_combattimento", false):
+		return ["In questo round non può compiere azioni di combattimento."]
+	if int(u.stordito) > 0 and u.mosso:
+		return ["Stordito: avendo già mosso, in questa attivazione non può agire."]
+	for a in armi_tiro(u):
+		if bersagli(u, a).is_empty():
+			var e := arma_eff(u, a)
+			r.append("Spara con %s: nessun nemico visibile entro %d\" (la gittata dell'arma)." % [e.nome, int(e.gittata)])
+	if adiacenti_nemici(u).is_empty():
+		r.append("Rissa: nessun avversario a contatto.")
+	if not (stato_obj.get("fatto", false) or stato_obj.get("fallito", false)):
+		var ids := azioni_obiettivo(u).map(func(x): return str(x.id))
+		match obiettivo:
+			"accedere":
+				if not "accedi" in ids:
+					if int(stato_obj.get("tentativi_round", 0)) >= 2:
+						r.append("Accesso alla console: già fatti 2 tentativi in questo round.")
+					else:
+						r.append("Accesso alla console: porta il personaggio a contatto con la console al centro del campo%s." % (" (per un Senz'anima basta entro 6\")" if u.specie == "soulless" else ""))
+			"consegnare":
+				if not "consegna" in ids:
+					r.append("Consegna: chi porta il pacco deve arrivare a contatto con il centro del campo." if u.porta == "pacco" else "Consegna: il pacco lo porta un altro membro dell'equipaggio.")
+			"acquisire":
+				if stato_obj.has("oggetto_a") and not "prendi" in ids:
+					r.append("Prendere l'oggetto: arriva a contatto con l'oggetto.")
+			"perquisire":
+				if not ids.any(func(x): return x.begins_with("perquisisci:")):
+					r.append("Perquisire: arriva a contatto con un elemento di terreno che ha un segnalino.")
+		if stato_obj.has("luogo_pos") and not stato_obj.get("luogo_preso", false) and not "luogo" in ids:
+			r.append("Luogo notevole: arriva a contatto con il segnalino per esaminarlo.")
+	return r
+
 ## Celle valide per un'azione che richiede una casella.
 func celle_azione(u: Dictionary, id: String) -> Array:
 	if id == "muovi" or id == "scatto":
