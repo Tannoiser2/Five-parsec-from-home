@@ -360,14 +360,22 @@ func _azioni() -> void:
 	for a in b.azioni_disponibili(sel):
 		gruppi[str(a.tipo)].append(a)
 	var titoli := {"movimento": "MOVIMENTO", "combattimento": "AZIONE DI COMBATTIMENTO", "gratuita": "AZIONI GRATUITE", "speciale": "ALTRO"}
+	var perche := b.azioni_impossibili(sel)
 	for k in ["movimento", "combattimento", "gratuita", "speciale"]:
-		if gruppi[k].is_empty():
+		# la sezione del combattimento compare sempre: se manca qualcosa dice perché
+		if gruppi[k].is_empty() and not (k == "combattimento" and not perche.is_empty()):
 			continue
 		azioni_box.add_child(UI.etichetta(titoli[k], 14, UI.AMBRA, true))
-		var f := HFlowContainer.new()
-		for a in gruppi[k]:
-			f.add_child(_bt_azione(a))
-		azioni_box.add_child(f)
+		if not gruppi[k].is_empty():
+			var f := HFlowContainer.new()
+			for a in gruppi[k]:
+				f.add_child(_bt_azione(a))
+			azioni_box.add_child(f)
+		if k == "combattimento":
+			if gruppi[k].is_empty():
+				azioni_box.add_child(UI.etichetta("Nessuna azione possibile da qui. Muovi il personaggio, oppure chiudi la sua attivazione.", 14, UI.ROSSO))
+			for t in perche:
+				azioni_box.add_child(UI.etichetta("- " + str(t), 14, UI.TENUE))
 	var f2 := HFlowContainer.new()
 	if b.fase == "rapida" and not sel.mosso and not sel.agito and sel.fase == "rapida":
 		f2.add_child(UI.bottone("Attendi: Snap Fire", func(): b.attendi(sel, "snap"); sel = {}; _prossimo(), "Resta fermo con l'arma puntata: sparerà al primo nemico che si muove in vista; poi non potrà muovere in questo round. Se non spara, agisce nella fase lenta."))
