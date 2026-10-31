@@ -108,7 +108,7 @@ func set_t(p: Vector2i, t: int, h := -1) -> void:
 ## Casella su cui una figura può stare (fine del movimento).
 func calpestabile(p: Vector2i) -> bool:
 	var t := t_at(p)
-	return dentro(p) and not t in [T.MURO, T.SINGOLO, T.LINEARE, T.MURO_FORZA] and not impraticabili.has(p)
+	return dentro(p) and not t in [T.MURO, T.SINGOLO, T.LINEARE, T.MURO_FORZA, T.FINESTRA] and not impraticabili.has(p)
 
 ## Casella attraversabile (anche senza fermarsi).
 func percorribile(p: Vector2i) -> bool:

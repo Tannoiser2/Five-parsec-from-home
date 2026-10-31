@@ -516,6 +516,38 @@ Prompt: `Game token, a private security guard in a simple uniform with a baton. 
 
 Prompt: `Game token, an enforcer officer in light riot gear. Use the common style: circular top-down token, brass rim, dark background, no text.`
 
+## Battaglie della Traccia della Storia (7)
+
+Il Capo («Sventato!», «Sabotare il piano») usa `capo.png`, il Picchiatore usa `picchiatore.png`, il Robot da guerra del Rapimento usa `robot_guerra.png`.
+
+### `sicario.png` - Sicario della corporazione («Sventato!»)
+
+Prompt: `Game token, a corporate hired gun in a dark long coat and a sleek half-mask, holding a colony rifle. Use the common style: circular top-down token, brass rim, dark background, no text.`
+
+### `arma_pesante.png` - Sicario con l'arma pesante («Sventato!»)
+
+Prompt: `Game token, a burly mercenary carrying a heavy belt-fed rattle gun with an ammunition drum, braced to fire. Use the common style: circular top-down token, brass rim, dark background, no text.`
+
+### `scagnozzo.png` - Scagnozzo armato di pistola mitragliatrice («Sabotare il piano»)
+
+Prompt: `Game token, a scruffy industrial-compound goon in a stained jumpsuit and cap, holding a compact machine pistol. Use the common style: circular top-down token, brass rim, dark background, no text.`
+
+### `sentinella_esterna.png` - Sentinella in tuta spaziale («Regolamento di conti»)
+
+Prompt: `Game token, a sentry in a bulky vacuum suit with a domed helmet visor, holding a military rifle, on grey lunar dust. Use the common style: circular top-down token, brass rim, dark background, no text.`
+
+### `sentinella_interna.png` - Guardia interna del complesso («Regolamento di conti»)
+
+Prompt: `Game token, an unarmoured facility guard in a grey work uniform with a military rifle, under harsh corridor light. Use the common style: circular top-down token, brass rim, dark background, no text.`
+
+### `qnarr.png` - Q'Narr, la nemesi («Regolamento di conti»)
+
+Prompt: `Game token, a cunning alien crime lord with smooth violet skin, sharp features and an ornate armoured coat, holding a heavy hand cannon, menacing and alone. Use the common style: circular top-down token, brass rim, dark background, no text.`
+
+### `prigioniero.png` - Il vecchio compagno prigioniero («Stiamo arrivando!»)
+
+Prompt: `Game token, a bruised human prisoner with hands bound by restraints, torn clothes, looking up hopefully. Use the common style: circular top-down token, brass rim, dark background, no text.`
+
 ## Segnalini di obiettivo (facoltativi, 4)
 
 ### `segnalino_pacco.png` - Segnalino: pacco da consegnare / oggetto della missione
@@ -536,4 +568,4 @@ Prompt: `Game token, a pile of crates and debris to be searched. Use the common 
 
 ---
 
-Totale: 125 immagini (le pedine dei personaggi neutrali e i segnalini sono facoltativi: per ora il gioco li disegna da sé).
+Totale: 132 immagini (le pedine dei personaggi neutrali e i segnalini sono facoltativi: per ora il gioco li disegna da sé).

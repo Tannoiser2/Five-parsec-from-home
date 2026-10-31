@@ -1121,6 +1121,13 @@ func opzioni_battaglia() -> Array:
 	return o
 
 func nome_obiettivo(id: String) -> String:
+	if id.begins_with("nera:"):
+		for r in Dati.f("zone").get("black_zone", {}).get("missione", {}).get("righe", []):
+			if "nera:" + str(r.get("id", "")) == id:
+				return str(r.get("nome", id))
+	var speciali := {"sabotare": "Sabotare il piano", "indizi": "Cercare indizi", "liberare": "Liberare il prigioniero", "nemesi": "Uccidere la nemesi"}
+	if speciali.has(id):
+		return speciali[id]
 	return str(Dati.f("incontri").get("tipi_obiettivo", {}).get(id, {}).get("nome", id.capitalize()))
 
 ## ===================== preparazione della battaglia =====================
@@ -1286,7 +1293,11 @@ func descrivi_battaglia(b: Dictionary) -> String:
 	var nem := Dati.nemico(str(b.nemico))
 	var t := "%s contro %d %s" % [{"opportunita": "Missione d'Opportunità", "patrono": "Lavoro per un Patrono", "missione": "Missione",
 		"attacca_rivale": "Attacco a un Rivale", "rivale": "Attacco di un Rivale", "invasione": "Battaglia d'Invasione",
-		"zona_rossa": "Lavoro in Zona Rossa"}.get(b.tipo, b.tipo), int(b.numero), str(nem.get("nome", b.nemico))]
+		"zona_rossa": "Lavoro in Zona Rossa", "zona_nera": "Lavoro Nero (Zona Nera)"}.get(b.tipo, b.tipo), int(b.numero), str(nem.get("nome", b.nemico))]
+	if b.get("zona_nera", false):
+		t = "Lavoro Nero (Zona Nera) contro squadre di %s, che continuano ad arrivare" % str(nem.get("nome", b.nemico))
+	elif b.get("zona_rossa", false):
+		t = "Lavoro Rosso: " + t + ". Condizione di minaccia: %s" % str(b.get("minaccia", {}).get("nome", "-"))
 	t += ". Obiettivo: %s." % nome_obiettivo(str(b.obiettivo))
 	if not b.condizione.is_empty() and str(b.condizione.get("id", "")) != "nessuna":
 		t += " Condizione: %s." % b.condizione.get("nome", "")

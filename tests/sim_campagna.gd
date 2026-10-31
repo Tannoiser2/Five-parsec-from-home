@@ -31,7 +31,10 @@ func scelte(c: Campagna) -> void:
 
 func gioca_turno(c: Campagna) -> void:
 	c.inizia_turno()
-	c.passo_viaggio(c.dadi.d6() >= 5 or c.s.mondo.get("invasione_imminente", false))
+	if int(c.s.turno) >= 6 and not c.s.zona_rossa.get("licenza", false):
+		c.s.zona_rossa.licenza = true
+		c.s.zona_rossa["turni"] = 8
+	c.passo_viaggio(c.dadi.d6() >= 5 or c.s.mondo.get("invasione_imminente", false), c.dadi.d6() >= 4)
 	scelte(c)
 	if c.s.fase == "mantenimento":
 		c.passo_mantenimento(c.dadi.d(3), 1)
@@ -50,18 +53,23 @@ func gioca_turno(c: Campagna) -> void:
 		c.passo_dicerie()
 	var riv := c.controllo_rivali()
 	var setup := {}
-	if not riv.is_empty():
+	if not c.evento_storia_pronto().is_empty():
+		setup = c.prepara_battaglia_storia()
+	elif not riv.is_empty():
 		setup = c.prepara_battaglia("rivale", {"rivale": riv.id})
 	else:
 		var ops := c.opzioni_battaglia()
 		var o: Dictionary = ops[c.dadi.d(max(1, ops.size() - 1)) - 1]
+		if o.tipo == "zona_nera":
+			c.accetta_lavoro_nero()
 		setup = c.prepara_battaglia(o.tipo, o)
 	var b := Battaglia.new(c.dadi.d(99999))
 	var pgs := c.disponibili().slice(0, c.s.dimensione)
 	if pgs.is_empty():
 		c.s.fase = "acquisti"
 	else:
-		b.prepara(setup, pgs, 24)
+		var men: Array = setup.get("menomati_pg", [])
+		b.prepara(setup, pgs.filter(func(p): return not p in men), 24)
 		var es := b.gioca_automatica(12)
 		c.dopo_battaglia(es)
 	scelte(c)
