@@ -334,6 +334,9 @@ func _passo() -> void:
 				_bottone_grande("Restare su " + str(c.s.mondo.nome), func(): c.passo_viaggio(false); aggiorna())
 				var b := _bottone_grande("Viaggiare verso un nuovo mondo (%d crediti)" % costo, func(): c.passo_viaggio(true); aggiorna())
 				b.disabled = int(c.s.crediti) < costo or c.s.nave.is_empty()
+				if c.s.zona_rossa.get("licenza", false):
+					var bz := _bottone_grande("Viaggiare verso un mondo in Zona Rossa (%d crediti): tutte le missioni sono Lavori Rossi" % costo, func(): c.passo_viaggio(true, true); aggiorna())
+					bz.disabled = b.disabled
 		"mantenimento":
 			_passo_mantenimento()
 		"incarichi":
@@ -494,11 +497,12 @@ func _passo_scelta_battaglia() -> void:
 	if not rivale_attacca.is_empty():
 		centro.add_child(UI.etichetta("Il Rivale %s vi ha trovati: dovete combattere!" % rivale_attacca.nome, 20, UI.ROSSO))
 		ops = [{"tipo": "rivale", "nome": "Difendersi da " + str(rivale_attacca.nome), "rivale": rivale_attacca.id}]
-	if c.s.storia.get("attiva", false) and int(c.s.storia.orologio) <= 0 and rivale_attacca.is_empty():
-		var ev: Array = Dati.f("storia").get("eventi", [])
-		var n := int(c.s.storia.evento)
-		if n < ev.size():
-			ops.push_front({"tipo": "storia", "nome": "Evento della Storia: " + str(ev[n].get("nome", ""))})
+	var ev_st := c.evento_storia_pronto()
+	if not ev_st.is_empty() and rivale_attacca.is_empty():
+		ops.push_front({"tipo": "storia", "nome": "Evento della Storia: " + str(ev_st.get("nome", ""))})
+		var tc := UI.etichetta("Turno della Storia: " + str(ev_st.get("turno_campagna", {}).get("testo", "")), 16, UI.VIOLA)
+		tc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		centro.add_child(tc)
 	centro.add_child(UI.etichetta("Scegli la battaglia di questo turno e chi schierare (al massimo %d)." % int(c.s.dimensione), 18))
 	var disp := c.disponibili()
 	schierati = {}
@@ -538,12 +542,10 @@ func _scegli(o: Dictionary) -> void:
 		return
 	c.s["schierati"] = ids
 	if o.tipo == "storia":
-		var ev: Dictionary = Dati.f("storia").get("eventi", [])[int(c.s.storia.evento)]
-		c.s["storia"]["in_corso"] = true
-		c.scrivi("Evento della Storia: %s. %s" % [ev.get("nome", ""), str(ev.get("testo", ev.get("riassunto", "")))], "missione")
-		var b := c.prepara_battaglia("missione")
-		b["storia"] = ev
-		c.scrivi("Regole della battaglia della Storia: " + JSON.stringify(ev.get("battaglia", {})).substr(0, 600).replace("{", "").replace("}", "").replace("\"", ""), "manuale")
+		c.prepara_battaglia_storia()
+	elif o.tipo == "zona_nera":
+		c.accetta_lavoro_nero()
+		c.prepara_battaglia("zona_nera")
 	else:
 		c.prepara_battaglia(o.tipo, o)
 	aggiorna()
@@ -643,12 +645,20 @@ func _passo_acquisti() -> void:
 	# zona rossa
 	var zr: Dictionary = Dati.f("zone").get("requisiti", {})
 	if not c.s.zona_rossa.get("licenza", false) and int(c.s.turno) >= 10:
-		var b := _bottone_grande("Licenza per i lavori in Zona Rossa (15 crediti, servono 10 turni e 7 membri)", func(): _licenza_zona())
-		b.disabled = int(c.s.crediti) < 15 or c.vivi().size() < 7
+		var costo_l := _costo_licenza_zona()
+		var b := _bottone_grande("Licenza per i lavori in Zona Rossa (%d crediti, servono 10 turni e 7 membri)" % costo_l, func(): _licenza_zona())
+		b.disabled = int(c.s.crediti) < costo_l or c.vivi().size() < 7
 	_bottone_grande("Continua", func(): c.s["fase"] = "eventi"; aggiorna())
 
+## 15 crediti, 2 in meno con un Broker nell'equipaggio.
+func _costo_licenza_zona() -> int:
+	for p in c.vivi():
+		if str(p.get("classe", "")) in ["Broker", "broker"]:
+			return 13
+	return 15
+
 func _licenza_zona() -> void:
-	c.s["crediti"] = int(c.s.crediti) - 15
+	c.s["crediti"] = int(c.s.crediti) - _costo_licenza_zona()
 	c.s["zona_rossa"]["licenza"] = true
 	c.scrivi("Licenza per la Zona Rossa ottenuta: lavori più pericolosi e meglio pagati.", "titolo")
 	aggiorna()

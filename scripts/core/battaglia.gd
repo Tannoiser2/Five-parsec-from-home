@@ -569,6 +569,8 @@ func aggiungi_nemici(id_nemico: String, numero: int, unici: Array = [], forza_im
 	var arma_nat = n.get("arma_naturale", {})
 	var spl: Dictionary = Dati.f("incontri").get("specialisti_luogotenenti", {})
 	var n_spec := 0 if numero <= 2 else (1 if numero <= 6 else 2)
+	if setup.get("zona_rossa", false) and not solo_base:
+		n_spec = 2   # Opposizione aumentata: 3 Specialisti, di cui 1 Luogotenente
 	if n_spec_forzati >= 0:
 		n_spec = n_spec_forzati
 	var ha_luog := numero >= int(spl.get("luogotenente", {}).get("minimo_nemici", 4)) and not solo_base
@@ -707,7 +709,7 @@ func figure(lato: String, solo_attive := true) -> Array:
 func avversari(u: Dictionary) -> Array:
 	var r := []
 	for v in unita:
-		if v.attiva and v.lato != u.lato and not _congelato(v):
+		if v.attiva and v.lato != u.lato and not _congelato(v) and v.lato != "prigioniero" and u.lato != "prigioniero":
 			r.append(v)
 	return r
 
@@ -753,6 +755,8 @@ func prepara(setup_: Dictionary, pgs: Array, lato := 24, opzioni := {}) -> void:
 		tratti.append(str(t))
 	tratti_mondo = tratti
 	ambiente = scegli_ambiente(tratti, obiettivo)
+	if obiettivo.begins_with("nera:"):
+		lato = max(lato, 30)
 	genera_terreno(lato, tratti)
 	if obiettivo == "assalto":
 		_prepara_edificio_assalto()
@@ -776,6 +780,23 @@ func prepara(setup_: Dictionary, pgs: Array, lato := 24, opzioni := {}) -> void:
 			ritardati.append(r)
 		scrivi("In ritardo: %s arriveranno più tardi." % ", ".join(ritardati.map(func(p): return str(p.nome))))
 	aggiungi_equipaggio(schierati)
+	if obiettivo.begins_with("nera:"):
+		_prepara_zona_nera()
+		_prepara_obiettivo()
+		fase = "iniziativa"
+		return
+	storia = str(setup.get("storia", ""))
+	for p in setup.get("menomati_pg", []):
+		var u := figura_da_pg(p)
+		u["menomato"] = true
+		u.nome = str(u.nome) + " (menomato)"
+		u.pos = _libera_vicina(Vector2i(W / 2, H - 2), true)
+		unita.append(u)
+	if storia in ["sventato", "sabotare_il_piano", "rapimento", "regolamento_conti", "contrattacco_nemico", "stiamo_arrivando"]:
+		_prepara_obiettivo()
+		_prepara_storia()
+		fase = "iniziativa"
+		return
 	var numero := int(setup.get("numero", 4)) + int(par_obiettivo.get("nemici_mod", 0))
 	if cond.has("nemici_mod"):
 		numero += int(cond.get("nemici_mod_se_superiori", cond.nemici_mod)) if numero > schierati.size() and cond.has("nemici_mod_se_superiori") else int(cond.nemici_mod)
@@ -785,6 +806,18 @@ func prepara(setup_: Dictionary, pgs: Array, lato := 24, opzioni := {}) -> void:
 		aggiungi_vip()
 	if obiettivo == "assalto":
 		_schiera_assalto()
+	if setup.get("zona_rossa", false):
+		_prepara_zona_rossa()
+	var bt: Dictionary = setup.get("bonus_turno", {})
+	if int(bt.get("taglia", 0)) > 0 and not figure(NEM).is_empty():
+		var tg: Dictionary = dadi.scegli(figure(NEM))
+		tg["taglia"] = int(bt.taglia)
+		scrivi("Lavoretto: %s vale %d crediti se ucciso." % [tg.nome, int(bt.taglia)])
+	if int(bt.get("ricompensa", 0)) > 0 and not elementi.is_empty():
+		var e: Dictionary = dadi.scegli(elementi)
+		_id += 1
+		segnalini.append({"id": _id, "tipo": "ricompensa", "pos": _libera_vicina(e.celle[0]), "crediti": int(bt.ricompensa), "elemento": e.id})
+		scrivi("Ricompensa: il pacco è nascosto in %s." % e.nome)
 	_prepara_obiettivo()
 	var cn := Dati.nemico(str(setup.get("nemico", "")))
 	scrivi("Contro: %s. %s" % [cn.get("nome", ""), cn.get("regole", "")])
@@ -794,6 +827,8 @@ func prepara(setup_: Dictionary, pgs: Array, lato := 24, opzioni := {}) -> void:
 		scrivi("Condizione: %s - %s" % [setup.condizione.get("nome", ""), setup.condizione.get("testo", "")])
 	if setup.has("regole_speciali"):
 		scrivi("Regole speciali: " + str(setup.regole_speciali), "evento")
+	if storia != "":
+		_prepara_storia()
 	fase = "iniziativa"
 
 ## «Assalto»: serve un edificio vicino al bordo dell'equipaggio.
@@ -963,7 +998,7 @@ func lds(a: Vector2i, b: Vector2i, ignora_figure := false, osservatore := {}, be
 					if dist(p, a) > 1:
 						cop = true
 			T.LINEARE:
-				if h < H_LINEARE + 0.6 and dist(p, a) > 1:
+				if h < H_LINEARE + 0.6 and dist(p, a) > 1 and a_at(a) - a_at(b) < 2:
 					cop = true
 			T.SINGOLO:
 				if h < H_SINGOLO and dist(p, a) > 1:
@@ -1125,6 +1160,8 @@ func soglia_colpire(u: Dictionary, bersaglio: Dictionary, arma_id := "", panico 
 		g = int(Dati.arma(arma_id).get("gittata", 0)) / 2
 	var d := dist(u.pos, bersaglio.pos)
 	var l := lds(u.pos, bersaglio.pos, false, u, bersaglio)
+	if int(bersaglio.get("tiro_max", 0)) > 0 and d > int(bersaglio.tiro_max):
+		return {"ok": false, "soglia": 99, "copertura": l.copertura, "distanza": d, "mod": 0}
 	if not l.vede or not l.colpibile or d > g or g <= 0 or _congelato(bersaglio):
 		return {"ok": false, "soglia": 99, "copertura": l.copertura, "distanza": d, "mod": 0}
 	var cop: bool = l.copertura
@@ -1165,6 +1202,8 @@ func soglia_colpire(u: Dictionary, bersaglio: Dictionary, arma_id := "", panico 
 	if "pesante" in tr and u.mosso and not u.speciali.get("sempre_fermo_sparo", false):
 		mod -= 1
 	mod += int(sb.get("bonus_colpire_contro", 0))
+	if not allarme and bersaglio.lato == NEM:
+		mod += 2
 	# Equipaggiamento furtivo: -1 a chi spara da oltre 9"
 	if ha(bersaglio, "equip_furtivo") and d > 9:
 		mod -= 1
@@ -1249,6 +1288,8 @@ func _bloccata_da(u: Dictionary, q: Vector2i) -> bool:
 ## su un ostacolo lineare o a metà di una parete. Con lo scatto non si entra in contatto con un avversario (p.41).
 func raggiungibili(u: Dictionary, scatto := false) -> Dictionary:
 	if round_n > 0 and int(u.immobile_fino) >= round_n:
+		return {u.pos: 0}
+	if scatto and u.get("menomato", false):
 		return {u.pos: 0}
 	var bud := budget(u, scatto)
 	var extra_fuga := 4 if u.speciali.has("velocita_fuga") else 0
@@ -1378,6 +1419,10 @@ func _sposta(u: Dictionary, dest: Vector2i) -> void:
 func _dopo_movimento(u: Dictionary, da: Vector2i) -> void:
 	if u.lato == EQ:
 		_controlla_obiettivi_posizione(u)
+		if obiettivo.begins_with("nera:"):
+			_attiva_vicine(u)
+		if storia != "":
+			_dopo_movimento_storia(u)
 		for sg in segnalini.duplicate():
 			if sg.tipo == "rinforzi" and dist(sg.pos, u.pos) <= 3:
 				segnalini.erase(sg)
@@ -1420,7 +1465,7 @@ func _reazioni_al_movimento(n: Dictionary, da: Vector2i) -> void:
 	for w in figure(EQ):
 		if not n.attiva:
 			return
-		if w.attesa == "snap" and not w.agito and not w.attivato:
+		if w.attesa == "snap" and not w.agito:
 			var bs := bersagli(w)
 			var ok := false
 			for x in bs:
@@ -1772,6 +1817,19 @@ func elimina(v: Dictionary, att: Dictionary, mischia := false) -> void:
 	if v.lato == NEM:
 		perdite_round += 1
 		perdite_totali += 1
+		if storia == "sulle_tracce" and mischia and not att.is_empty() and att.get("lato") == EQ and not stato_obj.get("catturato", false):
+			stato_obj["catturato"] = true
+			guadagni["catturato"] = true
+			scrivi("  Il mercenario è catturato vivo: lo interrogherete (+1 punto Storia).", "obiettivo")
+		if storia == "contrattacco_nemico" and v.has("gruppo"):
+			stato_obj.perdite_gruppo[int(v.gruppo)] = int(stato_obj.perdite_gruppo.get(int(v.gruppo), 0)) + 1
+		if v.get("nemesi", false):
+			stato_obj["nemesi_uccisa"] = true
+			_obiettivo_fatto()
+			scrivi("Q'Narr è morto! Le sentinelle rimaste fuggono.", "titolo")
+			for w in figure(NEM):
+				w.attiva = false
+				w.fuggito = true
 		if not att.is_empty() and att.get("lato") == EQ and primo_colpo == "" and str(att.get("pg", "")) != "":
 			primo_colpo = str(att.pg)
 		if v.unico and not att.is_empty() and str(att.get("pg", "")) != "":
@@ -1782,6 +1840,9 @@ func elimina(v: Dictionary, att: Dictionary, mischia := false) -> void:
 			var c := dadi.d(3)
 			guadagni.crediti += c
 			scrivi("  Bersaglio prioritario abbattuto: %d crediti." % c, "obiettivo")
+		if int(v.get("taglia", 0)) > 0:
+			guadagni.crediti += int(v.taglia)
+			scrivi("  Il lavoretto è fatto: %d crediti." % int(v.taglia), "obiettivo")
 		if v.speciali.get("morale_extra_se_ucciso", 0):
 			morale_extra += int(v.speciali.morale_extra_se_ucciso)
 		if v.speciali.get("bottino_se_ucciso_in_rissa", false) and mischia:
@@ -1890,6 +1951,10 @@ func spara(u: Dictionary, v: Dictionary, arma_id := "", iniziativa := false, pan
 				u.scariche.append(id)
 		scrivi("  L'arma di %s è scarica per il resto della battaglia." % u.nome)
 	u.ultimo_bersaglio = v.uid
+	if not allarme and u.lato == EQ:
+		_dai_allarme("%s apre il fuoco." % u.nome)
+	if v.get("passiva", false):
+		_attiva_squadra(int(v.get("squadra", -1)))
 	if str(u.guasti.get(arma_id, "")) == "un_colpo":
 		u.guasti[arma_id] = "rotta"
 	return true
@@ -1907,7 +1972,7 @@ func _risolvi_colpi(u: Dictionary, v: Dictionary, arma_id: String, op := {}) -> 
 	var colpi := int(op.get("colpi", a.colpi))
 	var solo6: bool = op.get("iniziativa", false) or op.get("solo_6", false) or u.speciali.get("colpisce_solo_6", false)
 	var in_cop := t_at(u.pos) == T.AREA or _vicino_a_terreno(u.pos)
-	var mira: bool = not u.mosso and int(u.stordito) == 0 and not op.get("panico", false) and not op.get("reazione", false)
+	var mira: bool = not u.mosso and int(u.stordito) == 0 and not op.get("panico", false) and not op.get("reazione", false) and not u.get("menomato", false) and not u.get("confuso", false)
 	if u.lato != EQ:
 		mira = mira and str(u.ia) in ["tattico", "cauto", "difensivo"] and in_cop
 	eventi.append({"tipo": "spara", "uid": u.uid, "a": v.uid, "da_pos": u.pos, "a_pos": v.pos})
@@ -2329,6 +2394,8 @@ func azioni_disponibili(u: Dictionary) -> Array:
 			if id == "stim" or id in u.monouso_usati:
 				continue
 			r.append({"id": "usa:" + id, "nome": "Usa: " + Dati.nome_oggetto(id) + (" (azione gratuita)" if int(u.gratuite) == 0 else " (costa l'azione di combattimento)"), "tipo": "gratuita", "bersaglio": "nessuno"})
+		if stato_obj.get("cariche", false) and not stato_obj.get("esploso", false):
+			r.append({"id": "detona", "nome": "Fai detonare le cariche (azione gratuita)", "tipo": "gratuita", "bersaglio": "nessuno"})
 		if ha(u, "distorsore_temporale") and not _usato_missione("distorsore_temporale", u):
 			r.append({"id": "distorsore", "nome": "Distorsore temporale (congela fino a 3 nemici)", "tipo": "gratuita", "bersaglio": "nessuno"})
 		if ha(u, "lama_nascosta") and not "lama_nascosta" in u.usati_battaglia and not u.mosso and not u.agito:
@@ -2341,7 +2408,7 @@ func azioni_disponibili(u: Dictionary) -> Array:
 		if ha(u, "impianto_muscoli") and not _caselle_issarsi(u).is_empty():
 			r.append({"id": "issati", "nome": "Issati su un ostacolo basso (azione gratuita)", "tipo": "gratuita", "bersaglio": "cella"})
 	for s in segnalini:
-		if s.tipo in ["trovato", "prezioso"] and dist(s.pos, u.pos) <= 1 and not u.agito:
+		if s.tipo in ["trovato", "prezioso", "ricompensa"] and dist(s.pos, u.pos) <= 1 and not u.agito:
 			r.append({"id": "segnalino:%d" % int(s.id), "nome": "Esamina il segnalino (azione non di combattimento)", "tipo": "combattimento", "bersaglio": "nessuno"})
 	if u.pos.y == 0 or u.pos.y == H - 1 or u.pos.x == 0 or u.pos.x == W - 1:
 		r.append({"id": "esci", "nome": "Esci dal campo di battaglia", "tipo": "speciale", "bersaglio": "nessuno"})
@@ -2489,6 +2556,10 @@ func esegui(u: Dictionary, id: String, param = null) -> bool:
 			_usa_gratuita(u)
 			scrivi("%s si issa sull'ostacolo." % u.nome)
 			return true
+		"detona":
+			_detona()
+			_usa_gratuita(u)
+			return true
 		"distorsore":
 			var nem := figure(NEM)
 			nem.sort_custom(func(a, b): return dist(a.pos, u.pos) < dist(b.pos, u.pos))
@@ -2555,7 +2626,10 @@ func _esamina_segnalino(u: Dictionary, sid: int) -> bool:
 		if int(s.id) == sid:
 			segnalini.erase(s)
 			u.agito = true
-			if s.tipo == "trovato":
+			if s.tipo == "ricompensa":
+				guadagni.crediti += int(s.get("crediti", 2))
+				scrivi("%s recupera il pacco della ricompensa: %d crediti." % [u.nome, int(s.get("crediti", 2))], "obiettivo")
+			elif s.tipo == "trovato":
 				guadagni.bottino += 1
 				scrivi("%s trova qualcosa: un tiro sul Bottino dopo la battaglia." % u.nome, "obiettivo")
 			else:
@@ -2586,6 +2660,9 @@ func azioni_obiettivo(u: Dictionary) -> Array:
 		"acquisire":
 			if stato_obj.has("oggetto_a") and dist(u.pos, stato_obj.oggetto_a) <= 1:
 				r.append({"id": "prendi", "nome": "Prendi l'oggetto"})
+		"nera:distruggi_caposaldo":
+			if not stato_obj.get("cariche", false) and dist(u.pos, centro) <= 1:
+				r.append({"id": "cariche", "nome": "Piazza le cariche (1D6+Acume, 5+)"})
 		"perquisire":
 			for sg in stato_obj.get("segnalini", []):
 				if not sg.fatto:
@@ -2597,6 +2674,8 @@ func azioni_obiettivo(u: Dictionary) -> Array:
 									break
 	if stato_obj.has("caduto") and dist(u.pos, stato_obj.caduto.pos) <= 1:
 		r.append({"id": "raccogli", "nome": "Raccogli il " + str(stato_obj.caduto.cosa)})
+	if storia != "":
+		_azioni_storia(u, r)
 	if stato_obj.has("luogo_pos") and not stato_obj.get("luogo_preso", false) and dist(u.pos, stato_obj.luogo_pos) <= 1:
 		r.append({"id": "luogo", "nome": "Esamina: " + str(setup.get("luogo", {}).get("nome", "luogo notevole"))})
 	var visti := {}
@@ -2618,11 +2697,14 @@ func azione(u: Dictionary, id: String) -> void:
 		if obiettivo == "invasione" and round_n < 6:
 			u.fuori = true
 			scrivi("%s lascia il campo prima del sesto round: conta come una perdita." % u.nome, "perdita")
+		elif obiettivo.begins_with("nera:") and not (obiettivo == "nera:sfonda_linee" and u.pos.y == 0):
+			u.fuori = true
+			scrivi("%s fugge dal campo: in un Lavoro Nero diventa una vittima." % u.nome, "perdita")
 		else:
 			scrivi("%s esce dal campo di battaglia." % u.nome)
 		if u.pos.y == 0:
 			stato_obj["uscite_nemico"] = int(stato_obj.get("uscite_nemico", 0)) + 1
-			if obiettivo == "attraversare" and int(stato_obj.uscite_nemico) >= 2:
+			if (obiettivo == "attraversare" or obiettivo == "nera:sfonda_linee") and int(stato_obj.uscite_nemico) >= 2:
 				_obiettivo_fatto()
 		if obiettivo == "acquisire" and u.porta == "oggetto":
 			_obiettivo_fatto()
@@ -2649,6 +2731,14 @@ func azione(u: Dictionary, id: String) -> void:
 				scrivi("Il sistema si protegge: un altro 1 naturale lo bloccherà.")
 		elif t + b >= 6:
 			_obiettivo_fatto()
+	elif id == "sabota" or id == "libera":
+		_azione_storia(u, id)
+	elif id == "cariche":
+		var t := dadi.d6()
+		scrivi("%s piazza le cariche: %d%+d (serve 5+)." % [u.nome, t, int(u.acume)], "obiettivo")
+		if t + int(u.acume) >= 5:
+			stato_obj["cariche"] = true
+			scrivi("Cariche piazzate: si possono far detonare in qualsiasi momento.", "obiettivo")
 	elif id == "prendi":
 		u.porta = "oggetto"
 		stato_obj.erase("oggetto_a")
@@ -2694,7 +2784,7 @@ func tira_iniziativa() -> int:
 	for u in figure(EQ):
 		if ha(u, "bot_spia"):
 			bot_spia = u.nome
-	var annullata: bool = par_obiettivo.get("niente_iniziativa", false) or sp.get("niente_iniziativa", false)
+	var annullata: bool = par_obiettivo.get("niente_iniziativa", false) or sp.get("niente_iniziativa", false) or setup.get("battaglia_storia", {}).get("prendi_iniziativa", true) == false
 	if annullata and bot_spia == "":
 		scrivi("Non potete prendere l'iniziativa%s." % (" (imboscata)" if par_obiettivo.get("niente_iniziativa", false) else " (preveggenza dei Precursori)"))
 		return 0
@@ -2711,7 +2801,7 @@ func tira_iniziativa() -> int:
 			if ha(u, id) and not oggetti_visti.has(id):
 				oggetti_visti[id] = true
 				bonus_eq += 1
-	var mod := acume + bonus_eq
+	var mod := acume + bonus_eq + int(setup.get("mod_iniziativa", 0)) + (1 if obiettivo.begins_with("nera:") else 0)
 	var mn := int(sp.get("iniziativa_giocatore", 0))
 	if str(n.get("categoria", "")) == "forza_mercenaria":
 		mn -= 1
@@ -2740,6 +2830,7 @@ func inizia_round() -> void:
 	perdite_round = 0
 	morale_extra = 0
 	stato_obj["tentativi_round"] = 0
+	stato_obj.erase("interrompi_round")
 	eventi = []
 	for u in unita:
 		u.mosso = false
@@ -2778,6 +2869,7 @@ func inizia_round() -> void:
 		if ha(u, "comunicatore"):
 			extra = 1
 	dadi_reazione = []
+	n_dadi = max(0, n_dadi - int(effetti_battaglia.get("dadi_reazione_meno", 0)))
 	for i in n_dadi + extra:
 		dadi_reazione.append(dadi.d6())
 	dadi_reazione.sort()
@@ -2820,9 +2912,9 @@ func auto_assegna() -> void:
 				dd.erase(d)
 				break
 	for u in liberi:
-		assegnati[u.uid] = dd.pop_front() if not dd.is_empty() else 6
+		assegnati[u.uid] = dd.pop_front() if not dd.is_empty() else 7
 	for u in eq:
-		u.dado_reazione = assegnati.get(u.uid, 6)
+		u.dado_reazione = assegnati.get(u.uid, 7)
 	_fasi_dai_dadi()
 
 ## Assegnazione scelta dal giocatore: {uid: dado}. Restituisce "" se valida, altrimenti il motivo.
@@ -2832,7 +2924,8 @@ func assegna_dadi(mappa: Dictionary) -> String:
 	for u in eq:
 		if not mappa.has(u.uid):
 			return "Ogni personaggio deve ricevere un dado."
-		usati.append(int(mappa[u.uid]))
+		if int(mappa[u.uid]) <= 6:
+			usati.append(int(mappa[u.uid]))
 	var a: Array = usati.duplicate()
 	a.sort()
 	var b: Array = dadi_reazione.duplicate()
@@ -2895,7 +2988,7 @@ func da_attivare() -> Array:
 	if fase != "rapida" and fase != "lenta":
 		return r
 	for u in figure(EQ):
-		if u.attivato or int(u.salta_round) == round_n or _congelato(u):
+		if u.attivato or int(u.salta_round) == round_n or _congelato(u) or stato_obj.get("interrompi_round", false):
 			continue
 		if u.fase == fase or (int(u.doppia_fase_round) == round_n and fase in ["rapida", "lenta"]):
 			r.append(u)
@@ -3032,6 +3125,21 @@ func attiva_nemico(u: Dictionary) -> void:
 		u.erase("agito_prima")
 		u.attivato = true
 		return
+	if u.get("passiva", false) or not allarme or stato_obj.get("interrompi_round", false):
+		u.attivato = true
+		return
+	if int(stato_obj.get("confusi_round", 0)) == round_n:
+		# nel primo round dopo l'allarme i nemici sono confusi: muovono (se non vedono nessuno) o sparano senza mirare
+		var bs := bersagli(u)
+		u["confuso"] = true
+		if not bs.is_empty():
+			spara(u, bs[0].u)
+		else:
+			ia_script.agisci(self, u)
+			u.agito = true
+		u.erase("confuso")
+		fine_attivazione(u)
+		return
 	if u.salta_attivazione:
 		u.salta_attivazione = false
 		scrivi("%s è distratto e non agisce." % u.nome)
@@ -3061,7 +3169,17 @@ func esegui_fase_nemici() -> void:
 ## ===================== fine del round =====================
 
 func fine_round() -> void:
-	_morale()
+	if obiettivo.begins_with("nera:"):
+		_fine_round_nera()
+		if fase == "finita":
+			return
+	var morale_speciale := false
+	if storia != "":
+		morale_speciale = _fine_round_storia()
+		if fase == "finita":
+			return
+	if not morale_speciale:
+		_morale()
 	_controlla_obiettivi_fine_round()
 	# eventi della battaglia (fine dei round 2 e 4)
 	if eventi_battaglia and round_n in [2, 4]:
@@ -3116,6 +3234,19 @@ func fine_round() -> void:
 		if t <= round_n:
 			scrivi("Scontro breve: %d, la battaglia finisce senza esito." % t, "titolo")
 			_finisci(false, true)
+			return
+	if setup.get("zona_rossa", false) and round_n == 6:
+		_vincolo_tempo()
+		if fase == "finita":
+			return
+	if effetti_battaglia.has("conto_soglia"):
+		var tc := dadi.d6()
+		var k := int(effetti_battaglia.conto_soglia)
+		scrivi("Conto alla rovescia: %d (finisce con %d o meno)." % [tc, k])
+		effetti_battaglia["conto_soglia"] = k + 1
+		if tc <= k:
+			scrivi("Il tempo è scaduto!", "titolo")
+			_finisci(false, false, true)
 			return
 	if effetti_battaglia.get("tempo_da", 999) <= round_n:
 		if dadi.d6() == 6:
@@ -3394,7 +3525,7 @@ func _controlla_fine() -> bool:
 	for u in figure(EQ):
 		if not u.vip:
 			eq.append(u)
-	if nem.is_empty():
+	if nem.is_empty() and not obiettivo.begins_with("nera:") and storia != "rapimento":
 		_finisci(true)
 		return true
 	if eq.is_empty() and ritardati.is_empty():
@@ -3413,10 +3544,12 @@ func ritirata() -> void:
 	scrivi("L'equipaggio si ritira dal campo.")
 	_finisci(false)
 
-func _finisci(campo: bool, senza_esito := false) -> void:
+func _finisci(campo: bool, senza_esito := false, evacuati := false) -> void:
 	if fase == "finita":
 		return
 	fase = "finita"
+	if evacuati:
+		stato_obj["evacuati"] = true
 	if campo and not senza_esito and not stato_obj.get("fatto", false) and not stato_obj.get("fallito", false):
 		match obiettivo:
 			"accedere":
@@ -3441,9 +3574,20 @@ func _finisci(campo: bool, senza_esito := false) -> void:
 					_obiettivo_fatto()
 	var vinto: bool = stato_obj.get("fatto", false) and not stato_obj.get("fallito", false) and not senza_esito
 	if obiettivo in ["respingere", "difendere", "resa_dei_conti", "imboscata", "rinforzi_amici", "assalto", "incursione"]:
-		vinto = campo and not senza_esito
+		vinto = campo and not senza_esito and not evacuati
 	if obiettivo == "invasione":
 		vinto = false
+	if obiettivo.begins_with("nera:"):
+		vinto = stato_obj.get("fatto", false) and stato_obj.get("evacuati_ok", false)
+	match storia:
+		"sabotare_il_piano":
+			vinto = (campo or stato_obj.get("sabotaggio", false)) and not senza_esito
+		"rapimento":
+			vinto = stato_obj.get("fatto", false)
+		"stiamo_arrivando":
+			vinto = campo or stato_obj.get("liberato", false)
+		"regolamento_conti":
+			vinto = stato_obj.get("nemesi_uccisa", false)
 	var perdite := []
 	var partecipanti := []
 	var presto := []
@@ -3468,7 +3612,11 @@ func _finisci(campo: bool, senza_esito := false) -> void:
 	esito_finale = {"vinto": vinto, "campo": campo and not senza_esito, "perdite": perdite, "partecipanti": partecipanti, "primo": primo_colpo,
 		"unico_ucciso": unico_ucciso, "fuggiti_presto": presto, "nemici_uccisi": uccisi, "round": round_n,
 		"luogo": stato_obj.get("luogo_preso_da", ""), "senza_esito": senza_esito, "guadagni": guadagni, "monouso_usati": usati,
-		"luogotenente_ucciso": figure(NEM, false).any(func(x): return x.luogotenente and x.fuori)}
+		"luogotenente_ucciso": figure(NEM, false).any(func(x): return x.luogotenente and x.fuori),
+		"storia": storia, "indizi": int(stato_obj.get("indizi", 0)), "liberato": stato_obj.get("liberato", false),
+		"catturato": stato_obj.get("catturato", false), "nemesi_uccisa": stato_obj.get("nemesi_uccisa", false),
+		"compagno_vivo": figure(EQ, false).any(func(x): return x.get("compagno", false) and x.attiva),
+		"armi_uccisi": figure(NEM, false).filter(func(x): return x.fuori and not x.fuggito).map(func(x): return x.armi.duplicate())}
 	scrivi("FINE DELLA BATTAGLIA: %s%s." % ["vittoria" if vinto else ("nessun esito" if senza_esito else "nessuna vittoria"), ", campo tenuto" if campo and not senza_esito else ""], "titolo")
 
 ## ===================== automatico (prove e «gioca per me») =====================
@@ -3513,3 +3661,509 @@ func gioca_automatica(max_round := 12) -> Dictionary:
 	if fase != "finita":
 		ritirata()
 	return esito_finale
+
+## ===================== Zona Rossa (Appendice III) =====================
+
+func _prepara_zona_rossa() -> void:
+	var m: Dictionary = setup.get("minaccia", {})
+	if m.is_empty():
+		return
+	scrivi("Condizione di minaccia: %s - %s" % [m.get("nome", ""), m.get("testo", "")], "evento")
+	var e: Dictionary = m.get("effetti", {})
+	if e.has("dadi_reazione"):
+		effetti_battaglia["dadi_reazione_meno"] = -int(e.dadi_reazione)
+	for u in figure(NEM):
+		if e.get("nemici_combattimento_da_0_a_1", false) and int(u.combattimento) == 0:
+			u.combattimento = 1
+		if e.get("nemici_robustezza_da_3_a_4", false) and int(u.robustezza) == 3:
+			u.robustezza = 4
+	if e.has("visibilita_max"):
+		visibilita = int(e.visibilita_max)
+	if e.has("luogotenente_extra"):
+		var nuovi := aggiungi_nemici(str(setup.get("nemico", "")), 1, [], false, 0, true)
+		for u in nuovi:
+			u.luogotenente = true
+			u.impavido = true
+			u.combattimento = int(e.luogotenente_extra.get("combattimento", 2))
+			u.robustezza = int(e.luogotenente_extra.get("robustezza", 5))
+			u.nome = "Capitano " + str(Dati.nemico(str(setup.get("nemico", ""))).get("nome", ""))
+			if not "lama" in u.armi:
+				u.armi.append("lama")
+
+## Fine del round 6 in Zona Rossa: tabella del vincolo di tempo.
+func _vincolo_tempo() -> void:
+	var tab: Dictionary = Dati.f("zone").get("red_zone", {}).get("vincolo_tempo", {})
+	var r := dadi.su_tabella(tab)
+	scrivi("Vincolo di tempo (%d): %s - %s" % [r.tiro, r.riga.get("nome", ""), r.riga.get("testo", "")], "evento")
+	ultimo_evento = r.riga
+	match str(r.riga.get("id", "")):
+		"rinforzi", "rinforzi_consistenti":
+			# dal centro del bordo neutrale più vicino a una figura dell'equipaggio
+			var sx := 0
+			var dx := 0
+			for u in figure(EQ):
+				if u.pos.x < W / 2:
+					sx += 1
+				else:
+					dx += 1
+			var bordo := Vector2i(0, H / 2) if sx >= dx else Vector2i(W - 1, H / 2)
+			var nuovi := aggiungi_nemici(str(setup.get("nemico", "")), 3, [], false, 1, true)
+			for i in nuovi.size():
+				nuovi[i].pos = _libera_vicina(bordo + Vector2i(0, i - 1), true)
+			if str(r.riga.id) == "rinforzi_consistenti":
+				# il regolamento non dice quanti dal bordo nemico: se ne usano 2 (scelta interpretativa)
+				var altri := aggiungi_nemici(str(setup.get("nemico", "")), 2, [], false, 0, true)
+				for i in altri.size():
+					altri[i].pos = _libera_vicina(Vector2i(W / 2 + i, 0), true)
+		"conto_alla_rovescia":
+			effetti_battaglia["conto_soglia"] = 1
+		"evacuazione":
+			_finisci(false, false, true)
+		"rinforzi_elite":
+			var tab_u: Dictionary = Dati.f("incontri").get("individui_unici", {}).get("tabella", {})
+			var unici := []
+			if not tab_u.is_empty():
+				unici.append(str(dadi.su_tabella(tab_u).riga.get("nemico", "")))
+			var nuovi := aggiungi_nemici(str(setup.get("nemico", "")), 2, unici, false, 0, true)
+			for i in nuovi.size():
+				nuovi[i].pos = _libera_vicina(Vector2i(W / 2 + i - 1, 0), true)
+			if not nuovi.is_empty():
+				nuovi[0].luogotenente = true
+				nuovi[0].impavido = true
+				nuovi[0].combattimento = int(nuovi[0].combattimento) + 1
+
+## ===================== Zona Nera (Appendice III) =====================
+
+var _squadre := 0
+
+## Lavoro Nero: 4 squadre attive da 4 figure a metà strada tra il bordo nemico e il centro, missione speciale.
+func _prepara_zona_nera() -> void:
+	var idn := str(setup.get("nemico", "ganger"))
+	var y := H / 4
+	for i in 4:
+		var x := int(W * (i + 1) / 5.0)
+		_squadra_nuova(idn, Vector2i(x, y), false)
+	var m: Dictionary = setup.get("missione_nera", {})
+	scrivi("Lavoro Nero: %s - %s" % [m.get("nome", ""), m.get("testo", "")], "obiettivo")
+	if obiettivo == "nera:elimina_bersaglio":
+		var nuovi := aggiungi_nemici(idn, 1, [], true, 0, true)
+		for u in nuovi:
+			u.pos = _libera_vicina(Vector2i(W / 2, 6), true)
+			u.robustezza = 5
+			u.immobile_fino = 999
+			u["tiro_max"] = 20
+			u["bersaglio"] = true
+			u.nome = "Bersaglio prioritario"
+			u.squadra = -1
+
+## Una squadra di 4 figure (uno Specialista se il nemico ne ha). passiva: non agisce finché non si attiva.
+func _squadra_nuova(idn: String, pos: Vector2i, passiva: bool) -> void:
+	var cod = Dati.nemico(idn).get("armi", "")
+	var spec := 1 if cod is String and cod.length() >= 2 else 0
+	var nuovi := aggiungi_nemici(idn, 4, [], false, spec, true)
+	for i in nuovi.size():
+		var u: Dictionary = nuovi[i]
+		u.pos = _libera_vicina(pos + Vector2i(i % 2, i / 2), true)
+		u["squadra"] = _squadre
+		u["passiva"] = passiva
+		u["arrivata_round"] = round_n
+	_squadre += 1
+
+func _squadre_passive() -> Array:
+	var r := {}
+	for u in figure(NEM):
+		if u.get("passiva", false):
+			r[int(u.squadra)] = int(u.pos.x)
+	var ids := r.keys()
+	ids.sort_custom(func(a, b): return r[a] < r[b])
+	return ids
+
+func _attiva_squadra(sq: int) -> void:
+	if sq < 0:
+		return
+	var n := 0
+	for u in figure(NEM):
+		if int(u.get("squadra", -2)) == sq and u.get("passiva", false):
+			u.passiva = false
+			n += 1
+	if n > 0:
+		scrivi("Una squadra nemica si attiva!", "pericolo")
+
+## Un membro dell'equipaggio entro 8" da una squadra passiva la attiva.
+func _attiva_vicine(u: Dictionary) -> void:
+	for v in figure(NEM):
+		if v.get("passiva", false) and dist(u.pos, v.pos) <= 8:
+			_attiva_squadra(int(v.squadra))
+
+func _fine_round_nera() -> void:
+	# evacuazione dopo la vittoria
+	if stato_obj.has("evacuazione") and round_n >= int(stato_obj.evacuazione):
+		stato_obj["evacuati_ok"] = true
+		scrivi("La navetta dell'Unità vi evacua: missione compiuta.", "titolo")
+		_finisci(true)
+		return
+	match obiettivo:
+		"nera:resisti_assalto":
+			if round_n >= 10:
+				_obiettivo_fatto()
+		"nera:distruggi_plotone":
+			if perdite_totali >= 25:
+				_obiettivo_fatto()
+			else:
+				scrivi("Nemici abbattuti: %d su 25." % perdite_totali)
+	if stato_obj.get("fatto", false) and not stato_obj.has("evacuazione"):
+		stato_obj["evacuazione"] = round_n + 1
+		scrivi("Obiettivo raggiunto: resistete fino all'evacuazione alla fine del prossimo round.", "obiettivo")
+	# le squadre passive possono attivarsi (1D6 sul numero della squadra, da sinistra a destra)
+	var pas := _squadre_passive()
+	var appena := []
+	for u in figure(NEM):
+		if u.get("passiva", false) and int(u.get("arrivata_round", 0)) == round_n:
+			appena.append(int(u.squadra))
+	if not pas.is_empty():
+		var t := dadi.d6()
+		if t <= pas.size() and not int(pas[t - 1]) in appena:
+			_attiva_squadra(int(pas[t - 1]))
+	# arriva una nuova squadra passiva da un bordo neutrale
+	var x := 1 + dadi.d6() if dadi.d6() <= 3 else W - 2 - dadi.d6()
+	var y := clampi(dadi.tira("2d6"), 1, H - 3)
+	_squadra_nuova(str(setup.get("nemico", "ganger")), Vector2i(clampi(x, 0, W - 1), y), true)
+	scrivi("Una nuova squadra nemica entra dal bordo, per ora passiva.")
+
+## Le cariche del caposaldo esplodono: tutte le figure entro 1D6+3" dal centro sono vittime.
+func _detona() -> void:
+	if stato_obj.get("esploso", false):
+		return
+	stato_obj["esploso"] = true
+	var r := dadi.tira("1d6+3")
+	scrivi("Le cariche esplodono! Raggio %d\"." % r, "titolo")
+	for u in unita.duplicate():
+		if u.attiva and dist(u.pos, centro) <= r:
+			elimina(u, {})
+	_obiettivo_fatto()
+
+## ===================== battaglie della Traccia della Storia (Appendice V) =====================
+
+var storia := ""            # id dell'evento della storia in corso ("" = battaglia normale)
+var allarme := true         # «Stiamo arrivando»: false finché il nemico non si accorge dell'equipaggio
+
+const IA_STORIA := {"tattica": "tattico", "difensiva": "difensivo", "difensiva_speciale": "dstar", "aggressiva": "aggressivo", "cauta": "cauto"}
+
+## Crea figure nemiche da profili della storia: [{id, nome, numero, panico "1-2", velocita, combattimento, robustezza, ia, armi, tiro_salvezza}].
+func _nemici_da_profili(profili: Array) -> Array:
+	var r := []
+	for pr in profili:
+		for i in int(pr.get("numero", 1)):
+			var pan := []
+			var ps = pr.get("panico")
+			if ps != null and str(ps) != "":
+				var parti := str(ps).split("-")
+				pan = [int(parti[0]), int(parti[parti.size() - 1])]
+			var armi: Array = pr.get("armi", ["pistola"])
+			var u := _figura_nemico({"nome": pr.get("nome", "Nemico"), "velocita": int(pr.get("velocita", 4)), "combattimento": int(pr.get("combattimento", 0)),
+				"robustezza": int(pr.get("robustezza", 3)), "salvezza": int(pr.get("tiro_salvezza", 0)) if pr.get("tiro_salvezza") != null else 0,
+				"panico": pan, "speciali": {"impavido": pan.is_empty()}}, str(pr.get("id", "nemico")), armi, str(IA_STORIA.get(str(pr.get("ia", "tattica")), "tattico")))
+			u.pedina = str(pr.get("id", "nemico"))
+			u["capo"] = pr.get("capo", false)
+			r.append(u)
+	return r
+
+func _prepara_storia() -> void:
+	storia = str(setup.get("storia", ""))
+	var bt: Dictionary = setup.get("battaglia_storia", {})
+	scrivi("EVENTO DELLA STORIA: %s" % str(setup.get("nome_storia", storia)), "titolo")
+	if str(bt.get("preparazione", "")) != "":
+		scrivi(str(bt.preparazione), "evento")
+	for rs in bt.get("regole_speciali", []):
+		scrivi("Regola speciale: " + str(rs), "evento")
+	match storia:
+		"sventato":
+			var nem := _nemici_da_profili(bt.get("nemici", []))
+			var y := maxi(1, H - 2 - int(bt.get("distanza_schieramento", 12)))
+			_schiera_in_linea(nem, y, true)
+		"sabotare_il_piano":
+			var nem := _nemici_da_profili(bt.get("nemici", []))
+			for u in nem:
+				u.pos = _libera_vicina(Vector2i(dadi.d(W - 2), dadi.d(H - 8) + 1), true)
+				u.iniziale = u.pos
+				unita.append(u)
+			stato_obj["sabotaggio"] = false
+		"contrattacco_nemico":
+			var g1 := aggiungi_nemici(str(setup.get("nemico", "")), int(setup.get("numero", 5)))
+			_schiera_in_linea(g1, maxi(1, H - 2 - 18), false, 2)
+			for u in g1:
+				u["gruppo"] = 1
+			stato_obj["gruppo2"] = {"nemico": str(setup.get("nemico2", setup.get("nemico", ""))), "numero": int(setup.get("numero2", 5))}
+			stato_obj["perdite_gruppo"] = {1: 0, 2: 0}
+		"rapimento":
+			_metti_interno(centro, 6, 5, "Edificio del rapimento")
+			stato_obj["indizi"] = 0
+			stato_obj["segnalini_storia"] = []
+			for i in 6:
+				var q := Vector2i(int(W * ((i % 3) + 1) / 4.0), int(H * ((i / 3) + 1) / 3.0) - 2)
+				stato_obj.segnalini_storia.append({"pos": _libera_vicina(q), "rivelato": false})
+		"stiamo_arrivando":
+			_metti_interno(Vector2i(W / 2, H / 3), 7, 5, "Covo dei rapitori")
+			var nem := aggiungi_nemici(str(setup.get("nemico", "")), int(setup.get("numero", 5)))
+			for i in nem.size():
+				var u: Dictionary = nem[i]
+				if i < 2:
+					u.pos = _libera_vicina(centro + Vector2i(i * 3 - 1, 1), true)
+					u["sentinella"] = true
+				else:
+					u.pos = _libera_vicina(Vector2i(W / 2 + (i % 4) * 2 - 3, H / 4 + (i / 4)), true)
+			var pr: Dictionary = bt.get("prigioniero", {})
+			var interni := []
+			for e in elementi:
+				if str(e.nome) == "Covo dei rapitori":
+					interni = e.celle.filter(func(c): return t_at(c) == T.INTERNO)
+			var pp: Vector2i = interni[0] if not interni.is_empty() else _libera_vicina(Vector2i(W / 2, H / 3))
+			var pg := _nuova_figura({"lato": "prigioniero", "nome": str(pr.get("nome", "Prigioniero")), "pedina": "prigioniero", "reazioni": 2,
+				"velocita": int(pr.get("velocita", 4)), "combattimento": 0, "robustezza": int(pr.get("robustezza", 4)), "acume": 1, "pos": pp})
+			unita.append(pg)
+			allarme = false
+			stato_obj["prigioniero"] = pg.uid
+			stato_obj["rinforzi_preparati"] = int(setup.get("rinforzi_preparati", 0))
+			scrivi("Infiltrazione: i nemici non si sono accorti di voi.", "obiettivo")
+		"regolamento_conti":
+			# l'ultimo terzo del campo è il complesso della nemesi
+			for y in range(0, H / 3 + 1):
+				for x in W:
+					var p := Vector2i(x, y)
+					set_t(p, T.APERTO)
+					impraticabili.erase(p)
+			elementi = elementi.filter(func(e): return not e.celle.any(func(c): return c.y <= H / 3))
+			_metti_interno(Vector2i(W / 2, H / 6 + 1), W - 4, H / 3, "Complesso della nemesi")
+			for u in figure(EQ):
+				if not u.robot and u.specie != "soulless":
+					u.salvezze = u.salvezze.filter(func(x): return x.tipo == "schermo") + [{"v": 6, "tipo": "corazza", "esclude": [], "area": 0}]
+			var prof: Array = bt.get("nemici", [])
+			for pr in prof:
+				var nn := _nemici_da_profili([pr])
+				for u in nn:
+					match str(pr.get("id", "")):
+						"sentinella_esterna":
+							u.pos = _libera_vicina(Vector2i(int(W * (nn.find(u) + 1) / 5.0), H / 2), true)
+							unita.append(u)
+							_movimento_casuale(u, dadi.d6(), false)
+						"qnarr":
+							u.pos = _libera_vicina(Vector2i(W / 2, 1), true)
+							u["nemesi"] = true
+							u.impavido = true
+							u.fortuna = 1
+							unita.append(u)
+						_:
+							u["in_attesa_complesso"] = true
+							stato_obj["sentinelle_interne"] = stato_obj.get("sentinelle_interne", []) + [u]
+		_:
+			pass
+
+## Schiera le figure in linea alla riga y (dietro una copertura se possibile).
+func _schiera_in_linea(nem: Array, y: int, copertura: bool, spaziatura := 2) -> void:
+	var n := nem.size()
+	for i in n:
+		var u: Dictionary = nem[i]
+		var x := clampi(W / 2 - (n - 1) * spaziatura / 2 + i * spaziatura, 0, W - 1)
+		var p := _libera_vicina(Vector2i(x, y), true)
+		if copertura:
+			for r in range(1, 4):
+				for d in _dir8():
+					var q: Vector2i = Vector2i(x, y) + d * r
+					if calpestabile(q) and figura_in(q).is_empty() and _vicino_a_terreno(q) and abs(q.y - y) <= 2:
+						p = q
+						break
+				if _vicino_a_terreno(p):
+					break
+		u.pos = p
+		u.iniziale = p
+		if not u in unita:
+			unita.append(u)
+
+## Morale e regole di fine round degli eventi della storia. Restituisce true se sostituisce il morale normale.
+func _fine_round_storia() -> bool:
+	match storia:
+		"sventato":
+			var capo := figure(NEM).any(func(x): return x.get("capo", false))
+			for u in figure(NEM):
+				u.panico = [1, 1] if capo else [1, 3]
+			if round_n >= 6 and figure(NEM).size() <= 3 and not figure(NEM).is_empty():
+				scrivi("I sicari rimasti si ritirano.", "titolo")
+				for u in figure(NEM):
+					u.attiva = false
+					u.fuggito = true
+		"sabotare_il_piano":
+			if stato_obj.get("sabotaggio_round", 0) > 0 and round_n > int(stato_obj.sabotaggio_round):
+				scrivi("Il dispositivo è piazzato: i nemici abbandonano il campo.", "titolo")
+				for u in figure(NEM):
+					u.attiva = false
+					u.fuggito = true
+			if round_n in [8, 12]:
+				var bt: Dictionary = setup.get("battaglia_storia", {})
+				var scag: Array = bt.get("nemici", []).filter(func(x): return str(x.get("id", "")) == "scagnozzo")
+				if not scag.is_empty():
+					var pr: Dictionary = scag[0].duplicate()
+					pr["numero"] = 2
+					var bordi := [Vector2i(W / 2, 0), Vector2i(0, H / 2), Vector2i(W - 1, H / 2), Vector2i(W / 2, H - 1)]
+					var b0: Vector2i = dadi.scegli(bordi)
+					for u in _nemici_da_profili([pr]):
+						u.pos = _libera_vicina(b0, true)
+						unita.append(u)
+					scrivi("Arrivano 2 Scagnozzi di rinforzo.", "pericolo")
+		"contrattacco_nemico":
+			# morale speciale per gruppo: 2D6 <= perdite del gruppo, il gruppo fugge
+			for g in [1, 2]:
+				var membri := figure(NEM).filter(func(x): return int(x.get("gruppo", 0)) == g)
+				var perse := int(stato_obj.perdite_gruppo.get(g, 0))
+				if membri.is_empty() or perse == 0:
+					continue
+				var t := dadi.tira("2d6")
+				scrivi("Morale del gruppo %d: %d contro %d perdite." % [g, t, perse])
+				if t <= perse:
+					scrivi("Il gruppo %d interrompe l'attacco e fugge." % g, "titolo")
+					for u in membri:
+						u.attiva = false
+						u.fuggito = true
+			if round_n == 2 and stato_obj.has("gruppo2"):
+				var g2 := aggiungi_nemici(str(stato_obj.gruppo2.nemico), int(stato_obj.gruppo2.numero))
+				for i in g2.size():
+					g2[i].pos = _libera_vicina(Vector2i(W / 2 + i - g2.size() / 2, 0), true)
+					g2[i]["gruppo"] = 2
+				stato_obj.erase("gruppo2")
+				scrivi("Il secondo gruppo nemico arriva dal bordo!", "pericolo")
+			return true
+		"rapimento":
+			if round_n >= 3:
+				for sg in stato_obj.get("segnalini_storia", []):
+					if not sg.rivelato and dadi.d6() == 1:
+						sg.rivelato = true
+						sg["rimosso"] = true
+						scrivi("Un segnalino viene rimosso: lì non c'è più nulla da trovare.")
+			if stato_obj.get("segnalini_storia", []).all(func(x): return x.rivelato) and figure(NEM).is_empty():
+				scrivi("Esplorazione conclusa: %d Indizi raccolti." % int(stato_obj.indizi), "titolo")
+				guadagni["indizi"] = int(stato_obj.indizi)
+				_obiettivo_fatto()
+				_finisci(true)
+		"stiamo_arrivando":
+			if not allarme:
+				_sentinelle_guardano()
+			elif int(stato_obj.get("rinforzi_preparati", 0)) > 0 and not figure(NEM).is_empty():
+				stato_obj["rinforzi_preparati"] = int(stato_obj.rinforzi_preparati) - 1
+				for u in aggiungi_nemici(str(setup.get("nemico", "")), 1, [], false, 0, true):
+					u.pos = _libera_vicina(Vector2i(W / 2, 0), true)
+				scrivi("Ben preparati: arriva un rinforzo nemico.", "pericolo")
+	return false
+
+## «Stiamo arrivando»: ogni sentinella guarda in una direzione casuale; chi è sulla linea viene scoperto.
+func _sentinelle_guardano() -> void:
+	for s0 in figure(NEM).filter(func(x): return x.get("sentinella", false)):
+		var dd: Vector2i = _dir8()[dadi.d(8) - 1]
+		var p: Vector2i = s0.pos
+		for k in max(W, H):
+			p += dd
+			if not dentro(p) or t_at(p) in [T.MURO, T.BLOCCO] or (t_at(p) == T.AREA and k > 0):
+				break
+			for u in figure(EQ):
+				if dist(u.pos, p) <= 1 and lds(s0.pos, u.pos).vede:
+					var cop: bool = lds(s0.pos, u.pos).copertura
+					if not cop:
+						_dai_allarme("%s viene avvistato da una sentinella!" % u.nome)
+						return
+					var t := dadi.d6() + int(u.acume)
+					if t < 4:
+						_dai_allarme("%s, in copertura, viene comunque scoperto (%d)." % [u.nome, t])
+						return
+
+func _dai_allarme(perche: String) -> void:
+	if allarme:
+		return
+	allarme = true
+	stato_obj["interrompi_round"] = true
+	stato_obj["confusi_round"] = round_n + 1
+	scrivi(perche + " SCATTA L'ALLARME!", "pericolo")
+
+## Un membro dell'equipaggio si è mosso: segnalini del rapimento, allarme, ingresso nel complesso, prigioniero.
+func _dopo_movimento_storia(u: Dictionary) -> void:
+	match storia:
+		"rapimento":
+			for sg in stato_obj.get("segnalini_storia", []):
+				if not sg.rivelato and dist(u.pos, sg.pos) <= 4:
+					sg.rivelato = true
+					var r := dadi.su_tabella(setup.get("battaglia_storia", {}).get("tabella_segnalini", {}))
+					scrivi("Segnalino rivelato (%d): %s - %s" % [r.tiro, r.riga.get("nome", ""), r.riga.get("testo", "")], "evento")
+					var e: Dictionary = r.riga.get("effetti", {})
+					if int(e.get("indizi", 0)) > 0:
+						stato_obj.indizi = int(stato_obj.indizi) + 1
+					if e.has("tiro_a_contatto"):
+						sg["cadavere"] = true
+						sg.rivelato = true
+					if e.has("nemico"):
+						var nn := _nemici_da_profili([e.nemico])
+						for b in nn:
+							b.pos = _libera_vicina(sg.pos, true)
+							b.impavido = true
+							unita.append(b)
+						sg["robot"] = true
+				elif sg.get("cadavere", false) and dist(u.pos, sg.pos) <= 1 and not sg.get("esaminato", false):
+					sg["esaminato"] = true
+					if dadi.d6() >= 5:
+						stato_obj.indizi = int(stato_obj.indizi) + 1
+						scrivi("%s esamina il cadavere e trova un Indizio." % u.nome, "obiettivo")
+				elif sg.get("robot", false) and dist(u.pos, sg.pos) <= 1 and not sg.get("esaminato", false) and figure(NEM).is_empty():
+					sg["esaminato"] = true
+					if dadi.d6() == 6:
+						stato_obj.indizi = int(stato_obj.indizi) + 1
+						scrivi("Tra i resti del robot %s trova un Indizio." % u.nome, "obiettivo")
+		"stiamo_arrivando":
+			if not allarme:
+				for v in figure(NEM):
+					if dist(u.pos, v.pos) <= 6:
+						_dai_allarme("%s si avvicina troppo." % u.nome)
+						break
+		"regolamento_conti":
+			if t_at(u.pos) == T.INTERNO and stato_obj.has("sentinelle_interne"):
+				var dentro_c := []
+				for e in elementi:
+					if str(e.nome) == "Complesso della nemesi":
+						dentro_c = e.celle.filter(func(c): return t_at(c) == T.INTERNO)
+				for v in stato_obj.sentinelle_interne:
+					var best: Vector2i = dentro_c[dadi.d(dentro_c.size()) - 1] if not dentro_c.is_empty() else Vector2i(W / 2, 2)
+					for k in 20:
+						var q: Vector2i = dentro_c[dadi.d(dentro_c.size()) - 1] if not dentro_c.is_empty() else best
+						if figura_in(q).is_empty() and not figure(EQ).any(func(w): return lds(w.pos, q, true).vede):
+							best = q
+							break
+					v.pos = _libera_vicina(best, true) if not figura_in(best).is_empty() else best
+					v.erase("in_attesa_complesso")
+					unita.append(v)
+				stato_obj.erase("sentinelle_interne")
+				scrivi("L'equipaggio entra nel complesso: altre sentinelle pattugliano i corridoi.", "pericolo")
+
+## Azioni speciali delle battaglie della storia.
+func _azioni_storia(u: Dictionary, r: Array) -> void:
+	match storia:
+		"sabotare_il_piano":
+			if not stato_obj.get("sabotaggio", false) and dist(u.pos, centro) <= 1:
+				r.append({"id": "sabota", "nome": "Piazza il dispositivo di sabotaggio (1D6+Acume, 5+)"})
+		"stiamo_arrivando":
+			var pr := per_uid(int(stato_obj.get("prigioniero", -1)))
+			if not pr.is_empty() and pr.lato == "prigioniero" and dist(u.pos, pr.pos) <= 1:
+				r.append({"id": "libera", "nome": "Libera il prigioniero"})
+
+func _azione_storia(u: Dictionary, id: String) -> void:
+	match id:
+		"sabota":
+			var t := dadi.d6()
+			scrivi("%s piazza il dispositivo: %d%+d (serve 5+)." % [u.nome, t, int(u.acume)], "obiettivo")
+			if t + int(u.acume) >= 5:
+				stato_obj["sabotaggio"] = true
+				stato_obj["sabotaggio_round"] = round_n
+				_obiettivo_fatto()
+				scrivi("Dispositivo piazzato: i nemici si ritireranno alla fine del prossimo round.", "obiettivo")
+		"libera":
+			var pr := per_uid(int(stato_obj.get("prigioniero", -1)))
+			if not pr.is_empty():
+				pr.lato = EQ
+				pr.fase = "lenta"
+				pr["compagno"] = true
+				stato_obj["liberato"] = true
+				scrivi("%s libera il prigioniero, che ora combatte con voi." % u.nome, "obiettivo")

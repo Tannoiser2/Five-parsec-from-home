@@ -12,6 +12,8 @@ static func agisci(b: Battaglia, u: Dictionary) -> void:
 		return
 	var avversari := b.avversari(u)
 	if avversari.is_empty():
+		if u.lato == Battaglia.EQ:
+			_obiettivo_equipaggio(b, u)
 		return
 	var ia := str(u.ia)
 	if u.lato == Battaglia.EQ:
@@ -56,6 +58,8 @@ static func agisci(b: Battaglia, u: Dictionary) -> void:
 			_tiratore(b, u, avversari, "difensivo")
 		"guardiano":
 			_guardiano(b, u, avversari)
+		"dstar":
+			_dstar(b, u, avversari)
 		_:
 			_tiratore(b, u, avversari, "tattico" if ia != "equipaggio" else "equipaggio")
 	_balzo(b, u, avversari)
@@ -369,6 +373,35 @@ static func _obiettivo_equipaggio(b: Battaglia, u: Dictionary) -> bool:
 		if a.id != "esci" and a.id != "luogo":
 			b.azione(u, a.id)
 			return true
+	# cariche del caposaldo: si fanno esplodere quando nessuno dell'equipaggio è vicino al centro
+	if b.stato_obj.get("cariche", false) and not b.stato_obj.get("esploso", false):
+		if not b.figure(Battaglia.EQ).any(func(w): return Battaglia.dist(w.pos, b.centro) <= 9):
+			b.esegui(u, "detona")
+	var meta := Vector2i(-1, -1)
+	if b.storia == "rapimento":
+		for sg in b.stato_obj.get("segnalini_storia", []):
+			if not sg.rivelato and (meta.x < 0 or Battaglia.dist(u.pos, sg.pos) < Battaglia.dist(u.pos, meta)):
+				meta = sg.pos
+	elif b.storia == "stiamo_arrivando" and not b.stato_obj.get("liberato", false):
+		var pr := b.per_uid(int(b.stato_obj.get("prigioniero", -1)))
+		if not pr.is_empty():
+			meta = pr.pos
+	elif (b.storia == "sabotare_il_piano" and not b.stato_obj.get("sabotaggio", false)) or (b.obiettivo == "nera:distruggi_caposaldo" and not b.stato_obj.get("cariche", false)):
+		meta = b.centro
+	if meta.x >= 0 and Battaglia.dist(u.pos, meta) > 1 and (u.porta == "" ):
+		var r := b.raggiungibili(u, false)
+		var best: Vector2i = u.pos
+		for p in r:
+			if Battaglia.dist(p, meta) < Battaglia.dist(best, meta) and not b._a_contatto(u, p, b.avversari(u)):
+				best = p
+		if best != u.pos:
+			b.muovi(u, best, false, false)
+			for a in b.azioni_obiettivo(u):
+				if a.id != "esci":
+					b.azione(u, a.id)
+					return true
+			_spara_migliore(b, u)
+			return true
 	var serve_centro: bool = (u.porta == "pacco") or (b.obiettivo == "accedere" and not b.stato_obj.get("fatto", false)) or (b.obiettivo == "acquisire" and b.stato_obj.has("oggetto_a"))
 	if serve_centro and Battaglia.dist(u.pos, b.centro) > 1:
 		var r := b.raggiungibili(u, false)
@@ -387,17 +420,36 @@ static func _obiettivo_equipaggio(b: Battaglia, u: Dictionary) -> bool:
 					return true
 			_spara_migliore(b, u)
 			return true
-	if u.porta == "oggetto" or (b.obiettivo == "attraversare" and u.pos.y <= 3):
+	if u.porta == "oggetto" or ((b.obiettivo == "attraversare" or b.obiettivo == "nera:sfonda_linee") and u.pos.y <= 3):
 		var r := b.raggiungibili(u, true)
 		var best: Vector2i = u.pos
 		for p in r:
 			if b._a_contatto(u, p, b.avversari(u)):
 				continue
-			if (b.obiettivo == "attraversare" and p.y < best.y) or (b.obiettivo != "attraversare" and p.y > best.y):
+			var verso_nemico: bool = b.obiettivo == "attraversare" or b.obiettivo == "nera:sfonda_linee"
+			if (verso_nemico and p.y < best.y) or (not verso_nemico and p.y > best.y):
 				best = p
 		b.muovi(u, best, true, false)
 		for a in b.azioni_obiettivo(u):
-			if a.id == "esci" and (b.obiettivo != "attraversare" or u.pos.y == 0):
+			if a.id == "esci" and (not (b.obiettivo == "attraversare" or b.obiettivo == "nera:sfonda_linee") or u.pos.y == 0):
 				b.azione(u, "esci")
 		return true
 	return false
+
+## IA D* («Sabotare il piano»): Difensiva se c'è l'equipaggio entro 12", altrimenti prima raggiunge il centro del campo.
+static func _dstar(b: Battaglia, u: Dictionary, avversari: Array) -> void:
+	var vicino := false
+	for v in avversari:
+		if Battaglia.dist(u.pos, v.pos) <= 12:
+			vicino = true
+	if vicino or u.get("al_centro", false) or Battaglia.dist(u.pos, b.centro) <= 2:
+		u["al_centro"] = true
+		_tiratore(b, u, avversari, "difensivo")
+		return
+	var r := b.raggiungibili(u, false)
+	var best: Vector2i = u.pos
+	for p in r:
+		if Battaglia.dist(p, b.centro) < Battaglia.dist(best, b.centro) and not b._a_contatto(u, p, avversari):
+			best = p
+	b.muovi(u, best, false, false)
+	_spara_migliore(b, u)

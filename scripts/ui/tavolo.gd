@@ -150,7 +150,7 @@ func _draw() -> void:
 		var ev: bool = u.uid == selezionata
 		if bersagli.has(u.uid):
 			draw_circle(c, lato * 0.5, Color(0.9, 0.2, 0.2, 0.35))
-		Pedine.disegna(self, c, lato * 0.42, str(u.pedina), str(u.nome), nem, ev, u.lato == Battaglia.EQ and u.attivato)
+		Pedine.disegna(self, c, lato * 0.42, str(u.pedina), str(u.nome), nem, ev, (u.lato == Battaglia.EQ and u.attivato) or u.get("passiva", false) or u.lato == "prigioniero")
 		if u.lato == Battaglia.MOSTRI:
 			draw_arc(c, lato * 0.47, 0, TAU, 24, Color(0.6, 0.9, 0.3), 2.5)
 		if b._congelato(u):

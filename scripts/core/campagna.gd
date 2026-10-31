@@ -354,9 +354,53 @@ func applica(eff: Dictionary, pg: Dictionary = {}, fonte := "") -> void:
 			if id_specie(str(k)) == str(pg.get("specie")):
 				scrivi("%s non è interessato (%s)." % [pg.nome, Personaggio.nome_specie(pg)])
 				return
+	if eff.get("manuale", false) and fonte in SPECIALI_SOSTITUTIVI:
+		_speciale(fonte, eff, pg)
+		return
 	for k in eff:
 		var v = eff[k]
 		match k:
+			"aggiungi_oggetti":
+				for id in v:
+					_aggiungi_al_deposito({"id": str(id)}, fonte)
+			"rimuovi_oggetto":
+				_rimuovi_rif(v)
+			"vendi_armi_deposito":
+				var n := 0
+				var resto := []
+				for o in s.deposito:
+					if Dati.e_arma(str(o.get("id", ""))) and not o.get("danneggiato", false):
+						n += 1
+					else:
+						resto.append(o)
+				s["deposito"] = resto
+				s["crediti"] = int(s.crediti) + n * int(v)
+				scrivi("Vendute %d armi per %d crediti." % [n, n * int(v)])
+			"nuovo_capo":
+				var nuovo := trova(str(v))
+				var vecchio := {}
+				for p in vivi():
+					if p.get("leader", false):
+						vecchio = p
+				if not nuovo.is_empty():
+					if not vecchio.is_empty():
+						vecchio["leader"] = false
+					nuovo["leader"] = true
+					Personaggio.modifica_stat(nuovo, "xp", 3)
+					scrivi("%s è il nuovo capitano (+3 XP)." % nuovo.nome)
+					if not vecchio.is_empty() and dadi.d6() == 1:
+						scrivi("%s non accetta di essere scalzato e se ne va con il suo equipaggiamento." % vecchio.nome, "morte")
+						_lascia(vecchio, false)
+					if str(nuovo.specie) != "kerin":
+						for p in vivi().filter(func(x): return str(x.specie) == "kerin"):
+							scrivi("%s non accetta un capo che non sia K'Erin e se ne va." % p.nome, "morte")
+							_lascia(p, false)
+			"scegli_mondo":
+				var cand: Array = s.get("mondi_candidati", [])
+				if int(v) < cand.size():
+					s["mondo"] = cand[int(v)]
+					scrivi("Rotta verso %s." % s.mondo.nome)
+					_descrivi_arrivo()
 			"stat":
 				if not pg.is_empty():
 					for st in v:
@@ -502,7 +546,8 @@ func applica(eff: Dictionary, pg: Dictionary = {}, fonte := "") -> void:
 			_:
 				pass
 	if eff.get("manuale", false):
-		scrivi("Da applicare a mano%s." % _fonte(fonte), "manuale")
+		if not (fonte in SPECIALI_SOSTITUTIVI) and not _speciale(fonte, eff, pg):
+			scrivi("Da applicare a mano%s." % _fonte(fonte), "manuale")
 
 static func testo_valore(v) -> String:
 	if v is float and v == floor(v):
@@ -571,6 +616,14 @@ func aggiungi_rivale(fonte := "", tipo_nemico := "") -> void:
 		"categoria": str(n.get("categoria", "")), "rintracciato": false, "mondo": s.get("mondo", {}).get("nome", "")}
 	s["rivali"].append(r)
 	scrivi("Nuovo Rivale: %s%s." % [r.nome, _fonte(fonte)], "rivale")
+	if s.flag.get("favore_rivale", false):
+		s["flag"].erase("favore_rivale")
+		var t := dadi.d6()
+		if t >= 4:
+			s["rivali"].erase(r)
+			scrivi("Il criminale che avevate lasciato andare ricambia il favore (%d): il Rivale sparisce." % t)
+		else:
+			scrivi("Il criminale non riesce a ricambiare il favore (%d)." % t)
 
 func aggiungi_patrono(fonte := "") -> void:
 	var t := dadi.su_tabella(Dati.f("campagna").get("patroni", {}).get("tipo", {}))
@@ -579,8 +632,8 @@ func aggiungi_patrono(fonte := "") -> void:
 	s["patroni"].append(p)
 	scrivi("Nuovo Patrono: %s%s." % [p.nome, _fonte(fonte)], "patrono")
 
-func recluta(fonte := "") -> void:
-	var pg := Personaggio.da_specie(tira_specie(), nome_casuale())
+func recluta(fonte := "", specie := "") -> void:
+	var pg := Personaggio.da_specie(specie if specie != "" else tira_specie(), nome_casuale())
 	pg["oggetti"] = [{"id": "pistola"}]
 	s["equipaggio"].append(pg)
 	s["crediti"] = int(s.crediti) + 1
@@ -636,6 +689,9 @@ func inizia_turno() -> void:
 	s["battaglia"] = {}
 	s["esito"] = {}
 	s["mondo"]["turni"] = int(s.mondo.get("turni", 0)) + 1
+	_ricerca_storia()
+	if s.mondo.get("zona_rossa", false):
+		s["zona_rossa"]["turni"] = int(s.zona_rossa.get("turni", 0)) + 1
 	scrivi("TURNO %d - %s" % [s.turno, s.mondo.get("nome", "")], "titolo")
 	if int(s.turno) % 3 == 0 and s.difficolta != "follia":
 		s["punti_storia"] = int(s.punti_storia) + 1
@@ -657,6 +713,14 @@ func inizia_turno() -> void:
 			if int(p.assente_turni) <= 0:
 				p["assente"] = false
 				scrivi("%s torna dall'equipaggio." % p.nome)
+				if p.get("affari_altrove", false):
+					p.erase("affari_altrove")
+					if str(p.specie) == "swift":
+						scrivi("%s non torna più: al suo posto arriva un altro Swift." % p.nome)
+						_lascia(p, false)
+						recluta("Affari altrove", "swift")
+					else:
+						applica({"xp": "1d6", "oggetti": ["bottino"]}, p, "ritorno dagli affari")
 	# scadenza dei lavori dei patroni
 	var lav: Dictionary = s.get("lavoro", {})
 	if not lav.is_empty() and lav.get("turni") != null:
@@ -666,7 +730,8 @@ func inizia_turno() -> void:
 			s["lavoro"] = {}
 
 ## Passo di viaggio. viaggia = true per partire verso un nuovo mondo.
-func passo_viaggio(viaggia: bool) -> void:
+func passo_viaggio(viaggia: bool, zona_rossa := false) -> void:
+	s["verso_zona_rossa"] = zona_rossa and s.zona_rossa.get("licenza", false)
 	var m: Dictionary = s.mondo
 	if m.get("invasione_imminente", false):
 		var t := dadi.tira("2d6")
@@ -678,7 +743,11 @@ func passo_viaggio(viaggia: bool) -> void:
 			s["flag"]["battaglia_invasione"] = true
 			s["fase"] = "equipaggiamento"
 			return
+	if viaggia and int(s.get("fisco_da_pagare", 0)) > 0:
+		scrivi("La nave è sotto sequestro del fisco: mancano %d crediti, non potete partire." % int(s.fisco_da_pagare), "pericolo")
+		viaggia = false
 	if viaggia:
+		_effetti_partenza()
 		var costo := int(Dati.f("nave").get("parametri", {}).get("costo_viaggio", 5))
 		if s.nave.is_empty():
 			costo = vivi().size()
@@ -697,7 +766,7 @@ func _arrivo() -> void:
 	# rivali che seguono
 	var restano := []
 	for r in s.rivali:
-		if dadi.d6() >= 5:
+		if r.get("nemesi", false) or dadi.d6() >= 5:
 			restano.append(r)
 			scrivi("Il Rivale %s vi segue." % r.nome)
 		else:
@@ -712,6 +781,26 @@ func _arrivo() -> void:
 	if not s.lavoro.is_empty() and not s.lavoro.get("persistente", false):
 		s["lavoro"] = {}
 	s["mondo"] = genera_mondo()
+	if s.flag.get("mondo_non_invadibile", false):
+		s["flag"].erase("mondo_non_invadibile")
+		s["mondo"]["non_invadibile"] = true
+	if s.flag.get("archivio_dati", false):
+		s["flag"].erase("archivio_dati")
+		var cand := [s.mondo, genera_mondo(), genera_mondo()]
+		s["mondi_candidati"] = cand
+		var ops := []
+		for i in cand.size():
+			var m: Dictionary = cand[i]
+			ops.append({"testo": "%s (%s)" % [m.nome, ", ".join(m.tratti.map(func(x): return str(x.nome))) if not m.tratti.is_empty() else "nessun tratto"], "effetti": {"scegli_mondo": i}})
+		s["scelte"].append({"testo": "Archivio dati: scegliete il mondo da visitare", "pg": "", "opzioni": ops})
+	if s.get("verso_zona_rossa", false):
+		s["mondo"]["zona_rossa"] = true
+		s.erase("verso_zona_rossa")
+		scrivi("Questo mondo è in Zona Rossa: tutte le missioni qui sono Lavori Rossi.", "pericolo")
+	_descrivi_arrivo()
+	_effetti_arrivo()
+
+func _descrivi_arrivo() -> void:
 	var t := ""
 	for tr in s.mondo.tratti:
 		t += " " + str(tr.nome) + ": " + str(tr.testo)
@@ -734,8 +823,10 @@ func compra_licenza() -> bool:
 func costo_mantenimento() -> int:
 	var n := 0
 	for p in vivi():
-		if int(p.get("infermeria", 0)) <= 0 and not p.get("assente", false):
+		if int(p.get("infermeria", 0)) <= 0 and not p.get("assente", false) and not p.get("niente_mantenimento", false):
 			n += 1
+	if s.flag.get("mantenimento_gratis", false):
+		return 0
 	return 1 + max(0, n - 6)
 
 ## Mantenimento, riparazioni e debito. pagamento_debito = crediti versati sul debito; riparazioni = crediti per lo scafo.
@@ -743,6 +834,11 @@ func passo_mantenimento(pagamento_debito := 0, riparazioni := 0) -> void:
 	var c := costo_mantenimento()
 	var pagati: int = min(c, int(s.crediti))
 	s["crediti"] = int(s.crediti) - pagati
+	s["ultimo_mantenimento"] = pagati
+	s["ultimo_interesse"] = 0
+	if s.flag.get("mantenimento_gratis", false):
+		s["flag"].erase("mantenimento_gratis")
+		scrivi("La gente del posto vi offre cibo: niente Mantenimento in questo turno.")
 	s["rifiutano"] = c - pagati
 	scrivi("Mantenimento: %d crediti%s." % [c, "" if pagati == c else (" (mancano %d: %d membri rifiutano gli incarichi)" % [c - pagati, c - pagati])])
 	var nave: Dictionary = s.nave
@@ -759,7 +855,8 @@ func passo_mantenimento(pagamento_debito := 0, riparazioni := 0) -> void:
 			s["crediti"] = int(s.crediti) - pd
 			scrivi("Pagati %d crediti di debito." % pd)
 		if int(nave.get("debito", 0)) > 0:
-			nave["debito"] = int(nave.debito) + (2 if int(nave.debito) >= 31 else 1)
+			s["ultimo_interesse"] = 2 if int(nave.debito) >= 31 else 1
+			nave["debito"] = int(nave.debito) + int(s.ultimo_interesse)
 			scrivi("Interessi: il debito sale a %d crediti." % nave.debito)
 			if int(nave.debito) >= 75:
 				var t := dadi.tira("2d6")
@@ -768,6 +865,11 @@ func passo_mantenimento(pagamento_debito := 0, riparazioni := 0) -> void:
 					s["nave"] = {}
 				else:
 					scrivi("I creditori minacciano di sequestrare la nave (tiro %d)." % t, "pericolo")
+	if int(s.get("fisco_da_pagare", 0)) > 0:
+		var pf: int = min(int(s.crediti), int(s.fisco_da_pagare))
+		s["crediti"] = int(s.crediti) - pf
+		s["fisco_da_pagare"] = int(s.fisco_da_pagare) - pf
+		scrivi("Pagati %d crediti al fisco%s." % [pf, "" if int(s.fisco_da_pagare) > 0 else ": la nave è libera"])
 	s["fase"] = "incarichi"
 
 const INCARICHI := ["trova_patrono", "addestrarsi", "commerciare", "reclutare", "esplorare", "rintracciare", "riparare", "esca", "riposo"]
@@ -840,9 +942,21 @@ func passo_incarichi(assegnati: Dictionary, opz := {}) -> void:
 				recluta("Reclutare")
 		else:
 			var t := dadi.d6() + n
+			for p in per.reclutare:
+				t += int(Personaggio.bonus(p, "bonus_compiti", {}).get("recruit", 0)) if Personaggio.bonus(p, "bonus_compiti", {}) is Dictionary else 0
+			if s.flag.get("regalo_reclutare", false):
+				s["flag"].erase("regalo_reclutare")
+				t += 2
+				scrivi("Il ninnolo di lusso fa da regalo: +2.")
 			scrivi("Reclutamento: %d (serve 6+)." % t)
 			if t >= 6:
 				recluta("Reclutare")
+	if per.has("rintracciare") and effetto_turno_storia("niente_rintraccia_rivali"):
+		scrivi("In questo turno della Storia non si possono rintracciare Rivali.")
+		per.erase("rintracciare")
+	if per.has("trova_patrono") and effetto_turno_storia("niente_patroni"):
+		scrivi("In questo turno della Storia è inutile cercare Patroni.")
+		per.erase("trova_patrono")
 	if per.has("rintracciare") and not s.rivali.is_empty():
 		var cr := int(opz.get("crediti_rintraccia", 0))
 		cr = min(cr, int(s.crediti))
@@ -871,7 +985,18 @@ func passo_incarichi(assegnati: Dictionary, opz := {}) -> void:
 			var cr: int = min(int(opz.get("crediti_riparare", 0)), int(s.crediti))
 			s["crediti"] = int(s.crediti) - cr
 			var t := dadi.d6()
-			var tot := t + int(p.acume) + (1 if p.specie == "engineer" else 0) + cr
+			var kit := 0
+			for q in vivi():
+				if Personaggio.ha_oggetto(q, "kit_riparazione"):
+					kit = 1
+			var ricambi := -1
+			for i in s.deposito.size():
+				if str(s.deposito[i].get("id", "")) == "pezzi_ricambio":
+					ricambi = i
+			var tot := t + int(p.acume) + (1 if p.specie == "engineer" else 0) + cr + kit + (1 if ricambi >= 0 else 0)
+			if ricambi >= 0 and t == 1:
+				s.deposito.remove_at(ricambi)
+				scrivi("I pezzi di ricambio si esauriscono.")
 			if t == 1:
 				scrivi("%s rovina definitivamente %s (1 naturale)." % [p.nome, Dati.nome_oggetto(str(bersaglio.id))])
 				bersaglio["distrutto"] = true
@@ -943,6 +1068,10 @@ func passo_dicerie() -> void:
 		if t <= int(s.dicerie):
 			s["dicerie"] = 0
 			s["missione"] = {"attiva": true, "finale": false, "inizio": int(s.turno)}
+			if s.flag.has("mappe_locali") and int(s.get("mondi_visitati", 0)) - int(s.flag.mappe_locali) <= 1:
+				s["flag"].erase("mappe_locali")
+				s["dicerie_missione"] = int(s.get("dicerie_missione", 0)) + 1
+				scrivi("Le mappe locali danno subito una Diceria in più per la Missione.")
 			s["dicerie_missione"] = 0
 			var nat := dadi.su_tabella(Dati.f("campagna").get("dicerie_missione", {}).get("natura_diceria", {}))
 			scrivi("Le Dicerie portano a una Missione! (tiro %d) Indizio: %s." % [t, str(nat.riga.get("nome", "")).to_lower()], "missione")
@@ -954,6 +1083,17 @@ func passo_dicerie() -> void:
 func controllo_rivali() -> Dictionary:
 	if s.rivali.is_empty():
 		return {}
+	if effetto_turno_storia("niente_attacco_rivali"):
+		scrivi("In questo turno della Storia i Rivali non vi trovano.")
+		return {}
+	if s.flag.has("rivale_attacca"):
+		var rid := str(s.flag.rivale_attacca)
+		s["flag"].erase("rivale_attacca")
+		for r in s.rivali:
+			if str(r.id) == rid:
+				r["un_nemico_in_piu"] = true
+				scrivi("%s vi attacca, come previsto." % r.nome, "pericolo")
+				return r
 	var t := dadi.d6() + int(s.get("esche", 0))
 	if t <= s.rivali.size():
 		var r: Dictionary = dadi.scegli(s.rivali)
@@ -975,8 +1115,8 @@ func opzioni_battaglia() -> Array:
 	for r in s.rivali:
 		if r.get("rintracciato", false):
 			o.append({"tipo": "attacca_rivale", "nome": "Attaccare il Rivale " + r.nome, "rivale": r.id})
-	if s.opzioni.get("zone", true) and s.zona_rossa.get("licenza", false):
-		o.append({"tipo": "zona_rossa", "nome": "Lavoro in Zona Rossa"})
+	if s.opzioni.get("zone", true) and int(s.zona_rossa.get("turni", 0)) >= int(Dati.f("zone").get("black_zone", {}).get("requisiti", {}).get("turni_zona_rossa_minimi", 10)):
+		o.append({"tipo": "zona_nera", "nome": "Offrirsi volontari per un Lavoro Nero (Zona Nera)"})
 	o.append({"tipo": "nessuna", "nome": "Nessuna battaglia questo turno"})
 	return o
 
@@ -1011,7 +1151,8 @@ func _nemico_casuale(categoria: String) -> String:
 func prepara_battaglia(tipo: String, extra := {}) -> Dictionary:
 	var inc: Dictionary = Dati.f("incontri")
 	var b := {"tipo": tipo, "obiettivo": "respingere", "nemico": "", "categoria": "", "condizione": {}, "luogo": {},
-		"zona_rossa": tipo == "zona_rossa", "rivale": "", "unici": [], "numero": 0}
+		"zona_rossa": tipo == "zona_rossa" or (s.mondo.get("zona_rossa", false) and tipo != "zona_nera"), "zona_nera": tipo == "zona_nera",
+		"rivale": "", "unici": [], "numero": 0}
 	var colonna := "opportunita"
 	match tipo:
 		"patrono":
@@ -1039,6 +1180,14 @@ func prepara_battaglia(tipo: String, extra := {}) -> Dictionary:
 		"invasione":
 			colonna = "invasione"
 			b.obiettivo = "invasione"
+		"zona_nera":
+			colonna = "invasione"
+			var bz: Dictionary = Dati.f("zone").get("black_zone", {})
+			var mr := dadi.su_tabella(bz.get("missione", {}))
+			b.obiettivo = "nera:" + str(mr.riga.get("id", "resisti_assalto"))
+			b["missione_nera"] = mr.riga
+			b.categoria = "minacce_vaganti"
+			b.nemico = _nemico_casuale("minacce_vaganti")
 		_:
 			colonna = "opportunita"
 			b.obiettivo = str(dadi.su_tabella(inc.get("obiettivi", {}).get("opportunita", {})).riga.get("obiettivo", "respingere"))
@@ -1049,8 +1198,8 @@ func prepara_battaglia(tipo: String, extra := {}) -> Dictionary:
 		b.nemico = _nemico_casuale(b.categoria)
 	var nem := Dati.nemico(b.nemico)
 	b.categoria = str(nem.get("categoria", b.categoria))
-	# condizioni di schieramento e luoghi notevoli
-	if tipo != "invasione":
+	# condizioni di schieramento e luoghi notevoli (non nelle battaglie d'Invasione e nei Lavori Neri)
+	if tipo != "invasione" and tipo != "zona_nera":
 		var cs: Dictionary = inc.get("condizioni_schieramento", {})
 		var col := "patrono" if colonna == "patrono" else colonna
 		var tcs: Dictionary = cs.get(col, cs.get("opportunita", {}))
@@ -1062,17 +1211,25 @@ func prepara_battaglia(tipo: String, extra := {}) -> Dictionary:
 			b.luogo = dadi.su_tabella(tln).riga
 	# numero dei nemici
 	b.numero = numero_nemici(nem, b)
+	# Zona Rossa: condizione di minaccia
+	if b.zona_rossa:
+		b["minaccia"] = dadi.su_tabella(Dati.f("zone").get("red_zone", {}).get("condizione_minaccia", {})).riga
+		if b.minaccia.get("effetti", {}).has("nemici_extra"):
+			b.numero = int(b.numero) + int(b.minaccia.effetti.nemici_extra)
 	# individui unici
 	var iu: Dictionary = inc.get("individui_unici", {})
 	var q: Dictionary = iu.get("quando", {})
-	if not (b.categoria in q.get("esclusi", ["minacce_vaganti"]) or tipo == "invasione") or s.difficolta == "follia":
-		var t := dadi.tira("2d6") + (1 if b.categoria == "parti_interessate" else 0) + (1 if s.difficolta == "hardcore" else 0)
+	if not nem.get("speciali", {}).get("niente_unici", false) and (not (b.categoria in q.get("esclusi", ["minacce_vaganti"]) or tipo == "invasione") or s.difficolta == "follia"):
+		var t := dadi.tira("2d6") + (1 if b.categoria == "parti_interessate" else 0) + (1 if s.difficolta == "hardcore" else 0) + (1 if b.zona_rossa else 0)
 		if t >= int(q.get("soglia", 9)) or s.difficolta == "follia":
 			var tab: Dictionary = iu.get("tabella", {})
 			if not tab.is_empty():
 				var u := str(dadi.su_tabella(tab).riga.get("nemico", ""))
 				if u != "":
 					b.unici.append(u)
+	if s.has("bonus_battaglia"):
+		b["bonus_turno"] = s.bonus_battaglia
+		s.erase("bonus_battaglia")
 	b["descrizione"] = descrivi_battaglia(b)
 	s["battaglia"] = b
 	s["fase"] = "battaglia"
@@ -1094,6 +1251,14 @@ func numero_nemici(nem: Dictionary, b: Dictionary) -> int:
 	elif dim <= 4:
 		n = min(d1, d2)
 	n += int(nem.get("numeri", 0))
+	if str(b.get("rivale", "")) != "":
+		var rv := _rivale(str(b.rivale))
+		n += int(nem.get("speciali", {}).get("numeri_come_rivali", 0))
+		if rv.get("nemesi", false):
+			n += 1
+		if rv.get("un_nemico_in_piu", false):
+			rv.erase("un_nemico_in_piu")
+			n += 1
 	if b.obiettivo == "difendere":
 		n += 1
 	if b.tipo == "missione" and s.missione.get("finale", false):
@@ -1111,7 +1276,10 @@ func numero_nemici(nem: Dictionary, b: Dictionary) -> int:
 	if ce.has("nemici_mod"):
 		n += int(ce.nemici_mod)
 	if b.get("zona_rossa", false):
-		n = max(n, 7 + int(nem.get("numeri", 0)))
+		# Opposizione aumentata: base 7 + il modificatore del tipo di nemico, senza altri modificatori
+		n = 7 + int(nem.get("numeri", 0))
+	if b.get("zona_nera", false):
+		n = 16   # 4 squadre da 4 figure (le altre arrivano durante la battaglia)
 	return max(1, n)
 
 func descrivi_battaglia(b: Dictionary) -> String:
@@ -1140,10 +1308,13 @@ func dopo_battaglia(esito: Dictionary) -> void:
 		s["statistiche"]["vittorie"] = int(s.statistiche.vittorie) + 1
 	scrivi("Esito: %s%s." % ["Vittoria" if esito.get("vinto", false) else "Sconfitta", ", avete tenuto il campo" if esito.get("campo", false) else ""], "titolo")
 	var nem := Dati.nemico(str(b.get("nemico", "")))
+	_esito_battaglia(esito, nem)
+	if b.get("zona_nera", false):
+		_esito_zona_nera(esito)
 	var cat := str(nem.get("categoria", ""))
 	var pb: Dictionary = Dati.f("post_battaglia")
 	# 1. rivali
-	if b.tipo != "invasione" and cat != "minacce_vaganti":
+	if b.tipo != "invasione" and cat != "minacce_vaganti" and not b.get("niente_controllo_rivali", false) and not b.get("zona_nera", false):
 		if b.get("rivale", "") != "":
 			if esito.get("campo", false):
 				var t := dadi.d6() + (1 if _rivale(b.rivale).get("rintracciato", false) else 0) + (1 if esito.get("unico_ucciso", "") != "" else 0)
@@ -1189,7 +1360,10 @@ func dopo_battaglia(esito: Dictionary) -> void:
 				s["dicerie_missione"] = 0
 				applica({"oggetti": ["bottino"], "punti_storia": 1}, {}, "ricompensa della Missione")
 		else:
-			var t := dadi.d6() + int(s.get("dicerie_missione", 0)) - (0 if esito.get("vinto", false) else 2)
+			var dq := dadi.d6()
+			if b.get("zona_rossa", false):
+				dq = max(dq, dadi.d6(), dadi.d6()) + 1
+			var t := dq + int(s.get("dicerie_missione", 0)) - (0 if esito.get("vinto", false) else 2)
 			var r: Dictionary = Dadi.riga(pb.get("missioni", {}).get("tabella", {}), t)
 			scrivi("Progresso della Missione (%d): %s - %s" % [t, r.get("nome", ""), r.get("testo", "")], "missione")
 			if r.get("effetti", {}).get("missione_finale", false):
@@ -1197,7 +1371,7 @@ func dopo_battaglia(esito: Dictionary) -> void:
 			else:
 				applica(r.get("effetti", {}), {}, "Missione")
 	# 4. paga
-	if b.tipo != "invasione":
+	if b.tipo != "invasione" and not b.get("niente_paga", false):
 		var p := dadi.d6()
 		if b.tipo == "missione" and esito.get("vinto", false) and not s.missione.is_empty() == false:
 			p = max(p, dadi.d6()) + 1
@@ -1207,7 +1381,13 @@ func dopo_battaglia(esito: Dictionary) -> void:
 			p += 1
 		p += pagato_patrono
 		if b.get("zona_rossa", false):
-			p += 3
+			# Ricompense migliorate: si tira due volte e si tiene il migliore
+			var base2 := dadi.d6()
+			if esito.get("vinto", false) and b.tipo != "attacca_rivale" and b.tipo != "rivale" and base2 <= 2:
+				base2 = 3
+			p = max(p, base2 + pagato_patrono + (1 if s.difficolta == "facile" else 0))
+		if b.get("zona_nera", false):
+			p = 0
 		s["crediti"] = int(s.crediti) + p
 		scrivi("Paga: %d crediti%s." % [p, (" (di cui %d di paga di pericolo)" % pagato_patrono) if pagato_patrono > 0 else ""])
 		if cat == "elementi_criminali" and esito.get("campo", false):
@@ -1217,25 +1397,29 @@ func dopo_battaglia(esito: Dictionary) -> void:
 				scrivi("Taglia sui criminali: %d crediti." % tg)
 	# 5. ritrovamenti sul campo
 	var prova_inv := 0
-	if esito.get("campo", false):
+	var n_rit := int(nem.get("speciali", {}).get("ritrovamenti_campo", 1)) if esito.get("campo", false) else 0
+	n_rit = int(b.get("ritrovamenti_forzati", n_rit))
+	for i_rit in n_rit:
 		var r := dadi.su_tabella(pb.get("ritrovamenti", {}))
 		scrivi("Ritrovamenti sul campo (%d): %s - %s" % [r.tiro, r.riga.get("nome", ""), r.riga.get("testo", "")], "evento")
 		if nem.get("speciali", {}).get("minaccia_invasione", false) and r.riga.has("se_minaccia_invasione"):
 			applica(r.riga.se_minaccia_invasione, {}, "ritrovamenti")
 			prova_inv = 1
 		elif str(r.riga.get("nome", "")) == "Arma":
-			var arma := ""
-			var ar = nem.get("armi", [])
-			if ar is Array and not ar.is_empty():
-				arma = str(ar[0])
+			var uccisi: Array = esito.get("armi_uccisi", [])
+			if uccisi.is_empty():
+				scrivi("Nessun nemico ucciso da cui recuperare armi.")
 			else:
-				arma = str(dadi.scegli(["fucile_militare", "pistola", "fucile_coloniale", "lama", "fucile_pompa"]))
-			_aggiungi_al_deposito({"id": arma}, "arma di un nemico caduto")
+				for a in dadi.scegli(uccisi):
+					if Dati.e_arma(str(a)) and not Dati.arma(str(a)).get("solo_nemici", false):
+						_aggiungi_al_deposito({"id": str(a)}, "arma di un nemico caduto")
 		else:
 			applica(r.riga.get("effetti", {}), {}, str(r.riga.get("nome", "")))
 	# 6. invasione
-	if nem.get("speciali", {}).get("minaccia_invasione", false) or str(nem.get("regole", "")).to_lower().contains("minaccia d'invasione"):
-		var t := dadi.tira("2d6") + prova_inv - (1 if esito.get("campo", false) else 0) + int(s.mondo.get("mod_invasione", 0))
+	if s.mondo.get("non_invadibile", false):
+		pass
+	elif nem.get("speciali", {}).get("minaccia_invasione", false) or str(nem.get("regole", "")).to_lower().contains("minaccia d'invasione"):
+		var t := dadi.tira("2d6") + prova_inv + int(nem.get("speciali", {}).get("test_invasione_mod", 0)) + (2 if b.get("zona_rossa", false) else 0) - (1 if esito.get("campo", false) else 0) + int(s.mondo.get("mod_invasione", 0))
 		t += {"hardcore": 2, "follia": 3}.get(s.difficolta, 0)
 		if t >= 9:
 			s["mondo"]["invasione_imminente"] = true
@@ -1249,18 +1433,31 @@ func dopo_battaglia(esito: Dictionary) -> void:
 		scrivi("Lasciate il mondo invaso al prossimo viaggio.")
 		s["mondo"]["invaso"] = true
 	# 7. bottino
-	if esito.get("campo", false) and b.tipo != "invasione":
-		var n := 1
-		if b.get("zona_rossa", false):
-			n = 2
+	if b.get("zona_rossa", false) and esito.get("vinto", false):
+		_aggiungi_al_deposito(tira_bottino("bottino"), "Zona Rossa: bottino della vittoria")
+	if esito.get("campo", false) and b.tipo != "invasione" and not b.get("zona_nera", false) and not b.get("niente_bottino", false):
+		var n := 1 + int(nem.get("speciali", {}).get("bottino_extra", 0))
 		for i in n:
 			_aggiungi_al_deposito(tira_bottino("bottino"), "bottino")
-	# 8. ferite
+	# 8. ferite (con i modificatori dei nemici: Raccapriccianti -5, Destino peggiore della morte)
+	var sp_nem: Dictionary = nem.get("speciali", {})
+	var nano := true
 	for id in esito.get("perdite", []):
 		var pg := trova(str(id))
 		if pg.is_empty() or pg.get("morto", false):
 			continue
-		ferisci(pg)
+		# Recluta speranzosa: la prima volta che cade perde per sempre la Fortuna
+		if Personaggio.bonus(pg, "perde_fortuna_prima_caduta", false) and not pg.get("speranza_persa", false):
+			pg["speranza_persa"] = true
+			pg["fortuna"] = 0
+			pg["fortuna_iniziale"] = 0
+			scrivi("%s ha perso l'innocenza: niente più Fortuna né XP bonus." % pg.nome)
+		# Nano-doc: evita un tiro sulle ferite (si usa sulla prima vittima)
+		if nano and _usa_dal_deposito("nano_doc"):
+			nano = false
+			scrivi("Il Nano-doc salva %s: nessun tiro sulle ferite." % pg.nome)
+			continue
+		ferisci(pg, int(sp_nem.get("ferite_mod", 0)), sp_nem.get("morte_definitiva", false))
 	# 9. esperienza
 	var xp: Dictionary = pb.get("esperienza", {}).get("tabella", {})
 	for id in esito.get("partecipanti", []):
@@ -1291,22 +1488,9 @@ func dopo_battaglia(esito: Dictionary) -> void:
 			morto = true
 	if morto and esito.get("campo", false):
 		applica({"punti_storia": 1}, {}, "un giorno amaro")
-	# traccia della storia
-	if s.storia.get("attiva", false) and not s.storia.get("in_corso", false):
-		var o := int(s.storia.orologio)
-		if esito.get("vinto", false):
-			o -= 1
-		else:
-			var t := dadi.d6()
-			o -= 0 if t == 1 else (2 if t == 6 else 1)
-		s["storia"]["orologio"] = max(0, o)
-		scrivi("Orologio della Storia: %d." % s.storia.orologio)
-	if s.storia.get("in_corso", false):
-		s["storia"]["in_corso"] = false
-		if esito.get("vinto", false):
-			s["storia"]["evento"] = int(s.storia.evento) + 1
-			s["storia"]["orologio"] = 5
-			scrivi("Evento della Storia completato.", "missione")
+	# traccia della storia: esiti dell'evento
+	if b.tipo == "storia":
+		_esiti_storia(esito)
 	s["fase"] = "acquisti"
 
 func _rivale(id: String) -> Dictionary:
@@ -1316,14 +1500,22 @@ func _rivale(id: String) -> Dictionary:
 	return {}
 
 ## Tiro sulla tabella delle ferite (o dei danni dei Bot) per un personaggio diventato vittima.
-func ferisci(pg: Dictionary) -> void:
+## mod: modificatore al tiro (Raccapriccianti -5); definitiva: la morte non si può evitare in nessun modo.
+func ferisci(pg: Dictionary, mod := 0, definitiva := false) -> void:
 	var pb: Dictionary = Dati.f("post_battaglia")
 	var bot := Personaggio.e_robot(pg) or bool(Personaggio.bonus(pg, "ferite_bot", false))
 	var tab: Dictionary = pb.get("ferite_bot" if bot else "ferite", {})
-	var r := dadi.su_tabella(tab)
+	var r := dadi.su_tabella(tab, mod)
 	var eff: Dictionary = r.riga.get("effetti", {}).duplicate(true)
-	scrivi("Ferite di %s (%d): %s - %s" % [pg.nome, r.tiro, r.riga.get("nome", ""), r.riga.get("testo", "")], "ferita")
-	if eff.get("morte", false) and int(pg.get("fortuna", 0)) > 0:
+	scrivi("Ferite di %s (%d%s): %s - %s" % [pg.nome, r.tiro, (" %+d" % mod) if mod != 0 else "", r.riga.get("nome", ""), r.riga.get("testo", "")], "ferita")
+	if eff.get("morte", false) and not definitiva and Personaggio.ha_oggetto(pg, "zampa_coniglio"):
+		for i in pg.oggetti.size():
+			if str(pg.oggetti[i].id) == "zampa_coniglio":
+				pg.oggetti.remove_at(i)
+				break
+		scrivi("La zampa di coniglio di %s si spezza: è salvo e non subisce ferite." % pg.nome)
+		return
+	if eff.get("morte", false) and int(pg.get("fortuna", 0)) > 0 and not definitiva:
 		scrivi("%s sopravvive miracolosamente, ma perde tutta la Fortuna." % pg.nome)
 		pg["fortuna"] = 0
 		eff.erase("morte")
@@ -1437,6 +1629,15 @@ func passo_eventi() -> void:
 			if pg.get("specie") in esclusi.map(func(x): return id_specie(str(x))):
 				scrivi("Evento del personaggio per %s: %s, ma non lo riguarda." % [pg.nome, r2.riga.get("nome", "")])
 			else:
+				if pg.has("oggetto_smarrito"):
+					var o: Dictionary = pg.oggetto_smarrito
+					pg.erase("oggetto_smarrito")
+					var t := dadi.d6() + int(pg.acume)
+					if t >= 5:
+						pg.oggetti.append(o)
+						scrivi("%s ritrova %s (%d)." % [pg.nome, Dati.nome_oggetto(str(o.id)), t])
+					else:
+						scrivi("%s non ritroverà mai più %s (%d)." % [pg.nome, Dati.nome_oggetto(str(o.id)), t])
 				scrivi("Evento del personaggio per %s (%d): %s - %s" % [pg.nome, r2.tiro, r2.riga.get("nome", ""), r2.riga.get("testo", "")], "evento")
 				applica(r2.riga.get("effetti", {}), pg, str(r2.riga.get("nome", "")))
 	# guerra galattica
@@ -1455,6 +1656,7 @@ func passo_eventi() -> void:
 	s["fase"] = "fine"
 
 func fine_turno() -> void:
+	_orologio_storia()
 	for p in vivi():
 		p["fortuna"] = max(int(p.get("fortuna", 0)), int(p.get("fortuna_iniziale", p.get("fortuna", 0))))
 	s["fase"] = "inizio_turno"
@@ -1462,3 +1664,689 @@ func fine_turno() -> void:
 ## Condizione di sconfitta della campagna: nessuno vivo.
 func finita() -> bool:
 	return vivi().is_empty()
+
+## ===================== voci speciali delle tabelle (prima «da applicare a mano») =====================
+
+## Voci che sostituiscono del tutto l'applicazione generica degli effetti (servono scelte o regole particolari).
+const SPECIALI_SOSTITUTIVI := ["Nave di pattuglia", "Chiuso di notte nell'archivio dati", "Ordigni", "Occasione per liberarsi di roba",
+	"Fai una nuova amicizia", "Possibile affare", "Mercante alieno", "Non ho un problema col gioco d'azzardo!", "Una brutta rissa",
+	"Il fisco si interessa a voi", "Dov'è finito?", "Non sei più la stessa persona", "Affari altrove", "Cibo e alcolici di qualità",
+	"Merci di scambio", "Pezzi di ricambio", "Mappe locali", "Qualcuno vuole far consegnare un pacco", "Questo posto è proprio carino",
+	"Ti offrono un lavoretto", "Ti offrono una ricompensa", "Assicurazione sanitaria", "Una vecchia nemesi vi ha trovato",
+	"Un nuovo capo", "Notati da chi era meglio evitare", "È ora di andarsene?", "Rissa con un compagno"]
+
+## Tratti del mondo che agiscono sul campo di battaglia (li applica la battaglia).
+const TRATTI_IN_BATTAGLIA := ["Vegetazione rigogliosa", "Zona di guerra", "Ghiacciato", "Cristalli"]
+
+## Gestisce una voce speciale. Restituisce true se l'ha applicata.
+func _speciale(fonte: String, eff: Dictionary, pg: Dictionary) -> bool:
+	if fonte in TRATTI_IN_BATTAGLIA or eff.has("terreno_extra") or eff.has("scivolata"):
+		return true
+	if eff.has("favore_rivale"):
+		s["flag"]["favore_rivale"] = true
+		scrivi("Il criminale vi deve un favore: al prossimo nuovo Rivale, con 4+ lo farà sparire.")
+		return true
+	if eff.has("se_scafo_danneggiato") or fonte == "Problemi di navigazione":
+		# Problemi di navigazione: si tira di nuovo sulla tabella; con lo scafo danneggiato un membro si ferisce
+		var nave: Dictionary = s.get("nave", {})
+		if not nave.is_empty() and int(nave.scafo) < int(nave.scafo_max):
+			var m := membro_casuale()
+			if not m.is_empty():
+				scrivi("Guasto al supporto vitale: %s tira sulla tabella delle ferite." % m.nome)
+				ferisci(m)
+		var ev := dadi.su_tabella(Dati.f("nave").get("eventi_viaggio", Dati.f("campagna").get("eventi_viaggio", {})))
+		scrivi("Nuovo evento di viaggio (%d): %s - %s" % [ev.tiro, ev.riga.get("nome", ""), ev.riga.get("testo", "")], "evento")
+		applica(ev.riga.get("effetti", {}), {}, str(ev.riga.get("nome", "")))
+		return true
+	if fonte == "Tienilo come regalo (+2 a un tiro per Reclutare)" or (fonte == "Ninnolo di lusso" and eff.size() == 1):
+		s["flag"]["regalo_reclutare"] = true
+		scrivi("Il ninnolo è messo da parte come regalo: +2 al prossimo tiro per Reclutare.")
+		return true
+	match fonte:
+		"Nave di pattuglia":
+			var n := 0
+			for i in 2:
+				n += max(0, dadi.tira("1d6-3"))
+			s["flag"]["mondo_non_invadibile"] = true
+			if n == 0:
+				scrivi("La pattuglia non trova nulla da confiscare. Il prossimo mondo non potrà essere invaso.")
+			else:
+				_confisca(n)
+		"Chiuso di notte nell'archivio dati":
+			s["flag"]["archivio_dati"] = true
+			scrivi("Al prossimo arrivo potrete scegliere tra tre mondi.")
+		"Ordigni":
+			s["scelte"].append({"testo": "Ordigni: quali granate?", "pg": pg.get("id", ""), "opzioni": [
+				{"testo": "3 granate Frakk", "effetti": {"aggiungi_oggetti": ["granata_frakk", "granata_frakk", "granata_frakk"]}},
+				{"testo": "2 Frakk e 1 Accecante", "effetti": {"aggiungi_oggetti": ["granata_frakk", "granata_frakk", "granata_accecante"]}},
+				{"testo": "1 Frakk e 2 Accecanti", "effetti": {"aggiungi_oggetti": ["granata_frakk", "granata_accecante", "granata_accecante"]}},
+				{"testo": "3 granate Accecanti", "effetti": {"aggiungi_oggetti": ["granata_accecante", "granata_accecante", "granata_accecante"]}}]})
+		"Occasione per liberarsi di roba":
+			var armi := []
+			for o in s.deposito:
+				if Dati.e_arma(str(o.id)) and not o.get("danneggiato", false):
+					armi.append(o)
+			if armi.is_empty():
+				scrivi("Non avete armi nel Deposito da vendere.")
+			else:
+				s["scelte"].append({"testo": "Occasione per liberarsi di roba", "pg": "", "opzioni": [
+					{"testo": "Vendi le %d armi del Deposito (2 crediti l'una)" % armi.size(), "effetti": {"vendi_armi_deposito": 2}},
+					{"testo": "Non vendere", "effetti": {}}]})
+		"Fai una nuova amicizia":
+			if not pg.is_empty() and str(pg.get("specie")) == "feral":
+				recluta(fonte, "feral")
+			else:
+				recluta(fonte)
+		"Possibile affare", "Mercante alieno":
+			var ops := []
+			for x in _oggetti_cedibili(pg, fonte == "Possibile affare"):
+				var e := {"rimuovi_oggetto": x.rif}
+				if fonte == "Possibile affare":
+					e["prova"] = {"stat": null, "dado": "1d6", "soglia": 6, "successo": {"oggetti": ["bottino"]}, "fallimento": {"crediti": 1}}
+				else:
+					e["oggetti"] = ["bottino"]
+				ops.append({"testo": "Cedi " + str(x.nome), "effetti": e})
+			if ops.is_empty():
+				scrivi("Non avete nulla da cedere.")
+			else:
+				ops.append({"testo": "Rinuncia", "effetti": {}})
+				s["scelte"].append({"testo": fonte, "pg": pg.get("id", ""), "opzioni": ops})
+		"Non ho un problema col gioco d'azzardo!", "Una brutta rissa":
+			if fonte == "Una brutta rissa" and not pg.is_empty():
+				var n := dadi.tira("1d3")
+				pg["infermeria"] = int(pg.get("infermeria", 0)) + n
+				scrivi("%s passa %d turni in Infermeria." % [pg.nome, n])
+			if fonte == "Non ho un problema col gioco d'azzardo!" and str(pg.get("specie", "")) == "soulless":
+				scrivi("%s non è interessato al gioco d'azzardo." % pg.nome)
+				return true
+			var ops := []
+			for x in _oggetti_cedibili(pg, false, fonte == "Una brutta rissa"):
+				ops.append({"testo": "Perdi " + str(x.nome), "effetti": {"rimuovi_oggetto": x.rif}})
+			if not ops.is_empty():
+				s["scelte"].append({"testo": fonte + ": quale oggetto si perde?", "pg": pg.get("id", ""), "opzioni": ops})
+		"Il fisco si interessa a voi":
+			var n: int = max(dadi.d6(), dadi.d6())
+			if int(s.crediti) >= n:
+				s["crediti"] = int(s.crediti) - n
+				scrivi("Il fisco vi prende %d crediti." % n)
+			else:
+				var resto: int = n - int(s.crediti)
+				s["crediti"] = 0
+				s["fisco_da_pagare"] = int(s.get("fisco_da_pagare", 0)) + resto
+				scrivi("Non avete abbastanza crediti: la nave è sequestrata finché non pagate altri %d crediti." % resto, "pericolo")
+		"Dov'è finito?":
+			if not pg.is_empty() and not pg.get("oggetti", []).is_empty():
+				var i := dadi.d(pg.oggetti.size()) - 1
+				var o: Dictionary = pg.oggetti[i]
+				pg.oggetti.remove_at(i)
+				pg["oggetto_smarrito"] = o
+				scrivi("%s non trova più %s: forse ricomparirà." % [pg.nome, Dati.nome_oggetto(str(o.id))])
+		"Non sei più la stessa persona":
+			_cambia_motivazione(pg)
+		"Affari altrove":
+			if not pg.is_empty():
+				pg["assente"] = true
+				pg["assente_turni"] = 2
+				pg["affari_altrove"] = true
+				scrivi("%s parte per affari: tornerà tra due turni." % pg.nome)
+		"Cibo e alcolici di qualità":
+			recluta("Cibo e alcolici di qualità")
+		"Merci di scambio":
+			s["merci_scambio"] = int(s.get("merci_scambio", 0)) + 1
+			scrivi("Merci di scambio a bordo: le venderete all'arrivo su un mondo che le paga bene.")
+		"Pezzi di ricambio":
+			_aggiungi_al_deposito({"id": "pezzi_ricambio"}, fonte)
+		"Mappe locali":
+			s["flag"]["mappe_locali"] = int(s.get("mondi_visitati", 0))
+			scrivi("Con le mappe locali, una Missione ottenuta qui o sul prossimo mondo darà subito una Diceria in più.")
+		"Qualcuno vuole far consegnare un pacco":
+			if not pg.is_empty():
+				pg["pacco"] = true
+				scrivi("%s porterà un pacco al prossimo mondo." % pg.nome)
+		"Questo posto è proprio carino":
+			if not pg.is_empty():
+				pg["vuole_restare"] = true
+				scrivi("%s si è affezionato a questo mondo." % pg.nome)
+		"Ti offrono un lavoretto":
+			s["bonus_battaglia"] = s.get("bonus_battaglia", {})
+			s["bonus_battaglia"]["taglia"] = 2
+			scrivi("In battaglia, in questo turno, un nemico a caso vale 2 crediti se ucciso.")
+		"Ti offrono una ricompensa":
+			s["bonus_battaglia"] = s.get("bonus_battaglia", {})
+			s["bonus_battaglia"]["ricompensa"] = 2
+			scrivi("In battaglia, in questo turno, un pacco nascosto in un elemento di terreno vale 2 crediti.")
+		"Assicurazione sanitaria":
+			var restano := 2
+			var feriti := vivi().filter(func(p): return int(p.get("infermeria", 0)) > 0)
+			feriti.sort_custom(func(a, b): return int(a.infermeria) > int(b.infermeria))
+			for p in feriti:
+				while restano > 0 and int(p.infermeria) > 0:
+					p["infermeria"] = int(p.infermeria) - 1
+					restano -= 1
+				scrivi("Assicurazione sanitaria: %s ora ha %d turni di recupero." % [p.nome, int(p.infermeria)])
+		"Una vecchia nemesi vi ha trovato":
+			if s.rivali.is_empty():
+				aggiungi_rivale(fonte)
+			var r: Dictionary = dadi.scegli(s.rivali)
+			r["nemesi"] = true
+			scrivi("%s diventa la vostra nemesi: vi seguirà ovunque, con +1 nemico in battaglia." % r.nome, "rivale")
+		"Un nuovo capo":
+			var ops := []
+			var kerin := vivi().filter(func(p): return str(p.specie) == "kerin" and not p.get("leader", false))
+			for p in vivi():
+				if p.get("leader", false):
+					continue
+				ops.append({"testo": "Nuovo capitano: " + str(p.nome) + ("" if kerin.is_empty() or str(p.specie) == "kerin" else " (i K'Erin se ne andranno)"), "effetti": {"nuovo_capo": str(p.id)}})
+			if not ops.is_empty():
+				s["scelte"].append({"testo": "Un nuovo capo", "pg": "", "opzioni": ops})
+		"Notati da chi era meglio evitare":
+			aggiungi_rivale(fonte)
+			if not s.missione.is_empty():
+				s["flag"]["rivale_attacca"] = s.rivali[s.rivali.size() - 1].id
+				scrivi("Siete in una Missione: al prossimo turno il nuovo Rivale vi attaccherà, con un nemico in più.", "pericolo")
+		"È ora di andarsene?":
+			if not pg.is_empty() and int(pg.get("infermeria", 0)) > 0:
+				var t := dadi.d6()
+				if t <= int(pg.infermeria):
+					scrivi("%s (%d) decide di lasciare l'equipaggio." % [pg.nome, t], "morte")
+					_lascia(pg, false)
+				else:
+					scrivi("%s (%d) resta con voi." % [pg.nome, t])
+			elif not pg.is_empty():
+				scrivi("%s non è in Infermeria: nessun effetto." % pg.nome)
+		"Rissa con un compagno":
+			_rissa_compagno(pg)
+		_:
+			return false
+	return true
+
+## Oggetti che il personaggio (o il Deposito) può cedere: [{rif: {pg, i} o {dep, i}, nome}].
+func _oggetti_cedibili(pg: Dictionary, solo_armi := false, solo_personaggio := false) -> Array:
+	var r := []
+	if not pg.is_empty():
+		for i in pg.get("oggetti", []).size():
+			var id := str(pg.oggetti[i].id)
+			if solo_armi and not Dati.e_arma(id):
+				continue
+			r.append({"rif": {"pg": str(pg.id), "i": i, "id": id}, "nome": Dati.nome_oggetto(id) + " (" + str(pg.nome) + ")"})
+	if not solo_personaggio:
+		for i in s.deposito.size():
+			var id := str(s.deposito[i].get("id", ""))
+			if id == "" or (solo_armi and not Dati.e_arma(id)):
+				continue
+			r.append({"rif": {"dep": true, "i": i, "id": id}, "nome": Dati.nome_oggetto(id) + " (Deposito)"})
+	return r.slice(0, 10)
+
+func _rimuovi_rif(rif: Dictionary) -> void:
+	var lista: Array = s.deposito if rif.get("dep", false) else trova(str(rif.get("pg", ""))).get("oggetti", [])
+	for i in lista.size():
+		if str(lista[i].get("id", "")) == str(rif.id):
+			scrivi("Ceduto: %s." % Dati.nome_oggetto(str(rif.id)))
+			lista.remove_at(i)
+			return
+
+## Nave di pattuglia: si confiscano n oggetti, prima dal Deposito (i meno preziosi), poi dall'equipaggio.
+func _confisca(n: int) -> void:
+	for i in n:
+		if not s.deposito.is_empty():
+			var o: Dictionary = s.deposito.pop_back()
+			scrivi("Confiscato dal Deposito: %s." % Dati.nome_oggetto(str(o.get("id", "?"))))
+			continue
+		var m := membro_casuale()
+		if m.is_empty() or m.get("oggetti", []).is_empty():
+			break
+		var j := dadi.d(m.oggetti.size()) - 1
+		scrivi("Confiscato a %s: %s." % [m.nome, Dati.nome_oggetto(str(m.oggetti[j].id))])
+		m.oggetti.remove_at(j)
+	scrivi("Il prossimo mondo non potrà essere invaso (presenza militare).")
+
+func _cambia_motivazione(pg: Dictionary) -> void:
+	if pg.is_empty():
+		return
+	var tab: Dictionary = Dati.f("creazione").get("motivazione", {})
+	var r := dadi.su_tabella(tab)
+	var nome := str(r.riga.get("nome", ""))
+	if nome == str(pg.get("motivazione", "")):
+		scrivi("%s ritrova la propria motivazione (%s) ed è più sicuro di sé." % [pg.nome, nome])
+		applica({"punti_storia": 1}, {}, "Non sei più la stessa persona")
+		return
+	pg["motivazione"] = nome
+	var xp := 0
+	for v in r.riga.get("effetti", {}).get("stat", {}).values():
+		xp += max(0, int(v))
+	scrivi("%s cambia motivazione: ora %s.%s" % [pg.nome, nome, (" +%d XP." % xp) if xp > 0 else ""])
+	if xp > 0:
+		Personaggio.modifica_stat(pg, "xp", xp)
+
+func _rissa_compagno(pg: Dictionary) -> void:
+	if pg.is_empty():
+		return
+	var altri := vivi().filter(func(p): return p.id != pg.id and not p.get("assente", false))
+	if altri.is_empty():
+		return
+	var kerin := altri.filter(func(p): return str(p.specie) == "kerin")
+	var avv: Dictionary = dadi.scegli(kerin if not kerin.is_empty() and str(pg.specie) != "kerin" else altri)
+	if Personaggio.bonus(pg, "lascia_se_lite_equipaggio", false) or Personaggio.bonus(avv, "lascia_se_lite_equipaggio", false):
+		var f: Dictionary = pg if Personaggio.bonus(pg, "lascia_se_lite_equipaggio", false) else avv
+		scrivi("%s ha un crollo emotivo e lascia l'equipaggio per sempre." % f.nome, "morte")
+		_lascia(f, false)
+		return
+	if Personaggio.bonus(pg, "ignora_eventi_lite", false):
+		scrivi("%s ignora la provocazione." % pg.nome)
+		return
+	var a := dadi.d6() + int(pg.combattimento)
+	var b := dadi.d6() + int(avv.combattimento)
+	scrivi("Rissa tra %s (%d) e %s (%d)." % [pg.nome, a, avv.nome, b])
+	for p in ([pg] if a < b else ([avv] if b < a else [pg, avv])):
+		p["infermeria"] = int(p.get("infermeria", 0)) + 1
+		scrivi("%s passa un turno in Infermeria." % p.nome)
+
+## Un personaggio lascia l'equipaggio (porta con sé il proprio equipaggiamento se porta_via).
+func _lascia(pg: Dictionary, lascia_oggetti := true) -> void:
+	if lascia_oggetti:
+		for o in pg.get("oggetti", []):
+			s.deposito.append(o)
+	s["equipaggio"] = s.equipaggio.filter(func(p): return p.id != pg.id)
+	if pg.get("leader", false):
+		var v := vivi()
+		if not v.is_empty():
+			v[0]["leader"] = true
+
+## Arrivo su un mondo: pacchi, merci di scambio, favori.
+func _effetti_arrivo() -> void:
+	s["mondi_visitati"] = int(s.get("mondi_visitati", 0)) + 1
+	_rivali_nemesi_arrivo()
+	for p in vivi():
+		if p.get("pacco", false):
+			p.erase("pacco")
+			scrivi("%s consegna il pacco: 3 crediti." % p.nome)
+			applica({"crediti": 3}, {}, "pacco consegnato")
+			if dadi.d6() <= 2:
+				applica({"rivale": 1, "punti_storia": 1}, {}, "il pacco era scottante")
+	if int(s.get("merci_scambio", 0)) > 0:
+		var t := dadi.d6()
+		if t == 1:
+			scrivi("Le merci di scambio si sono deteriorate: non valgono più nulla.")
+			s["merci_scambio"] = int(s.merci_scambio) - 1
+		elif t >= 4:
+			scrivi("Le merci di scambio qui valgono %d crediti: vendute." % t)
+			s["crediti"] = int(s.crediti) + t
+			s["merci_scambio"] = int(s.merci_scambio) - 1
+		else:
+			scrivi("Qui le merci di scambio valgono solo %d crediti: le tenete per il prossimo mondo." % t)
+
+## Partenza da un mondo: chi vuole restare.
+func _effetti_partenza() -> void:
+	if s.mondo.get("invaso", false) or s.mondo.get("invasione_imminente", false):
+		return
+	for p in vivi():
+		if p.get("vuole_restare", false):
+			p.erase("vuole_restare")
+			if int(s.punti_storia) >= 1:
+				s["punti_storia"] = int(s.punti_storia) - 1
+				scrivi("Spendete 1 punto Storia per convincere %s a ripartire." % p.nome)
+			else:
+				scrivi("%s decide di restare su %s; il suo equipaggiamento resta a voi." % [p.nome, s.mondo.nome], "morte")
+				_lascia(p, true)
+
+## Usa (e toglie) un oggetto monouso dal Deposito o dall'equipaggio. Restituisce true se c'era.
+func _usa_dal_deposito(id: String) -> bool:
+	for i in s.deposito.size():
+		if str(s.deposito[i].get("id", "")) == id:
+			s.deposito.remove_at(i)
+			return true
+	for p in vivi():
+		for i in p.get("oggetti", []).size():
+			if str(p.oggetti[i].id) == id:
+				p.oggetti.remove_at(i)
+				return true
+	return false
+
+## Effetti della battaglia sulla campagna: oggetti consumati, guadagni sul campo, regole speciali dei nemici.
+func _esito_battaglia(esito: Dictionary, nem: Dictionary) -> void:
+	# consumabili e armi monouso usati in battaglia
+	for pid in esito.get("monouso_usati", {}):
+		var pg := trova(str(pid))
+		if pg.is_empty():
+			continue
+		for id in esito.monouso_usati[pid]:
+			var a := Dati.arma(str(id))
+			var o := Dati.oggetto(str(id))
+			var consumato: bool = "monouso" in a.get("tratti", []) or o.get("effetto", {}).has("consumabile") or o.get("effetto", {}).get("monouso", false)
+			if not consumato:
+				continue
+			for i in pg.oggetti.size():
+				if str(pg.oggetti[i].id) == str(id):
+					var usi := int(pg.oggetti[i].get("usi", 1))
+					if usi > 1:
+						pg.oggetti[i]["usi"] = usi - 1
+					else:
+						pg.oggetti.remove_at(i)
+					scrivi("%s ha consumato: %s." % [pg.nome, Dati.nome_oggetto(str(id))])
+					break
+	var g: Dictionary = esito.get("guadagni", {})
+	if int(g.get("crediti", 0)) > 0:
+		s["crediti"] = int(s.crediti) + int(g.crediti)
+		scrivi("Raccolti sul campo: %d crediti." % int(g.crediti))
+	for i in int(g.get("bottino", 0)):
+		_aggiungi_al_deposito(tira_bottino("bottino"), "trovato in battaglia")
+	if str(g.get("rivale", "")) != "":
+		aggiungi_rivale("la spia aziendale è stata uccisa", "sicurezza_aziendale")
+	for x in g.get("danneggiati", []):
+		var chi := trova(str(x[0]))
+		for p in ([chi] if not chi.is_empty() else vivi()):
+			for o in p.get("oggetti", []):
+				if str(o.id) == str(x[1]) and not o.get("danneggiato", false):
+					o["danneggiato"] = true
+					scrivi("%s: %s danneggiato." % [p.nome, Dati.nome_oggetto(str(o.id))])
+					break
+	for t in g.get("note", []):
+		scrivi(str(t))
+	var sp: Dictionary = nem.get("speciali", {})
+	# Scontro duro: un sopravvissuto casuale +1 XP
+	if int(sp.get("xp_casuale", 0)) > 0:
+		var vivi_b := []
+		for pid in esito.get("partecipanti", []):
+			if not pid in esito.get("perdite", []) and not trova(str(pid)).is_empty():
+				vivi_b.append(trova(str(pid)))
+		if not vivi_b.is_empty():
+			var p: Dictionary = dadi.scegli(vivi_b)
+			Personaggio.modifica_stat(p, "xp", int(sp.xp_casuale))
+			scrivi("Scontro duro: %s guadagna %d XP." % [p.nome, int(sp.xp_casuale)])
+	# Intrigo: 2D6 (+1 per Luogotenente o Individuo Unico uccisi), 9+ Diceria di Missione
+	if sp.has("intrigo"):
+		var t := dadi.tira("2d6") + (1 if esito.get("luogotenente_ucciso", false) or str(esito.get("unico_ucciso", "")) != "" else 0)
+		scrivi("Intrigo: %d (serve 9+)." % t)
+		if t >= 9:
+			applica({"dicerie": 1}, {}, "intrigo")
+	# Recluta speranzosa: +1 XP se non è caduta
+	for pid in esito.get("partecipanti", []):
+		var p := trova(str(pid))
+		if p.is_empty():
+			continue
+		if Personaggio.bonus(p, "xp_bonus_se_illeso", 0) and not pid in esito.get("perdite", []) and not p.get("speranza_persa", false):
+			Personaggio.modifica_stat(p, "xp", 1)
+			scrivi("%s, ancora pieno di speranza: +1 XP." % p.nome)
+	# Viaggiatore: dopo ogni battaglia 2D6 (2 sparisce, 11-12 Missione)
+	for p in vivi():
+		var tp = Personaggio.bonus(p, "tiro_post_battaglia", {})
+		if tp is Dictionary and not tp.is_empty():
+			var t := dadi.tira("2d6")
+			if t <= int(tp.get("scompare_a", 2)):
+				scrivi("%s scompare senza lasciare traccia (%d). Restano solo strane sensazioni." % [p.nome, t], "morte")
+				_lascia(p, true)
+				applica({"punti_storia": int(tp.get("scompare_punti_storia", 2))}, {}, "il Viaggiatore")
+			elif t >= int(tp.get("missione_da", 11)):
+				scrivi("Il Viaggiatore conosce una strada (%d): ricevete una Missione." % t, "missione")
+				if s.missione.is_empty():
+					s["missione"] = {"attiva": true, "finale": false, "inizio": int(s.turno)}
+	# Zona Rossa: tenendo il campo +1 XP a ogni sopravvissuto
+	if s.battaglia.get("zona_rossa", false) and esito.get("campo", false):
+		for pid in esito.get("partecipanti", []):
+			var p := trova(str(pid))
+			if not p.is_empty() and not pid in esito.get("perdite", []):
+				Personaggio.modifica_stat(p, "xp", 1)
+		scrivi("Zona Rossa: +1 XP a ogni sopravvissuto.")
+
+## ===================== Zona Nera (Appendice III) =====================
+
+## Vantaggi del Lavoro Nero, appena lo si accetta: niente Mantenimento (si rimborsa), il debito non cresce, tre armi.
+func accetta_lavoro_nero() -> void:
+	var rimborso := int(s.get("ultimo_mantenimento", 0))
+	if rimborso > 0:
+		s["crediti"] = int(s.crediti) + rimborso
+		scrivi("Lavoro Nero: il Mantenimento di questo turno è coperto dall'Unità (%d crediti restituiti)." % rimborso)
+	var interesse := int(s.get("ultimo_interesse", 0))
+	if interesse > 0 and not s.nave.is_empty():
+		s["nave"]["debito"] = max(0, int(s.nave.debito) - interesse)
+		scrivi("Lavoro Nero: il debito della nave non aumenta in questo turno.")
+	for i in 3:
+		_aggiungi_al_deposito(tira_bottino("categoria_armi"), "dotazione dell'Unità")
+
+func _esito_zona_nera(esito: Dictionary) -> void:
+	var bz: Dictionary = Dati.f("zone").get("black_zone", {}).get("ricompense", {})
+	if esito.get("vinto", false):
+		scrivi("LAVORO NERO COMPIUTO: l'Unità ricompensa l'equipaggio.", "missione")
+		s["rivali"] = []
+		scrivi("Tutti i Rivali sono cancellati: nessuno osa attaccare gli amici dell'Unità.")
+		for i in 2:
+			aggiungi_patrono("Unità")
+			s.patroni[s.patroni.size() - 1]["persistente"] = true
+		s["crediti"] = int(s.crediti) + 5
+		if not s.nave.is_empty() and int(s.nave.get("debito", 0)) > 0:
+			s["nave"]["debito"] = max(0, int(s.nave.debito) - 5)
+			scrivi("L'Unità paga 5 crediti del debito della nave.")
+		for i in 3:
+			_aggiungi_al_deposito(tira_bottino("bottino"), "Lavoro Nero")
+		for p in vivi():
+			Personaggio.modifica_stat(p, "xp", 1)
+		scrivi("+5 crediti, 3 tiri sul Bottino, +1 XP a tutto l'equipaggio.")
+	else:
+		var n: int = esito.get("perdite", []).size()
+		s["crediti"] = int(s.crediti) + n
+		scrivi("Lavoro Nero fallito: l'Unità paga %d crediti (1 per vittima)." % n)
+
+## ===================== Traccia della Storia (Appendice V) =====================
+
+## Evento della storia pronto da giocare in questo turno (o {}).
+func evento_storia_pronto() -> Dictionary:
+	var st: Dictionary = s.get("storia", {})
+	if not st.get("attiva", false):
+		return {}
+	var ev: Array = Dati.f("storia").get("eventi", [])
+	var n := int(st.get("evento", 0))
+	if n >= ev.size():
+		return {}
+	if int(st.get("orologio", 5)) > 0:
+		return {}
+	if st.get("richiede_viaggio", false):
+		return {}
+	if str(ev[n].get("id", "")) == "stiamo_arrivando" and not st.get("trovato", false):
+		return {}
+	return ev[n]
+
+## Vale un effetto del turno dell'evento della storia in arrivo?
+func effetto_turno_storia(chiave: String) -> bool:
+	var ev := evento_storia_pronto()
+	return not ev.is_empty() and ev.get("turno_campagna", {}).get("effetti", {}).get(chiave, false)
+
+## Battaglia dell'evento della storia (niente condizioni di schieramento né luoghi notevoli).
+func prepara_battaglia_storia() -> Dictionary:
+	var ev := evento_storia_pronto()
+	if ev.is_empty():
+		ev = Dati.f("storia").get("eventi", [])[int(s.storia.evento)]
+	var bt: Dictionary = ev.get("battaglia", {})
+	var b := {"tipo": "storia", "obiettivo": "respingere", "nemico": "", "categoria": "", "condizione": {}, "luogo": {},
+		"zona_rossa": false, "rivale": "", "unici": [], "numero": 0, "storia": str(ev.id), "nome_storia": str(ev.nome), "battaglia_storia": bt}
+	match str(ev.id):
+		"sventato":
+			b.nemico = "sicari"
+			b["niente_controllo_rivali"] = true
+		"sulle_tracce":
+			b.nemico = "mercenari_tempesta_sangue"
+			b.numero = max(4, numero_nemici(Dati.nemico(b.nemico), b))
+		"sabotare_il_piano":
+			b.obiettivo = "sabotare"
+			b.nemico = "scagnozzi"
+			var f: Dictionary = s.get("flag", {})
+			b["mod_iniziativa"] = 3 if f.get("mercenario_catturato", false) else (2 if f.get("vinto_evento_2", false) else 0)
+		"contrattacco_nemico":
+			b.nemico = _nemico_casuale("forza_mercenaria")
+			b.numero = numero_nemici(Dati.nemico(b.nemico), b)
+			b["nemico2"] = _nemico_casuale("forza_mercenaria")
+			b["numero2"] = numero_nemici(Dati.nemico(b.nemico2), b)
+			b["niente_controllo_rivali"] = true
+			var men := []
+			for p in vivi():
+				if int(p.get("infermeria", 0)) > 0 and not p.get("assente", false):
+					men.append(p)
+			b["menomati_pg"] = men
+		"rapimento":
+			b.obiettivo = "indizi"
+			b.nemico = "robot_guerra"
+			b["niente_paga"] = true
+			b["niente_bottino"] = true
+			b["ritrovamenti_forzati"] = 1
+		"stiamo_arrivando":
+			b.obiettivo = "liberare"
+			b.nemico = _nemico_casuale("forza_mercenaria")
+			b.numero = 5 + int(Dati.nemico(b.nemico).get("numeri", 0))
+			b["rinforzi_preparati"] = max(0, int(s.storia.get("turni_ricerca", 0)) - 3)
+		"regolamento_conti":
+			b.obiettivo = "nemesi"
+			b.nemico = "sentinelle"
+			b["niente_controllo_rivali"] = true
+			b["niente_paga"] = true
+	b["descrizione"] = "Evento della Storia: %s. %s" % [ev.nome, str(bt.get("obiettivo", ""))]
+	s["battaglia"] = b
+	s["fase"] = "battaglia"
+	s["storia"]["in_corso"] = true
+	scrivi("Evento della Storia: %s. %s" % [ev.get("nome", ""), str(ev.get("testo", ""))], "missione")
+	return b
+
+## Esiti dell'evento della storia, poi l'orologio per il prossimo.
+func _esiti_storia(esito: Dictionary) -> void:
+	var ev: Dictionary = Dati.f("storia").get("eventi", [])[int(s.storia.evento)]
+	var es: Dictionary = ev.get("esiti", {})
+	var vinto: bool = esito.get("vinto", false)
+	var campo: bool = esito.get("campo", false)
+	scrivi("Esito dell'evento della Storia: " + str(es.get("testo", "")), "missione")
+	match str(ev.id):
+		"sventato":
+			if not campo:
+				applica({"rivale": 1}, {}, "incastrati dalla corporazione")
+			if int(esito.get("nemici_uccisi", 0)) >= 1 and not campo:
+				_aggiungi_al_deposito(tira_bottino("bottino"), "Sventato!")
+		"sulle_tracce":
+			if vinto:
+				s["flag"]["vinto_evento_2"] = true
+			if esito.get("catturato", false):
+				s["flag"]["mercenario_catturato"] = true
+				applica({"punti_storia": 1}, {}, "interrogatorio del mercenario")
+		"sabotare_il_piano":
+			if vinto:
+				_aggiungi_al_deposito(tira_bottino("bottino"), "frugando nel sito")
+		"contrattacco_nemico":
+			if not campo:
+				applica({"scafo": "-1d6-10"}, {}, "la nave viene colpita")
+			else:
+				for pid in esito.get("partecipanti", []):
+					var p := trova(str(pid))
+					if not p.is_empty() and not pid in esito.get("perdite", []):
+						Personaggio.modifica_stat(p, "xp", 1)
+				if not s.rivali.is_empty():
+					var r = s.rivali.pop_front()
+					scrivi("Grazie alla reputazione il Rivale %s vi lascia in pace." % r.get("nome", "?"))
+		"rapimento":
+			s["storia"]["indizi"] = int(s.storia.get("indizi", 0)) + int(esito.get("indizi", 0))
+			s["storia"]["turni_ricerca"] = 0
+			s["storia"]["trovato"] = false
+			s["flag"]["mantenimento_gratis"] = true
+			scrivi("Indizi raccolti: %d." % int(s.storia.indizi))
+		"stiamo_arrivando":
+			if vinto and esito.get("compagno_vivo", true):
+				var pg := Personaggio.da_specie("umano", "Vecchio compagno")
+				pg["oggetti"] = [{"id": "pistola"}]
+				pg["niente_mantenimento"] = true
+				pg["compagno_storia"] = true
+				s["equipaggio"].append(pg)
+				scrivi("Il vecchio compagno si unisce a voi per la battaglia finale (non conta per il Mantenimento).", "recluta")
+			elif not vinto:
+				s["flag"]["compagno_portato_via"] = true
+		"regolamento_conti":
+			_finale_storia(vinto)
+			s["storia"]["evento"] = int(s.storia.evento) + 1
+			s["storia"]["in_corso"] = false
+			return
+	var pr: Dictionary = ev.get("prossimo", {})
+	s["storia"]["evento"] = int(s.storia.evento) + 1
+	s["storia"]["in_corso"] = false
+	s["storia"]["turno_evento"] = int(s.turno)
+	if pr.get("orologio") != null:
+		s["storia"]["orologio"] = int(pr.orologio)
+		scrivi("Orologio della Storia impostato a %d Tick." % int(pr.orologio))
+	else:
+		s["storia"]["orologio"] = 0
+	if pr.get("richiede_viaggio_nuovo_mondo", false):
+		s["storia"]["richiede_viaggio"] = true
+
+func _finale_storia(vinto: bool) -> void:
+	var f: Dictionary = Dati.f("storia").get("finale", {}).get("vittoria" if vinto else "sconfitta", {})
+	scrivi("%s: %s" % [f.get("nome", ""), f.get("testo", "")], "missione")
+	for p in vivi():
+		Personaggio.modifica_stat(p, "xp", 1)
+	if vinto:
+		applica({"punti_storia": 3, "crediti": "1d6+2"}, {}, "finale della Storia")
+		for i in 2:
+			var r := dadi.su_tabella(Dati.f("post_battaglia").get("ritrovamenti", {}))
+			scrivi("Ritrovamenti (%d): %s" % [r.tiro, r.riga.get("nome", "")])
+			applica(r.riga.get("effetti", {}), {}, str(r.riga.get("nome", "")))
+		for i in 3:
+			_aggiungi_al_deposito(tira_bottino("bottino"), "nascondiglio della nemesi")
+		if not s.rivali.is_empty():
+			var r = s.rivali.pop_front()
+			scrivi("Ora siete noti come chi salda i debiti: il Rivale %s sparisce." % r.get("nome", "?"))
+		else:
+			s["flag"]["favore_rivale"] = true
+		for p in vivi():
+			if p.get("compagno_storia", false):
+				scrivi("Il vecchio compagno resta con voi per sempre (non conta per il Mantenimento).")
+		if s.flag.get("compagno_portato_via", false):
+			var pg := Personaggio.da_specie("umano", "Vecchio compagno")
+			pg["niente_mantenimento"] = true
+			s["equipaggio"].append(pg)
+			scrivi("Nel nascondiglio ritrovate il vecchio compagno, che si unisce a voi.", "recluta")
+	else:
+		applica({"punti_storia": 1}, {}, "finale della Storia")
+		s["rivali_prossimi_mondi"] = 3
+		for p in vivi():
+			if p.get("compagno_storia", false):
+				if dadi.d6() >= 4:
+					p.erase("niente_mantenimento")
+					scrivi("Il vecchio compagno resta con voi come membro normale (conta per il Mantenimento).")
+				else:
+					scrivi("Il vecchio compagno se ne va.", "morte")
+					_lascia(p, false)
+	s["storia"]["attiva"] = false
+
+## Fine del turno: l'Orologio della Storia (non scende nei turni con un Evento).
+func _orologio_storia() -> void:
+	var st: Dictionary = s.get("storia", {})
+	if not st.get("attiva", false) or int(st.get("turno_evento", -1)) == int(s.turno):
+		return
+	if int(st.get("evento", 0)) >= Dati.f("storia").get("eventi", []).size():
+		return
+	var o := int(st.get("orologio", 5))
+	if s.get("esito", {}).get("vinto", false):
+		o -= 1
+	else:
+		var t := dadi.d6()
+		o -= 0 if t == 1 else (2 if t == 6 else 1)
+	st["orologio"] = o
+	scrivi("Orologio della Storia: %d Tick%s." % [max(0, o), " - il prossimo Evento avverrà nel turno seguente" if o <= 0 else ""])
+
+## Inizio del turno: ricerca del prigioniero dopo il rapimento, viaggio richiesto, Rivali della nemesi.
+func _ricerca_storia() -> void:
+	var st: Dictionary = s.get("storia", {})
+	if st.get("richiede_viaggio", false) and int(s.get("mondi_visitati", 0)) > int(st.get("mondi_al_evento", -1)):
+		if not st.has("mondi_al_evento"):
+			st["mondi_al_evento"] = int(s.get("mondi_visitati", 0))
+		elif int(s.get("mondi_visitati", 0)) > int(st.mondi_al_evento):
+			st.erase("richiede_viaggio")
+			st.erase("mondi_al_evento")
+	if st.get("attiva", false) and int(st.get("evento", 0)) == 5 and not st.get("trovato", false):
+		st["turni_ricerca"] = int(st.get("turni_ricerca", 0)) + 1
+		var t := dadi.d6() + int(st.get("indizi", 0))
+		if t >= 7:
+			st["trovato"] = true
+			st["orologio"] = 0
+			scrivi("Ricerca del vecchio compagno: %d. Avete scoperto dove lo tengono!" % t, "missione")
+		else:
+			st["indizi"] = int(st.get("indizi", 0)) + 1
+			scrivi("Ricerca del vecchio compagno: %d. Ancora niente, ma trovate un nuovo Indizio." % t)
+
+## Dopo la sconfitta nella storia, un Rivale su ciascuno dei prossimi tre mondi.
+func _rivali_nemesi_arrivo() -> void:
+	if int(s.get("rivali_prossimi_mondi", 0)) > 0:
+		s["rivali_prossimi_mondi"] = int(s.rivali_prossimi_mondi) - 1
+		aggiungi_rivale("Q'Narr vi tormenta da lontano")
