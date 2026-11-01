@@ -753,10 +753,12 @@ func _disco(r: float) -> ArrayMesh:
 func _crea_pedina(u: Dictionary) -> Dictionary:
 	var nodo := Node3D.new()
 	n_figure.add_child(nodo)
-	var nem: bool = u.lato != Battaglia.EQ and u.lato != "prigioniero"
+	var nem: bool = u.lato != Battaglia.EQ and u.lato != "prigioniero" and u.lato != Battaglia.NEU
 	var bordo := UI.ROSSO if nem else UI.AMBRA
 	if u.lato == Battaglia.MOSTRI:
 		bordo = Color(0.6, 0.9, 0.3)
+	elif u.lato == Battaglia.NEU:
+		bordo = Color(0.72, 0.80, 0.90)
 	# base rotonda del colore della fazione
 	var cil := CylinderMesh.new()
 	cil.top_radius = R_PEDINA

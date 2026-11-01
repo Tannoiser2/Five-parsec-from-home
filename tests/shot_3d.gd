@@ -61,4 +61,23 @@ func _run() -> void:
 	for i in 9:
 		await process_frame
 	await _salva("2d_vista")
+	t2.queue_free()
+	# civili neutrali sul campo (2D e 3D)
+	var b3 := Battaglia.new(5)
+	b3.prepara({"tipo": "opportunita", "obiettivo": "respingere", "nemico": "predoni", "numero": 4, "unici": [], "condizione": {}, "luogo": {},
+		"neutrali": ["passante", "bottegaio", "robot_servizio"]}, pgs, 24, {"eventi_battaglia": false})
+	var t3 = load("res://scripts/ui/tavolo.gd").new()
+	t3.b = b3
+	t3.size = Vector2(1000, 1000)
+	root.add_child(t3)
+	t3._calcola()
+	await _salva("2d_neutrali")
+	t3.queue_free()
+	var t4 = load("res://scripts/ui/tavolo3d.gd").new()
+	t4.b = b3
+	t4.size = Vector2(1600, 1000)
+	root.add_child(t4)
+	for i in 10:
+		await process_frame
+	await _salva("3d_neutrali")
 	quit()

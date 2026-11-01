@@ -46,7 +46,7 @@ func _ready() -> void:
 	diario.add_theme_font_size_override("normal_font_size", 17)
 	diario.add_theme_font_size_override("bold_font_size", 18)
 	schede.add_child(diario)
-	for n in ["Nave", "Deposito", "Contatti", "Mondo"]:
+	for n in ["Storia", "Nave", "Deposito", "Contatti", "Mondo"]:
 		var s := ScrollContainer.new()
 		s.name = n
 		s.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
@@ -218,6 +218,7 @@ func _diario() -> void:
 	diario.text = t
 
 func _schede() -> void:
+	_scheda_storia(schede.get_node("Storia").get_child(0))
 	var nv: VBoxContainer = schede.get_node("Nave").get_child(0)
 	UI.svuota(nv)
 	var n: Dictionary = c.s.nave
@@ -315,7 +316,10 @@ func _passo() -> void:
 	var f := str(c.s.fase)
 	if c.finita():
 		centro.add_child(UI.titolo("La campagna è finita", 34))
-		centro.add_child(UI.etichetta("Non resta nessuno dell'equipaggio. Le loro storie restano nel diario.", 20))
+		if c.s.get("vittoria", {}).get("conclusa", false):
+			centro.add_child(UI.etichetta("L'equipaggio ha raggiunto la sua condizione di vittoria: «%s». Ranghi d'élite: %d. Valgono per le prossime campagne." % [c.progresso_vittoria().get("nome", ""), RanghiElite.ranghi()], 20, UI.AMBRA))
+		else:
+			centro.add_child(UI.etichetta("Non resta nessuno dell'equipaggio. Le loro storie restano nel diario.", 20))
 		centro.add_child(UI.bottone("Torna al menu", func(): main.mostra_menu()))
 		return
 	var nomi := Campagna.NOMI_FASI
@@ -470,7 +474,28 @@ func _passo_incarichi() -> void:
 	var sri := _spin(0, int(c.s.crediti), 0)
 	h3.add_child(sri)
 	centro.add_child(h3)
-	_bottone_grande("Risolvi gli incarichi", func(): c.passo_incarichi(ass, {"crediti_patrono": int(sp.value), "tiri_commercio_extra": int(st.value), "crediti_rintraccia": int(sr.value), "crediti_riparare": int(sri.value)}); aggiorna())
+	# incarico in più con un punto Storia (una volta per turno)
+	var extra := {"pg": "", "incarico": "addestrarsi"}
+	if c.puo_spendere_ps() and not c.spesa_ps_usata("azione_extra"):
+		var h4 := UI.hbox()
+		h4.add_child(UI.etichetta("Incarico in più (1 punto Storia):", 17, UI.AMBRA))
+		var oc := OptionButton.new()
+		oc.add_item("nessuno")
+		var ids := [""]
+		for p in c.vivi():
+			if c.puo_lavorare(p):
+				oc.add_item(p.nome)
+				ids.append(p.id)
+		oc.item_selected.connect(func(j): extra.pg = ids[j])
+		h4.add_child(oc)
+		var oi := OptionButton.new()
+		for k in Campagna.INCARICHI:
+			if k != "riposo":
+				oi.add_item(Campagna.NOMI_INCARICHI[k])
+		oi.item_selected.connect(func(j): extra.incarico = Campagna.INCARICHI[j])
+		h4.add_child(oi)
+		centro.add_child(h4)
+	_bottone_grande("Risolvi gli incarichi", func(): c.passo_incarichi(ass, {"crediti_patrono": int(sp.value), "tiri_commercio_extra": int(st.value), "crediti_rintraccia": int(sr.value), "crediti_riparare": int(sri.value), "extra": extra}); aggiorna())
 
 func _passo_lavori() -> void:
 	if c.s.offerte.is_empty():
@@ -574,7 +599,7 @@ func _passo_battaglia() -> void:
 
 func _auto_battaglia() -> void:
 	var bt := Battaglia.new(c.dadi.d(999999))
-	bt.prepara(c.s.battaglia, pgs_schierati(), int(c.s.opzioni.get("celle_tavolo", 24)), {"eventi_battaglia": c.s.opzioni.get("eventi_battaglia", true), "tratti_mondo": c.s.mondo.get("tratti", []).map(func(t): return t.nome)})
+	bt.prepara(c.s.battaglia, pgs_schierati(), int(c.s.battaglia.get("lato", c.s.opzioni.get("celle_tavolo", 24))), {"eventi_battaglia": c.s.opzioni.get("eventi_battaglia", true), "tratti_mondo": c.s.mondo.get("tratti", []).map(func(t): return t.nome)})
 	var es := bt.gioca_automatica(14)
 	for r in bt.log_righe:
 		if r.tipo in ["titolo", "perdita", "obiettivo"]:
@@ -662,3 +687,63 @@ func _licenza_zona() -> void:
 	c.s["zona_rossa"]["licenza"] = true
 	c.scrivi("Licenza per la Zona Rossa ottenuta: lavori più pericolosi e meglio pagati.", "titolo")
 	aggiorna()
+
+## ---------------- punti Storia, Stelle della Storia e condizione di vittoria ----------------
+func _scheda_storia(v: VBoxContainer) -> void:
+	UI.svuota(v)
+	var follia := str(c.s.difficolta) == "follia"
+	v.add_child(UI.titolo("Punti Storia: %d" % int(c.s.punti_storia), 22))
+	if follia:
+		v.add_child(UI.etichetta("In modalità Follia non si usano né i punti Storia né le Stelle della Storia.", 16, UI.TENUE))
+	else:
+		v.add_child(UI.etichetta("Si guadagnano ogni 3 turni, con «un giorno amaro» e da alcuni risultati delle tabelle. Il gioco li propone da solo quando una prova fallisce, quando un ferito tira sulla tabella delle ferite e in battaglia dopo un colpo mancato.", 15, UI.TENUE))
+		var b1 := UI.bottone("Spendi 1 punto: +3 crediti (una volta per turno)", func(): c.spendi_ps("crediti"); aggiorna())
+		b1.disabled = not c.puo_spendere_ps() or c.spesa_ps_usata("crediti")
+		v.add_child(b1)
+		var h := UI.hbox(6)
+		var o := OptionButton.new()
+		var ids := []
+		for p in c.vivi():
+			o.add_item(p.nome)
+			ids.append(p.id)
+		h.add_child(o)
+		var b2 := UI.bottone("Spendi 1 punto: +3 XP (una volta per turno)", func(): if not ids.is_empty(): c.spendi_ps("xp", ids[o.selected]); aggiorna())
+		b2.disabled = not c.puo_spendere_ps() or c.spesa_ps_usata("xp") or ids.is_empty()
+		h.add_child(b2)
+		v.add_child(h)
+		var cb := CheckBox.new()
+		cb.text = "Tira due volte il prossimo tiro su una tabella (viaggio, commercio, esplorazione, eventi della campagna) e scegli il risultato"
+		cb.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		cb.button_pressed = c.s.get("ps_doppio", false)
+		cb.disabled = not c.puo_spendere_ps()
+		cb.toggled.connect(func(x): c.arma_doppio(x))
+		v.add_child(cb)
+		v.add_child(UI.etichetta("Incarico in più: si sceglie nel passo degli incarichi.", 15, UI.TENUE))
+		v.add_child(HSeparator.new())
+		v.add_child(UI.titolo("Stelle della Storia", 22))
+		v.add_child(UI.etichetta("Ognuna si usa una sola volta per campagna.", 15, UI.TENUE))
+		for st in Dati.f("campagna").get("stelle_della_storia", {}).get("opzioni", []):
+			var id := str(st.id)
+			var usi := c.usi_stella(id)
+			var l := UI.etichetta("%s  (%s)" % [st.nome, "usi rimasti: %d" % usi if usi > 0 else "già usata"], 17, UI.AMBRA if usi > 0 else UI.TENUE, true)
+			v.add_child(l)
+			var tl := UI.etichetta(str(st.testo), 14, UI.TENUE)
+			tl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+			v.add_child(tl)
+			if usi > 0 and id == "fondo_emergenza":
+				v.add_child(UI.bottone("Usa ora: 1D6+5 crediti", func(): c.stella_fondo(); aggiorna()))
+			elif usi > 0 and id == "il_mio_amico":
+				v.add_child(UI.bottone("Usa ora: un nuovo membro dell'equipaggio", func(): c.stella_amico(); aggiorna()))
+			elif usi > 0:
+				v.add_child(UI.etichetta("Si usa " + ("in battaglia." if id != "sembrava_peggio" else "quando un membro tira sulla tabella delle ferite."), 14, UI.ACQUA))
+	v.add_child(HSeparator.new())
+	v.add_child(UI.titolo("Condizione di vittoria", 22))
+	var pv := c.progresso_vittoria()
+	if pv.is_empty():
+		v.add_child(UI.etichetta("Nessuna: la campagna dura quanto volete.", 16, UI.TENUE))
+	else:
+		v.add_child(UI.etichetta("%s: %d / %d" % [pv.nome, int(pv.attuale), int(pv.valore)], 18, UI.AMBRA))
+		if c.s.vittoria.get("raggiunta", false) and not c.s.vittoria.get("conclusa", false):
+			v.add_child(UI.etichetta("Raggiunta! Potete chiudere la campagna e guadagnare un Rango d'élite, o continuare a giocare.", 16, UI.VERDE))
+			v.add_child(UI.bottone("Concludi la campagna e ottieni il Rango d'élite", func(): c.concludi_campagna(); main.salva(false); aggiorna()))
+	v.add_child(UI.etichetta("Ranghi d'élite del giocatore: %d (massimo %d)." % [RanghiElite.ranghi(), RanghiElite.MASSIMO], 15, UI.TENUE))

@@ -45,6 +45,9 @@ func _run() -> void:
 	await shot("campagna_inizio")
 	var v = main.vista
 	var c: Campagna = main.campagna
+	v.schede.current_tab = 1
+	await shot("scheda_storia")
+	v.schede.current_tab = 0
 	c.inizia_turno()
 	v.aggiorna()
 	await shot("viaggio")

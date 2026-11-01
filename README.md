@@ -60,6 +60,16 @@ La pubblicazione non parte da sola: Actions → **Pubblica** → *Run workflow*.
   le 5 missioni, evacuazione e ricompense dell'Unità.
 - **Voci delle tabelle della campagna** che prima andavano applicate a mano ora sono automatiche o diventano scelte
   (nave di pattuglia, archivio dati, merci di scambio, nuovo capo, rissa con un compagno, fisco, nemesi...).
+- **Punti Storia e Stelle della Storia** (p.66-67): scheda «Storia» con +3 crediti, +3 XP, incarico in più (una volta per
+  turno) e «tira due volte» sulle tabelle; il gioco propone di forzare le prove fallite, ritirare le ferite gravi e, in
+  battaglia, ritirare l'ultimo colpo mancato. Le cinque Stelle (una volta per campagna) sono in campagna e in battaglia.
+- **Condizioni di vittoria e Ranghi d'élite** (p.64-65): la condizione si sceglie alla creazione e se ne segue il progresso;
+  concludendo la campagna si guadagna un Rango d'élite, salvato sul dispositivo, con i suoi benefici nelle campagne
+  successive (punti Storia, XP, personaggi in più tra cui scegliere, Stelle da usare due volte).
+- **Abbordaggio pirata** (evento di viaggio): intimidazione, scontro fuori sequenza su un tavolo ridotto contro elementi
+  criminali, perdita di crediti e Deposito in caso di sconfitta, bottino in più in caso di vittoria.
+- **Personaggi neutrali** (Appendice VIII, regola della casa facoltativa): civili sul campo con la loro fase, che si
+  allontanano dagli scontri; si può chiedere il loro aiuto e con un 6 naturale si uniscono all'equipaggio.
 - Schede dei personaggi e della nave, deposito, contatti (Rivali e Patroni), mondo, **diario della campagna**,
   **regole in italiano** consultabili dal menu e in partita.
 - **Salvataggi**: automatici sul dispositivo (anche nel browser) e **nel cloud** (Firebase): ogni campagna ha un codice di
@@ -173,6 +183,14 @@ Le tabelle sono state trascritte dal PDF del regolamento (`5PH-Rulebook-210408T.
 - **Zona Nera**: il campo è di 30 x 30 caselle per far posto alle squadre.
 - **Soulless**: a p.17 possono installare potenziamenti da Bot a 1,5 volte il costo, a p.123 no: per ora seguono gli XP.
 - **Sequestro della nave**: da 75 crediti di debito (p.76; a p.60 il libro dice «oltre 75»).
+- **Punti Storia**: «tira due volte» vale per viaggio, commercio, esplorazione ed eventi della campagna; la riuscita forzata
+  per le prove delle tabelle; il ritiro per le ferite gravi e, in battaglia, per l'ultimo colpo mancato dell'equipaggio.
+- **Ritirata**: escono i membri che possono raggiungere un bordo con il loro movimento; tutti insieme solo con la Stella
+  «È ora di andare!».
+- **Ranghi d'élite**: i 2 XP per Rango sono distribuiti a turno all'equipaggio, da spendere poi nei Miglioramenti.
+- **Abbordaggio pirata**: intimida il membro con l'Acume più alto; lo «spazio angusto» è un tavolo di 16 x 16 caselle.
+- **Personaggi neutrali**: con 5+ su 1D6 ci sono 1D3 civili; si chiede aiuto entro 2"; non li attacca nessuno.
+- **Gioco cooperativo**: non ancora disponibile.
 - **Paga**: ordine dei modificatori (miglior dado della Missione +1, Facile +1, 1-2 che valgono 3) non chiarito dal libro.
 - **XP**: una sola voce tra vittima / sopravvissuto / sopravvissuto e vittorioso, più i bonus (confermato dall'esempio del libro).
 - **Nomi dei mondi** inventati per il diario; i tratti del mondo vengono dalla tabella del regolamento.
