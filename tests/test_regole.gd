@@ -257,6 +257,7 @@ func _prove_regole_battaglia() -> void:
 	print("Regole della battaglia: provate")
 	_prove_zone_e_storia()
 	_prove_voci_speciali()
+	_prove_punti_storia()
 
 func _campagna_prova(seme: int) -> Campagna:
 	var cc := Campagna.new({}, seme)
@@ -361,3 +362,86 @@ func _controlla_tabelle(x, nome: String) -> void:
 	elif x is Array:
 		for v in x:
 			_controlla_tabelle(v, nome)
+
+## Punti Storia, Stelle, condizioni di vittoria, Abbordaggio pirata e personaggi neutrali.
+func _prove_punti_storia() -> void:
+	var cc := _campagna_prova(321)
+	cc.s["punti_storia"] = 5
+	var cr := int(cc.s.crediti)
+	ok(cc.spendi_ps("crediti") and int(cc.s.crediti) == cr + 3 and int(cc.s.punti_storia) == 4, "punto Storia: 3 crediti")
+	ok(not cc.spendi_ps("crediti"), "punto Storia: crediti una volta per turno")
+	var p0: Dictionary = cc.vivi()[0]
+	var xp := int(p0.xp)
+	ok(cc.spendi_ps("xp", p0.id) and int(p0.xp) == xp + 3, "punto Storia: +3 XP")
+	# tira due volte: una scelta con due opzioni
+	cc.s["scelte"] = []
+	cc.arma_doppio(true)
+	cc.tabella_e_applica(Dati.f("campagna").get("esplorazione", {}), "Esplorazione", p0)
+	ok(cc.s.scelte.size() == 1 and cc.s.scelte[0].opzioni.size() == 2 and int(cc.s.punti_storia) == 2, "tira due volte")
+	cc.risolvi_scelta(1)
+	# stelle
+	ok(cc.usi_stella("fondo_emergenza") == 1, "stella disponibile")
+	cr = int(cc.s.crediti)
+	ok(cc.stella_fondo() and int(cc.s.crediti) >= cr + 6 and cc.usi_stella("fondo_emergenza") == 0, "fondo per i tempi duri")
+	ok(not cc.stella_fondo(), "stella una sola volta")
+	var n: int = cc.s.equipaggio.size()
+	ok(not cc.stella_amico().is_empty() and cc.s.equipaggio.size() == n + 1, "il mio amico")
+	# follia: niente punti né stelle
+	var cf := Campagna.new({}, 5)
+	cf.nuova({"nome": "F", "difficolta": "follia"})
+	var ef := []
+	for k in 6:
+		ef.append(cf.crea_personaggio())
+	cf.completa_creazione(ef, 0)
+	cf.s["punti_storia"] = 3
+	ok(not cf.puo_spendere_ps() and cf.usi_stella("ritirata") == 0, "follia senza punti Storia e Stelle")
+	# ferite: con punti Storia una ferita grave diventa una scelta
+	cc.s["scelte"] = []
+	cc.s["punti_storia"] = 3
+	for k in 30:
+		cc.ferisci(cc.vivi()[1], 0)
+		if not cc.s.scelte.is_empty():
+			break
+	ok(not cc.s.scelte.is_empty(), "scelta sulle ferite")
+	while cc.ha_scelte():
+		cc.risolvi_scelta(0)
+	# condizione di vittoria
+	var cv := Campagna.new({}, 9)
+	cv.nuova({"nome": "V", "vittoria": "battaglie_20"})
+	var ev := []
+	for k in 6:
+		ev.append(cv.crea_personaggio())
+	cv.completa_creazione(ev, 0)
+	cv.s.statistiche["vittorie"] = 20
+	cv._controlla_vittoria()
+	ok(cv.s.vittoria.raggiunta, "condizione di vittoria raggiunta")
+	ok(Campagna.condizioni_vittoria("facile").size() == 2, "in Facile solo due condizioni")
+	# Abbordaggio pirata: battaglia fuori sequenza e ritorno alla fase
+	var ca := _campagna_prova(77)
+	ca.s["fase"] = "mantenimento"
+	ca.s.flag["abbordaggio"] = true
+	ca._controlla_abbordaggio()
+	ok(ca.s.fase == "battaglia" and ca.s.battaglia.tipo == "abbordaggio" and int(ca.s.battaglia.lato) == 16, "abbordaggio preparato")
+	ca.s["deposito"].append({"id": "pistola"})
+	ca.s["crediti"] = 10
+	var esa := {"vinto": false, "campo": false, "perdite": [], "partecipanti": [], "primo": "", "unico_ucciso": "", "fuggiti_presto": [], "nemici_uccisi": 0}
+	ca.dopo_battaglia(esa)
+	ok(ca.s.fase == "mantenimento" and int(ca.s.crediti) == 0 and ca.s.deposito.is_empty(), "abbordaggio perso: crediti e deposito")
+	# neutrali: non sono bersagli, fuggono, si può chiedere aiuto
+	var bn := _campo(20)
+	var cp := _campagna_prova(12)
+	bn.aggiungi_equipaggio(cp.disponibili().slice(0, 2))
+	bn.aggiungi_neutrali(["passante", "gangster"])
+	var nem := bn.aggiungi_nemici("predoni", 2)
+	var neu := bn.figure(Battaglia.NEU)
+	ok(neu.size() == 2, "neutrali in campo")
+	ok(not bn.avversari(nem[0]).has(neu[0]), "i nemici non attaccano i neutrali")
+	var u: Dictionary = bn.figure(Battaglia.EQ)[0]
+	u.pos = neu[0].pos + Vector2i(1, 0) if bn.figura_in(neu[0].pos + Vector2i(1, 0)).is_empty() else neu[0].pos + Vector2i(-1, 0)
+	var az := bn.azioni_obiettivo(u)
+	ok(az.any(func(a): return str(a.id).begins_with("aiuto:")), "azione Chiedi aiuto")
+	bn.chiedi_aiuto(u, neu[0])
+	ok(neu[0].chiesto, "aiuto chiesto")
+	# colpo fortunato
+	bn.ultimo_mancato = {"u": u.uid, "v": nem[0].uid, "arma": "pistola", "danno": 1, "tratti": [], "soglia": 5, "mod": 0, "solo6": false, "round": 1}
+	ok(bn.colpo_fortunato() and bn.ultimo_mancato.is_empty(), "colpo fortunato")

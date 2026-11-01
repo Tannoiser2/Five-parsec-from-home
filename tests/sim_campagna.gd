@@ -4,9 +4,11 @@ extends SceneTree
 func _init() -> void:
 	Dati.carica()
 	var tot_turni := 0
+	var manuali := 0
 	for k in 6:
 		var c := Campagna.new({}, 1000 + k)
-		c.nuova({"nome": "Sim %d" % k, "difficolta": ["normale", "facile", "impegnativo", "hardcore", "normale", "follia"][k], "storia": k % 2 == 0})
+		c.nuova({"nome": "Sim %d" % k, "difficolta": ["normale", "facile", "impegnativo", "hardcore", "normale", "follia"][k], "storia": k % 2 == 0,
+			"neutrali": k % 2 == 1, "vittoria": "battaglie_20"})
 		var eq := []
 		for i in 6:
 			eq.append(c.crea_personaggio())
@@ -20,9 +22,15 @@ func _init() -> void:
 		var js := JSON.stringify(c.salva())
 		var c2 := Campagna.new(JSON.parse_string(js))
 		gioca_turno(c2)
+		var manuali_c: int = c2.s.diario.filter(func(r): return r.tipo == "manuale").size()
+		var abb: int = c2.s.diario.filter(func(r): return str(r.testo).contains("Abbordaggio pirata (fuori sequenza")).size()
+		var civ: int = c2.s.diario.filter(func(r): return str(r.testo).contains("Sul campo ci sono civili")).size()
+		var ps: int = c2.s.diario.filter(func(r): return str(r.testo).begins_with("Speso")).size()
+		manuali += manuali_c
+		print("  manuali %d, abbordaggi %d, battaglie con civili %d, punti Storia spesi %d, stelle usate %d" % [manuali_c, abb, civ, ps,
+			c2.s.diario.filter(func(r): return str(r.testo).begins_with("Stella della Storia")).size()])
 		print("Campagna %d (%s): turno %d, vivi %d, crediti %d, PS %d, rivali %d, patroni %d, battaglie %d/%d, morti %d, deposito %d" % [k, c.s.difficolta, c2.s.turno, c2.vivi().size(), c2.s.crediti, c2.s.punti_storia, c2.s.rivali.size(), c2.s.patroni.size(), c2.s.statistiche.vittorie, c2.s.statistiche.battaglie, c2.s.statistiche.morti, c2.s.deposito.size()])
-	var manuali := 0
-	print("Turni giocati: %d" % tot_turni)
+	print("Turni giocati: %d, voci da applicare a mano: %d" % [tot_turni, manuali])
 	quit(0)
 
 func scelte(c: Campagna) -> void:
@@ -36,6 +44,11 @@ func gioca_turno(c: Campagna) -> void:
 		c.s.zona_rossa["turni"] = 8
 	c.passo_viaggio(c.dadi.d6() >= 5 or c.s.mondo.get("invasione_imminente", false), c.dadi.d6() >= 4)
 	scelte(c)
+	if c.s.fase == "battaglia" and c.s.battaglia.get("tipo", "") == "abbordaggio":
+		var ba := Battaglia.new(c.dadi.d(99999))
+		ba.prepara(c.s.battaglia, c.disponibili().slice(0, c.s.dimensione), int(c.s.battaglia.get("lato", 24)))
+		c.dopo_battaglia(ba.gioca_automatica(12))
+		scelte(c)
 	if c.s.fase == "mantenimento":
 		c.passo_mantenimento(c.dadi.d(3), 1)
 		var ass := {}
@@ -69,7 +82,7 @@ func gioca_turno(c: Campagna) -> void:
 		c.s.fase = "acquisti"
 	else:
 		var men: Array = setup.get("menomati_pg", [])
-		b.prepara(setup, pgs.filter(func(p): return not p in men), 24)
+		b.prepara(setup, pgs.filter(func(p): return not p in men), int(setup.get("lato", 24)))
 		var es := b.gioca_automatica(12)
 		c.dopo_battaglia(es)
 	scelte(c)

@@ -42,7 +42,7 @@ func _ready() -> void:
 	for p in c.disponibili():
 		if not p in pgs:
 			riserve.append(p)
-	b.prepara(c.s.battaglia, pgs, int(c.s.opzioni.get("celle_tavolo", 24)),
+	b.prepara(c.s.battaglia, pgs, int(c.s.battaglia.get("lato", c.s.opzioni.get("celle_tavolo", 24))),
 		{"eventi_battaglia": c.s.opzioni.get("eventi_battaglia", true), "tratti_mondo": c.s.mondo.get("tratti", []).map(func(t): return str(t.nome)),
 		"riserve": riserve})
 	b.setup["difficolta"] = c.s.difficolta
@@ -469,8 +469,48 @@ func _comandi() -> void:
 		"fine":
 			comandi.add_child(UI.bottone("Round successivo", func(): b.inizia_round(); sel = {}; dado_sel = -1; aggiorna()))
 	comandi.add_child(UI.bottone("Gioca il resto in automatico", _automatico, "L'equipaggio viene mosso dall'IA tattica fino alla fine"))
-	comandi.add_child(UI.bottone("Ritirata", func(): b.ritirata(); aggiorna(), "Tutto l'equipaggio abbandona il campo"))
+	comandi.add_child(UI.bottone("Ritirata", func(): b.ritirata_ai_bordi(); aggiorna(), "Escono dal campo i membri che possono raggiungere un bordo con il loro movimento; gli altri restano"))
 	comandi.add_child(_selettore_velocita())
+	_comandi_storia()
+
+## Punti Storia e Stelle della Storia utilizzabili in battaglia (p.66-67).
+func _comandi_storia() -> void:
+	if c == null or b.fase == "finita":
+		return
+	var m := b.colpo_mancato()
+	if not m.is_empty() and c.puo_spendere_ps():
+		comandi.add_child(UI.bottone("Punto Storia: ritira il colpo mancato (%d)" % int(c.s.punti_storia), _ps_ritira,
+			"Si ritira l'ultimo colpo mancato e si accetta il nuovo risultato"))
+	if not m.is_empty() and c.usi_stella("colpo_fortunato") > 0:
+		comandi.add_child(UI.bottone("Stella: Colpo fortunato!", _stella_colpo, Campagna.testo_stella("colpo_fortunato")))
+	if c.usi_stella("il_mio_amico") > 0:
+		comandi.add_child(UI.bottone("Stella: Ti ho mai presentato il mio amico?", _stella_amico, Campagna.testo_stella("il_mio_amico")))
+	if c.usi_stella("ritirata") > 0:
+		comandi.add_child(UI.bottone("Stella: È ora di andare!", _stella_ritirata, Campagna.testo_stella("ritirata")))
+
+func _ps_ritira() -> void:
+	if c._spendi_ps(1, "ritiro di un colpo mancato"):
+		b.ritira_mancato()
+		_mostra_eventi()
+	aggiorna()
+
+func _stella_colpo() -> void:
+	if c.usa_stella("colpo_fortunato"):
+		b.colpo_fortunato()
+		_mostra_eventi()
+	aggiorna()
+
+func _stella_amico() -> void:
+	var pg := c.stella_amico()
+	if not pg.is_empty():
+		b.aggiungi_amico(pg)
+	aggiorna()
+
+func _stella_ritirata() -> void:
+	if c.usa_stella("ritirata"):
+		b.scrivi("È ora di andare! L'equipaggio si dilegua.", "evento")
+		b.ritirata()
+	aggiorna()
 
 func _dopo_conferma() -> void:
 	if b.fase == "nemici":

@@ -57,11 +57,15 @@ func nuova(opzioni: Dictionary) -> void:
 		"crediti": 0, "punti_storia": 0, "dicerie": 0, "dicerie_missione": 0, "missione": {},
 		"difficolta": str(opzioni.get("difficolta", "normale")), "dimensione": int(opzioni.get("dimensione", 6)),
 		"opzioni": {"eventi_battaglia": bool(opzioni.get("eventi_battaglia", true)), "storia": bool(opzioni.get("storia", false)),
-			"zone": bool(opzioni.get("zone", true)), "celle_tavolo": int(opzioni.get("tavolo", 24))},
+			"zone": bool(opzioni.get("zone", true)), "celle_tavolo": int(opzioni.get("tavolo", 24)),
+			"neutrali": bool(opzioni.get("neutrali", false)), "elite": bool(opzioni.get("elite", false)),
+			"stelle_doppie": opzioni.get("stelle_doppie", []).duplicate()},
+		"vittoria": {"id": str(opzioni.get("vittoria", "")), "raggiunta": false, "conclusa": false},
+		"stelle": {}, "ps_turno": {}, "ps_doppio": false,
 		"storia": {"attiva": bool(opzioni.get("storia", false)), "orologio": 5, "evento": 0, "in_corso": false},
 		"nave": {}, "equipaggio": [], "deposito": [], "rivali": [], "patroni": [], "offerte": [], "lavoro": {},
 		"mondo": {}, "mondi_visitati": 0, "pianeti_invasi": [], "licenze": [], "diario": [], "incarichi": {},
-		"scelte": [], "statistiche": {"battaglie": 0, "vittorie": 0, "morti": 0, "turni": 0},
+		"scelte": [], "statistiche": {"battaglie": 0, "vittorie": 0, "morti": 0, "turni": 0, "missioni": 0, "unici": 0, "miglioramenti": {}},
 		"zona_rossa": {"licenza": false}, "battaglia": {}, "esito": {}, "flag": {},
 	}
 	scrivi("Nasce l'equipaggio «%s»." % s["nome"], "titolo")
@@ -195,6 +199,9 @@ func completa_creazione(equipaggio: Array, indice_capo := 0, nave_indice := -1) 
 		if s["difficolta"] == "hardcore":
 			ps -= 1
 	s["punti_storia"] = int(s.get("punti_storia", 0)) + ps
+	_prepara_stelle()
+	if s.opzioni.get("elite", false):
+		_applica_elite()
 	# distribuisce le armi: ognuno riceve un'arma da tiro se possibile
 	distribuisci_automatico()
 	s["fase"] = "inizio_turno"
@@ -541,6 +548,22 @@ func applica(eff: Dictionary, pg: Dictionary = {}, fonte := "") -> void:
 						pg["assente"] = true
 			"flag":
 				s["flag"][str(v)] = true
+			"spendi_ps":
+				_spendi_ps(int(v), fonte)
+			"usa_stella":
+				usa_stella(str(v))
+			"ritira_ferita":
+				if not pg.is_empty():
+					ferisci(pg, int(v.get("mod", 0)), bool(v.get("definitiva", false)), false, bool(v.get("dopo_battaglia", false)))
+			"giorno_amaro":
+				if s.get("esito", {}).get("campo", false) and not s.flag.get("giorno_amaro", false):
+					s["flag"]["giorno_amaro"] = true
+					s["punti_storia"] = int(s.punti_storia) + (0 if s.difficolta == "follia" else 1)
+					scrivi("Un giorno amaro: +1 punto Storia.")
+			"battaglia":
+				if v is Dictionary and str(v.get("tipo", "")) == "fuori_sequenza":
+					s["flag"]["abbordaggio"] = true
+					scrivi("Non riuscite a intimidire i pirati: l'abbordaggio va respinto in battaglia.", "pericolo")
 			"manuale":
 				pass
 			_:
@@ -587,6 +610,14 @@ func _prova(p: Dictionary, pg: Dictionary, fonte: String) -> void:
 		var bon := int(chi.get(stat, 0)) if stat != null and not chi.is_empty() else 0
 		var ok := t + bon >= int(p.get("soglia", 4))
 		scrivi("Prova%s: %d%s contro %d+: %s." % [_fonte(fonte), t, (" %+d (%s, %s)" % [bon, Personaggio.nome_stat(str(stat)), chi.get("nome", "")]) if stat != null else "", int(p.get("soglia", 4)), "riuscita" if ok else "fallita"])
+		if not ok and puo_spendere_ps():
+			# punti Storia (p.66): si può forzare la riuscita di un tiro fallito
+			var suc: Dictionary = p.get("successo", {}).duplicate(true)
+			suc["spendi_ps"] = 1
+			s["scelte"].append({"testo": "Prova fallita%s: spendere un punto Storia perché riesca comunque?" % _fonte(fonte), "pg": chi.get("id", ""),
+				"opzioni": [{"testo": "Accetta il fallimento", "effetti": p.get("fallimento", {}), "fonte": fonte},
+					{"testo": "Spendi 1 punto Storia (ne avete %d): la prova riesce" % int(s.punti_storia), "effetti": suc, "fonte": fonte}]})
+			continue
 		applica(p.get("successo" if ok else "fallimento", {}), chi, fonte)
 
 ## Risolve la prima scelta in sospeso (indice dell'opzione).
@@ -600,7 +631,10 @@ func risolvi_scelta(opzione: int) -> void:
 	opzione = clampi(opzione, 0, ops.size() - 1)
 	var o: Dictionary = ops[opzione]
 	scrivi("Scelta: %s." % o.get("testo", ""))
-	applica(o.get("effetti", {}), trova(str(sc.get("pg", ""))), str(sc.get("testo", "")))
+	if o.has("diario"):
+		scrivi(str(o.diario), "evento")
+	applica(o.get("effetti", {}), trova(str(o.get("pg", sc.get("pg", "")))), str(o.get("fonte", sc.get("testo", ""))))
+	_controlla_abbordaggio()
 
 func ha_scelte() -> bool:
 	return not s.get("scelte", []).is_empty()
@@ -689,6 +723,7 @@ func inizia_turno() -> void:
 	s["battaglia"] = {}
 	s["esito"] = {}
 	s["mondo"]["turni"] = int(s.mondo.get("turni", 0)) + 1
+	s["ps_turno"] = {}
 	_ricerca_storia()
 	if s.mondo.get("zona_rossa", false):
 		s["zona_rossa"]["turni"] = int(s.zona_rossa.get("turni", 0)) + 1
@@ -756,11 +791,10 @@ func passo_viaggio(viaggia: bool, zona_rossa := false) -> void:
 		else:
 			s["crediti"] = int(s.crediti) - costo
 			scrivi("Partenza: %d crediti di carburante." % costo)
-			var ev := dadi.su_tabella(Dati.f("nave").get("eventi_viaggio", Dati.f("campagna").get("eventi_viaggio", {})))
-			scrivi("Evento di viaggio (%d): %s - %s" % [ev.tiro, ev.riga.get("nome", ""), ev.riga.get("testo", "")], "evento")
-			applica(ev.riga.get("effetti", {}), {}, str(ev.riga.get("nome", "")))
+			tabella_e_applica(Dati.f("nave").get("eventi_viaggio", Dati.f("campagna").get("eventi_viaggio", {})), "Evento di viaggio", {})
 			_arrivo()
 	s["fase"] = "mantenimento"
+	_controlla_abbordaggio()
 
 func _arrivo() -> void:
 	# rivali che seguono
@@ -899,6 +933,15 @@ func passo_incarichi(assegnati: Dictionary, opz := {}) -> void:
 			scrivi("%s: al massimo 2 membri per incarico." % p.nome)
 			continue
 		per[t].append(p)
+	# incarico in più pagato con un punto Storia (p.66)
+	var ex: Dictionary = opz.get("extra", {})
+	var pex := trova(str(ex.get("pg", "")))
+	if not pex.is_empty() and puo_lavorare(pex) and str(ex.get("incarico", "riposo")) != "riposo" and spendi_ps("azione_extra"):
+		var te := str(ex.incarico)
+		if not per.has(te):
+			per[te] = []
+		per[te].append(pex)
+		scrivi("%s svolge anche un secondo incarico: %s." % [pex.nome, NOMI_INCARICHI.get(te, te)])
 	s["incarichi"] = {}
 	for t in per:
 		for p in per[t]:
@@ -926,14 +969,10 @@ func passo_incarichi(assegnati: Dictionary, opz := {}) -> void:
 		s["crediti"] = int(s.crediti) - extra * 3
 		for i in n + extra:
 			var chi: Dictionary = per.commerciare[min(i, n - 1)]
-			var r := dadi.su_tabella(Dati.f("campagna").get("commercio", {}))
-			scrivi("Commercio (%s, %d): %s - %s" % [chi.nome, r.tiro, r.riga.get("nome", ""), r.riga.get("testo", "")], "evento")
-			applica(r.riga.get("effetti", {}), chi, str(r.riga.get("nome", "")))
+			tabella_e_applica(Dati.f("campagna").get("commercio", {}), "Commercio (%s)" % chi.nome, chi)
 	if per.has("esplorare"):
 		for p in per.esplorare:
-			var r := dadi.su_tabella(Dati.f("campagna").get("esplorazione", {}))
-			scrivi("Esplorazione (%s, %d): %s - %s" % [p.nome, r.tiro, r.riga.get("nome", ""), r.riga.get("testo", "")], "evento")
-			applica(r.riga.get("effetti", {}), p, str(r.riga.get("nome", "")))
+			tabella_e_applica(Dati.f("campagna").get("esplorazione", {}), "Esplorazione (%s)" % p.nome, p)
 	if per.has("reclutare"):
 		var n: int = per.reclutare.size()
 		var attivi := vivi().size()
@@ -1158,7 +1197,7 @@ func _nemico_casuale(categoria: String) -> String:
 func prepara_battaglia(tipo: String, extra := {}) -> Dictionary:
 	var inc: Dictionary = Dati.f("incontri")
 	var b := {"tipo": tipo, "obiettivo": "respingere", "nemico": "", "categoria": "", "condizione": {}, "luogo": {},
-		"zona_rossa": tipo == "zona_rossa" or (s.mondo.get("zona_rossa", false) and tipo != "zona_nera"), "zona_nera": tipo == "zona_nera",
+		"zona_rossa": tipo == "zona_rossa" or (s.mondo.get("zona_rossa", false) and tipo != "zona_nera" and tipo != "abbordaggio"), "zona_nera": tipo == "zona_nera",
 		"rivale": "", "unici": [], "numero": 0}
 	var colonna := "opportunita"
 	match tipo:
@@ -1187,6 +1226,12 @@ func prepara_battaglia(tipo: String, extra := {}) -> Dictionary:
 		"invasione":
 			colonna = "invasione"
 			b.obiettivo = "invasione"
+		"abbordaggio":
+			# p.72: spazio angusto, nemici della tabella criminale, nessun obiettivo (vanno respinti)
+			b.obiettivo = "respingere"
+			b.categoria = "elementi_criminali"
+			b.nemico = _nemico_casuale("elementi_criminali")
+			b["lato"] = 16
 		"zona_nera":
 			colonna = "invasione"
 			var bz: Dictionary = Dati.f("zone").get("black_zone", {})
@@ -1206,7 +1251,7 @@ func prepara_battaglia(tipo: String, extra := {}) -> Dictionary:
 	var nem := Dati.nemico(b.nemico)
 	b.categoria = str(nem.get("categoria", b.categoria))
 	# condizioni di schieramento e luoghi notevoli (non nelle battaglie d'Invasione e nei Lavori Neri)
-	if tipo != "invasione" and tipo != "zona_nera":
+	if not tipo in ["invasione", "zona_nera", "abbordaggio"]:
 		var cs: Dictionary = inc.get("condizioni_schieramento", {})
 		var col := "patrono" if colonna == "patrono" else colonna
 		var tcs: Dictionary = cs.get(col, cs.get("opportunita", {}))
@@ -1234,7 +1279,14 @@ func prepara_battaglia(tipo: String, extra := {}) -> Dictionary:
 				var u := str(dadi.su_tabella(tab).riga.get("nemico", ""))
 				if u != "":
 					b.unici.append(u)
-	if s.has("bonus_battaglia"):
+	# personaggi neutrali (Appendice VIII, regola della casa: con 5+ su 1D6 ci sono 1D3 civili sul campo)
+	if s.opzioni.get("neutrali", false) and not tipo in ["invasione", "zona_nera", "abbordaggio"] and dadi.d6() >= 5:
+		var prof: Array = Dati.f("neutrali").get("personaggi", [])
+		var ns := []
+		for i in dadi.tira("1d3"):
+			ns.append(str(dadi.scegli(prof).id))
+		b["neutrali"] = ns
+	if s.has("bonus_battaglia") and tipo != "abbordaggio":
 		b["bonus_turno"] = s.bonus_battaglia
 		s.erase("bonus_battaglia")
 	b["descrizione"] = descrivi_battaglia(b)
@@ -1245,6 +1297,12 @@ func prepara_battaglia(tipo: String, extra := {}) -> Dictionary:
 
 func numero_nemici(nem: Dictionary, b: Dictionary) -> int:
 	var dim := int(s.get("dimensione", 6))
+	if b.tipo == "abbordaggio":
+		# 3D6 tenendo il più alto (2D6 con equipaggio da 5, 1D6 da 4) + numeri del nemico + 1
+		var alto := 0
+		for i in (3 if dim >= 6 else (2 if dim == 5 else 1)):
+			alto = max(alto, dadi.d6())
+		return max(1, alto + int(nem.get("numeri", 0)) + 1)
 	var d1 := dadi.d6()
 	var d2 := dadi.d6()
 	if s.difficolta in ["impegnativo", "hardcore", "follia"]:
@@ -1293,7 +1351,7 @@ func descrivi_battaglia(b: Dictionary) -> String:
 	var nem := Dati.nemico(str(b.nemico))
 	var t := "%s contro %d %s" % [{"opportunita": "Missione d'Opportunità", "patrono": "Lavoro per un Patrono", "missione": "Missione",
 		"attacca_rivale": "Attacco a un Rivale", "rivale": "Attacco di un Rivale", "invasione": "Battaglia d'Invasione",
-		"zona_rossa": "Lavoro in Zona Rossa", "zona_nera": "Lavoro Nero (Zona Nera)"}.get(b.tipo, b.tipo), int(b.numero), str(nem.get("nome", b.nemico))]
+		"zona_rossa": "Lavoro in Zona Rossa", "zona_nera": "Lavoro Nero (Zona Nera)", "abbordaggio": "Abbordaggio pirata (fuori sequenza, spazio angusto)"}.get(b.tipo, b.tipo), int(b.numero), str(nem.get("nome", b.nemico))]
 	if b.get("zona_nera", false):
 		t = "Lavoro Nero (Zona Nera) contro squadre di %s, che continuano ad arrivare" % str(nem.get("nome", b.nemico))
 	elif b.get("zona_rossa", false):
@@ -1305,6 +1363,8 @@ func descrivi_battaglia(b: Dictionary) -> String:
 		t += " Luogo notevole: %s." % b.luogo.get("nome", "")
 	for u in b.unici:
 		t += " Con un Individuo Unico: %s." % Dati.nemico(str(u)).get("nome", u)
+	if not b.get("neutrali", []).is_empty():
+		t += " Sul campo ci sono civili: %s." % ", ".join(b.neutrali.map(func(x): return str(profilo_neutrale(str(x)).get("nome", x))))
 	return t
 
 ## ===================== dopo la battaglia =====================
@@ -1317,6 +1377,9 @@ func dopo_battaglia(esito: Dictionary) -> void:
 	s["statistiche"]["battaglie"] = int(s.statistiche.battaglie) + 1
 	if esito.get("vinto", false):
 		s["statistiche"]["vittorie"] = int(s.statistiche.vittorie) + 1
+	if str(esito.get("unico_ucciso", "")) != "":
+		s["statistiche"]["unici"] = int(s.statistiche.get("unici", 0)) + 1
+	s["flag"].erase("giorno_amaro")
 	scrivi("Esito: %s%s." % ["Vittoria" if esito.get("vinto", false) else "Sconfitta", ", avete tenuto il campo" if esito.get("campo", false) else ""], "titolo")
 	var nem := Dati.nemico(str(b.get("nemico", "")))
 	_esito_battaglia(esito, nem)
@@ -1364,6 +1427,7 @@ func dopo_battaglia(esito: Dictionary) -> void:
 		if s.missione.get("finale", false):
 			if esito.get("vinto", false):
 				scrivi("MISSIONE COMPIUTA!", "missione")
+				s["statistiche"]["missioni"] = int(s.statistiche.get("missioni", 0)) + 1
 				for p in vivi():
 					if p.id in esito.get("partecipanti", []):
 						Personaggio.modifica_stat(p, "xp", 1)
@@ -1468,7 +1532,7 @@ func dopo_battaglia(esito: Dictionary) -> void:
 			nano = false
 			scrivi("Il Nano-doc salva %s: nessun tiro sulle ferite." % pg.nome)
 			continue
-		ferisci(pg, int(sp_nem.get("ferite_mod", 0)), sp_nem.get("morte_definitiva", false))
+		ferisci(pg, int(sp_nem.get("ferite_mod", 0)), sp_nem.get("morte_definitiva", false), true, true)
 	# 9. esperienza
 	var xp: Dictionary = pb.get("esperienza", {}).get("tabella", {})
 	for id in esito.get("partecipanti", []):
@@ -1498,11 +1562,17 @@ func dopo_battaglia(esito: Dictionary) -> void:
 		if trova(str(id)).get("morto", false):
 			morto = true
 	if morto and esito.get("campo", false):
-		applica({"punti_storia": 1}, {}, "un giorno amaro")
+		applica({"giorno_amaro": true}, {}, "un giorno amaro")
 	# traccia della storia: esiti dell'evento
 	if b.tipo == "storia":
 		_esiti_storia(esito)
+	# personaggi neutrali che chiedono di unirsi (Appendice VIII)
+	for id in esito.get("neutrali_reclutati", []):
+		recluta_neutrale(str(id))
 	s["fase"] = "acquisti"
+	if b.tipo == "abbordaggio":
+		_esito_abbordaggio(esito)
+	_controlla_vittoria()
 
 func _rivale(id: String) -> Dictionary:
 	for r in s.rivali:
@@ -1512,7 +1582,7 @@ func _rivale(id: String) -> Dictionary:
 
 ## Tiro sulla tabella delle ferite (o dei danni dei Bot) per un personaggio diventato vittima.
 ## mod: modificatore al tiro (Raccapriccianti -5); definitiva: la morte non si può evitare in nessun modo.
-func ferisci(pg: Dictionary, mod := 0, definitiva := false) -> void:
+func ferisci(pg: Dictionary, mod := 0, definitiva := false, puo_rimediare := true, dopo_battaglia := false) -> void:
 	var pb: Dictionary = Dati.f("post_battaglia")
 	var bot := Personaggio.e_robot(pg) or bool(Personaggio.bonus(pg, "ferite_bot", false))
 	var tab: Dictionary = pb.get("ferite_bot" if bot else "ferite", {})
@@ -1532,8 +1602,22 @@ func ferisci(pg: Dictionary, mod := 0, definitiva := false) -> void:
 		eff.erase("morte")
 		eff.erase("rimosso")
 		eff["turni_recupero"] = "1d6"
-	if eff.get("morte", false) and pg.get("specie") == "recluta_speranzosa":
-		pass
+	if eff.get("morte", false) and dopo_battaglia:
+		eff["giorno_amaro"] = true
+	var grave: bool = eff.get("morte", false) or eff.has("danneggia_equip") or eff.get("perde_tutto", false) or eff.has("scelte") \
+		or (eff.has("turni_recupero") and str(eff.turni_recupero) != "1" and str(eff.turni_recupero) != "0")
+	var stella := usi_stella("sembrava_peggio") > 0
+	if grave and puo_rimediare and (puo_spendere_ps() or stella):
+		# punti Storia (ritirare) e Stella «Sembrava peggio di quanto fosse!» (p.66-67)
+		var ops := [{"testo": "Accetta: %s" % r.riga.get("nome", ""), "effetti": eff, "fonte": str(r.riga.get("nome", ""))}]
+		if puo_spendere_ps():
+			ops.append({"testo": "Spendi 1 punto Storia (ne avete %d): ritira sulla tabella delle ferite, accettando il nuovo risultato" % int(s.punti_storia),
+				"effetti": {"spendi_ps": 1, "ritira_ferita": {"mod": mod, "definitiva": definitiva, "dopo_battaglia": dopo_battaglia}}, "fonte": "ritiro delle ferite"})
+		if stella:
+			ops.append({"testo": "Stella della Storia «Sembrava peggio di quanto fosse!»: si riprende subito (una sola volta per campagna)",
+				"effetti": {"usa_stella": "sembrava_peggio"}, "diario": "%s si rialza: sembrava peggio di quanto fosse." % pg.nome})
+		s["scelte"].append({"testo": "Ferite di %s: %s" % [pg.nome, r.riga.get("nome", "")], "pg": pg.id, "opzioni": ops})
+		return
 	applica(eff, pg, str(r.riga.get("nome", "")))
 
 ## Miglioramento di una statistica con gli XP (o con i crediti per i Bot). Restituisce true se riuscito.
@@ -1555,6 +1639,10 @@ func migliora(pg: Dictionary, stat: String) -> bool:
 		pg["xp"] = int(pg.xp) - costo
 	pg[stat] = int(pg[stat]) + 1
 	scrivi("%s migliora %s a %d." % [pg.nome, Personaggio.nome_stat(stat), int(pg[stat])])
+	var mg: Dictionary = s.statistiche.get("miglioramenti", {})
+	mg[str(pg.id)] = int(mg.get(str(pg.id), 0)) + 1
+	s["statistiche"]["miglioramenti"] = mg
+	_controlla_vittoria()
 	return true
 
 func miglioramenti_possibili(pg: Dictionary) -> Array:
@@ -1626,9 +1714,7 @@ func addestramento(pg: Dictionary, corso_id: String) -> bool:
 func passo_eventi() -> void:
 	var pb: Dictionary = Dati.f("post_battaglia")
 	if not s.flag.get("niente_eventi", false):
-		var r := dadi.su_tabella(pb.get("eventi_campagna", {}))
-		scrivi("Evento della campagna (%d): %s - %s" % [r.tiro, r.riga.get("nome", ""), r.riga.get("testo", "")], "evento")
-		applica(r.riga.get("effetti", {}), {}, str(r.riga.get("nome", "")))
+		tabella_e_applica(pb.get("eventi_campagna", {}), "Evento della campagna", {})
 		var cand := []
 		for p in vivi():
 			if not Personaggio.bonus(p, "no_eventi_personaggio", false) and not p.get("assente", false):
@@ -1671,10 +1757,11 @@ func fine_turno() -> void:
 	for p in vivi():
 		p["fortuna"] = max(int(p.get("fortuna", 0)), int(p.get("fortuna_iniziale", p.get("fortuna", 0))))
 	s["fase"] = "inizio_turno"
+	_controlla_vittoria()
 
 ## Condizione di sconfitta della campagna: nessuno vivo.
 func finita() -> bool:
-	return vivi().is_empty()
+	return vivi().is_empty() or s.get("vittoria", {}).get("conclusa", false)
 
 ## ===================== voci speciali delle tabelle (prima «da applicare a mano») =====================
 
@@ -2361,3 +2448,251 @@ func _rivali_nemesi_arrivo() -> void:
 	if int(s.get("rivali_prossimi_mondi", 0)) > 0:
 		s["rivali_prossimi_mondi"] = int(s.rivali_prossimi_mondi) - 1
 		aggiungi_rivale("Q'Narr vi tormenta da lontano")
+
+## ===================== punti Storia (p.66) =====================
+
+## Punti Storia spendibili (non in modalità Follia).
+func puo_spendere_ps(n := 1) -> bool:
+	return str(s.get("difficolta", "")) != "follia" and int(s.get("punti_storia", 0)) >= n
+
+func _spendi_ps(n: int, motivo := "") -> bool:
+	if not puo_spendere_ps(n):
+		return false
+	s["punti_storia"] = int(s.punti_storia) - n
+	scrivi("Speso %d punto Storia%s: ne restano %d." % [n, _fonte(motivo), int(s.punti_storia)], "evento")
+	return true
+
+## Le spese che si possono fare una sola volta per turno: crediti, xp, azione_extra.
+func spesa_ps_usata(id: String) -> bool:
+	return bool(s.get("ps_turno", {}).get(id, false))
+
+func spendi_ps(id: String, pg_id := "") -> bool:
+	if spesa_ps_usata(id) or not puo_spendere_ps():
+		return false
+	match id:
+		"crediti":
+			_spendi_ps(1, "3 crediti")
+			s["crediti"] = int(s.crediti) + 3
+		"xp":
+			var pg := trova(pg_id)
+			if pg.is_empty() or pg.get("morto", false):
+				return false
+			_spendi_ps(1, "+3 XP a " + str(pg.nome))
+			Personaggio.modifica_stat(pg, "xp", 3)
+		"azione_extra":
+			_spendi_ps(1, "un incarico in più")
+		_:
+			return false
+	if not s.has("ps_turno"):
+		s["ps_turno"] = {}
+	s["ps_turno"][id] = true
+	return true
+
+## «Tira due volte»: vale per il prossimo tiro su una tabella fuori dal combattimento.
+func arma_doppio(attivo: bool) -> void:
+	s["ps_doppio"] = attivo and puo_spendere_ps()
+
+## Tiro su una tabella fuori dal combattimento e applicazione dell'effetto. Con «tira due volte» armato
+## si spende il punto e si sceglie quale dei due risultati tenere.
+func tabella_e_applica(tab: Dictionary, etichetta: String, pg: Dictionary, mod := 0) -> void:
+	var r := dadi.su_tabella(tab, mod)
+	if s.get("ps_doppio", false) and puo_spendere_ps():
+		s["ps_doppio"] = false
+		_spendi_ps(1, "tira due volte, " + etichetta)
+		var r2 := dadi.su_tabella(tab, mod)
+		var ops := []
+		for x in [r, r2]:
+			var riga: Dictionary = x.riga
+			ops.append({"testo": "%s (%d): %s" % [riga.get("nome", ""), int(x.tiro), riga.get("testo", "")],
+				"effetti": riga.get("effetti", {}), "fonte": str(riga.get("nome", "")), "pg": pg.get("id", ""),
+				"diario": "%s (%d): %s - %s" % [etichetta, int(x.tiro), riga.get("nome", ""), riga.get("testo", "")]})
+		s["scelte"].append({"testo": etichetta + ": quale dei due risultati tenete?", "pg": pg.get("id", ""), "opzioni": ops})
+		return
+	scrivi("%s (%d): %s - %s" % [etichetta, r.tiro, r.riga.get("nome", ""), r.riga.get("testo", "")], "evento")
+	applica(r.riga.get("effetti", {}), pg, str(r.riga.get("nome", "")))
+
+## ===================== Stelle della Storia (p.67) =====================
+
+func _prepara_stelle() -> void:
+	var st := {}
+	for o in Dati.f("campagna").get("stelle_della_storia", {}).get("opzioni", []):
+		st[str(o.id)] = 1
+	for id in s.opzioni.get("stelle_doppie", []):
+		if st.has(str(id)):
+			st[str(id)] = int(st[str(id)]) + 1
+	s["stelle"] = st
+
+## Usi rimasti di una Stella (nessuno in modalità Follia).
+func usi_stella(id: String) -> int:
+	if str(s.get("difficolta", "")) == "follia":
+		return 0
+	var st: Dictionary = s.get("stelle", {})
+	if st.is_empty():
+		return 1
+	return int(st.get(id, 0))
+
+static func nome_stella(id: String) -> String:
+	for o in Dati.f("campagna").get("stelle_della_storia", {}).get("opzioni", []):
+		if str(o.id) == id:
+			return str(o.nome)
+	return id
+
+static func testo_stella(id: String) -> String:
+	for o in Dati.f("campagna").get("stelle_della_storia", {}).get("opzioni", []):
+		if str(o.id) == id:
+			return str(o.testo)
+	return ""
+
+func usa_stella(id: String) -> bool:
+	if usi_stella(id) <= 0:
+		return false
+	if s.get("stelle", {}).is_empty():
+		_prepara_stelle()
+	s["stelle"][id] = int(s.stelle.get(id, 1)) - 1
+	scrivi("Stella della Storia: «%s»" % nome_stella(id), "titolo")
+	return true
+
+## «Fondo per i tempi duri!»: 1D6+5 crediti.
+func stella_fondo() -> bool:
+	if not usa_stella("fondo_emergenza"):
+		return false
+	var n := dadi.tira("1d6+5")
+	s["crediti"] = int(s.crediti) + n
+	scrivi("Il fondo per i tempi duri porta %d crediti." % n)
+	return true
+
+## «Ti ho mai presentato il mio amico?»: un nuovo membro dell'equipaggio (anche a metà battaglia).
+func stella_amico() -> Dictionary:
+	if not usa_stella("il_mio_amico"):
+		return {}
+	recluta("Ti ho mai presentato il mio amico?")
+	return s.equipaggio[s.equipaggio.size() - 1]
+
+## ===================== condizioni di vittoria (p.64) e Ranghi d'élite (p.65) =====================
+
+static func condizioni_vittoria(difficolta := "normale") -> Array:
+	var r := []
+	for c in Dati.f("campagna").get("vittoria", {}).get("condizioni", []):
+		if difficolta == "facile" and not str(c.id) in ["turni_20", "battaglie_20"]:
+			continue
+		r.append(c)
+	return r
+
+func condizione_vittoria() -> Dictionary:
+	var id := str(s.get("vittoria", {}).get("id", ""))
+	for c in Dati.f("campagna").get("vittoria", {}).get("condizioni", []):
+		if str(c.id) == id:
+			return c
+	return {}
+
+## Turni di campagna completati.
+func turni_completati() -> int:
+	return int(s.get("turno", 0)) - (0 if str(s.get("fase", "")) in ["inizio_turno", "creazione"] else 1)
+
+## {nome, attuale, valore} della condizione scelta (vuoto se non c'è).
+func progresso_vittoria() -> Dictionary:
+	var c := condizione_vittoria()
+	if c.is_empty():
+		return {}
+	var st: Dictionary = s.get("statistiche", {})
+	var n := 0
+	match str(c.get("tipo", "")):
+		"turni":
+			n = turni_completati()
+		"missioni":
+			n = int(st.get("missioni", 0))
+		"battaglie":
+			n = int(st.get("vittorie", 0))
+		"uccisioni_unici":
+			n = int(st.get("unici", 0))
+		"miglioramenti":
+			var soglia := int(c.get("miglioramenti_per_personaggio", 10))
+			for k in st.get("miglioramenti", {}):
+				if int(st.miglioramenti[k]) >= soglia:
+					n += 1
+		"turni_modalita":
+			var mod: String = {"impegnativa": "impegnativo", "hardcore": "hardcore", "follia": "follia"}.get(str(c.get("modalita", "")), "")
+			n = turni_completati() if str(s.difficolta) == mod else 0
+	return {"nome": str(c.nome), "attuale": n, "valore": int(c.get("valore", 1))}
+
+func _controlla_vittoria() -> void:
+	var v: Dictionary = s.get("vittoria", {})
+	if str(v.get("id", "")) == "" or v.get("raggiunta", false):
+		return
+	var p := progresso_vittoria()
+	if not p.is_empty() and int(p.attuale) >= int(p.valore):
+		v["raggiunta"] = true
+		scrivi("CONDIZIONE DI VITTORIA RAGGIUNTA: %s! Potete concludere la campagna e guadagnare un Rango d'élite, o continuare a giocare." % p.nome, "titolo")
+
+## Conclude la campagna dopo la vittoria. Restituisce true se il Rango d'élite è nuovo.
+func concludi_campagna() -> bool:
+	var v: Dictionary = s.get("vittoria", {})
+	if not v.get("raggiunta", false) or v.get("conclusa", false):
+		return false
+	v["conclusa"] = true
+	var nuovo := RanghiElite.premia(str(v.id))
+	if nuovo:
+		scrivi("La campagna si conclude in gloria. Nuovo Rango d'élite: ora ne avete %d." % RanghiElite.ranghi(), "titolo")
+	else:
+		scrivi("La campagna si conclude in gloria (questa condizione aveva già dato il suo Rango d'élite).", "titolo")
+	return nuovo
+
+## Benefici dei Ranghi d'élite all'inizio della campagna: punti Storia e XP (gli altri si applicano nella creazione).
+func _applica_elite() -> void:
+	var r := RanghiElite.ranghi()
+	if r <= 0:
+		return
+	s["opzioni"]["ranghi_elite"] = r
+	if str(s.difficolta) != "follia":
+		s["punti_storia"] = int(s.punti_storia) + r
+	var eq: Array = s.equipaggio
+	for i in 2 * r:
+		Personaggio.modifica_stat(eq[i % eq.size()], "xp", 1)
+	scrivi("Ranghi d'élite: %d. %s%d XP distribuiti all'equipaggio, da spendere in Miglioramenti." % [r,
+		"+%d punti Storia, " % r if str(s.difficolta) != "follia" else "", 2 * r], "titolo")
+
+## ===================== Abbordaggio pirata (evento di viaggio, p.72) =====================
+
+## Avvia lo scontro fuori sequenza se l'intimidazione è fallita.
+func _controlla_abbordaggio() -> void:
+	if not s.get("flag", {}).get("abbordaggio", false) or str(s.fase) == "battaglia" or vivi().is_empty():
+		return
+	s["flag"].erase("abbordaggio")
+	s["fase_ripresa"] = str(s.fase)
+	prepara_battaglia("abbordaggio")
+
+func _esito_abbordaggio(esito: Dictionary) -> void:
+	if esito.get("vinto", false):
+		_aggiungi_al_deposito(tira_bottino("bottino"), "bottino dei pirati respinti")
+	else:
+		scrivi("I pirati saccheggiano la nave: perdete tutti i crediti (%d) e tutto il Deposito, ma tenete la nave." % int(s.crediti), "pericolo")
+		s["crediti"] = 0
+		s["deposito"] = []
+	s["fase"] = str(s.get("fase_ripresa", "mantenimento"))
+	s.erase("fase_ripresa")
+	scrivi("Lo scontro era fuori sequenza: il turno riprende da dove si era interrotto.")
+
+## ===================== personaggi neutrali (Appendice VIII) =====================
+
+static func profilo_neutrale(id: String) -> Dictionary:
+	for p in Dati.f("neutrali").get("personaggi", []):
+		if str(p.id) == id:
+			return p
+	return {}
+
+## Un personaggio neutrale che ha chiesto di unirsi (6 naturale) ed è sopravvissuto entra nell'equipaggio.
+func recluta_neutrale(info) -> void:
+	var d: Dictionary = info if info is Dictionary else {"id": str(info)}
+	var prof := profilo_neutrale(str(d.get("id", "")))
+	if prof.is_empty():
+		return
+	var pg := Personaggio.da_specie("bot" if str(prof.id) == "robot_servizio" else "umano", nome_casuale())
+	for k in ["reazioni", "velocita", "combattimento", "robustezza", "acume"]:
+		pg[k] = int(prof.get(k, pg.get(k, 0)))
+	pg["oggetti"] = []
+	for a in d.get("armi", []):
+		if Dati.e_arma(str(a)):
+			pg["oggetti"].append({"id": str(a)})
+	pg["origine_neutrale"] = str(prof.id)
+	s["equipaggio"].append(pg)
+	scrivi("%s (%s) si unisce all'equipaggio dopo la battaglia." % [pg.nome, prof.nome], "recluta")

@@ -97,6 +97,8 @@ static func colore_lato(l: String) -> Color:
 		return Color(1.0, 0.78, 0.35)
 	if l == Battaglia.MOSTRI:
 		return Color(0.6, 0.95, 0.35)
+	if l == Battaglia.NEU:
+		return Color(0.72, 0.80, 0.90)
 	return Color(1.0, 0.35, 0.3)
 
 
@@ -229,7 +231,7 @@ func _draw() -> void:
 		var ev: bool = u.uid == selezionata
 		if bersagli.has(u.uid):
 			draw_circle(c, lato * 0.5, Color(0.9, 0.2, 0.2, 0.35))
-		Pedine.disegna(self, c, lato * 0.42, str(u.pedina), str(u.nome), nem, ev, (u.lato == Battaglia.EQ and u.attivato) or u.get("passiva", false) or u.lato == "prigioniero")
+		Pedine.disegna(self, c, lato * 0.42, str(u.pedina), str(u.nome), nem, ev, (u.lato == Battaglia.EQ and u.attivato) or u.get("passiva", false) or u.lato == "prigioniero", colore_lato(u.lato) if u.lato == Battaglia.NEU else Color(0, 0, 0, 0))
 		if u.lato == Battaglia.MOSTRI:
 			draw_arc(c, lato * 0.47, 0, TAU, 24, Color(0.6, 0.9, 0.3), 2.5)
 		if b._congelato(u):

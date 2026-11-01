@@ -4,7 +4,11 @@ extends Control
 var main
 var anteprima := Campagna.new()
 var slot := []         # [{specie, nome, background, motivazione, classe}]
-var opzioni := {"nome": "", "dimensione": 6, "difficolta": "normale", "storia": false, "eventi_battaglia": true, "tavolo": 24}
+var opzioni := {"nome": "", "dimensione": 6, "difficolta": "normale", "storia": false, "eventi_battaglia": true, "tavolo": 24,
+	"vittoria": "", "neutrali": false, "elite": false, "stelle_doppie": []}
+var ranghi := 0
+var vittoria_op: OptionButton
+var vittorie_ids: Array = []
 var capo := 0
 var nave := -1
 var lista: VBoxContainer
@@ -16,6 +20,8 @@ const NOMI_DIFF := ["Facile", "Normale", "Impegnativa", "Hardcore", "Follia"]
 
 func _ready() -> void:
 	anteprima.nuova({})
+	ranghi = RanghiElite.ranghi()
+	opzioni.elite = ranghi > 0
 	var radice := UI.hbox(16)
 	radice.set_anchors_preset(Control.PRESET_FULL_RECT)
 	radice.offset_left = 24
@@ -34,7 +40,15 @@ func _ready() -> void:
 	nome_eq.text = _nome_casuale_equipaggio()
 	sx.add_child(nome_eq)
 	sx.add_child(_scelta("Dimensione dell'equipaggio", ["6 (standard)", "5", "4"], 0, func(i): opzioni.dimensione = [6, 5, 4][i]; _ricrea_slot()))
-	sx.add_child(_scelta("Difficoltà", NOMI_DIFF, 1, func(i): opzioni.difficolta = DIFF[i]))
+	sx.add_child(_scelta("Difficoltà", NOMI_DIFF, 1, func(i): opzioni.difficolta = DIFF[i]; _voci_vittoria()))
+	var vv := UI.vbox(2)
+	vv.add_child(UI.etichetta("Condizione di vittoria (non si cambia più)", 17, UI.TENUE))
+	vittoria_op = OptionButton.new()
+	vittoria_op.fit_to_longest_item = false
+	vittoria_op.item_selected.connect(func(j): opzioni.vittoria = vittorie_ids[j])
+	vv.add_child(vittoria_op)
+	sx.add_child(vv)
+	_voci_vittoria()
 	sx.add_child(_scelta("Tavolo di battaglia", ["2 x 2 piedi (24 caselle)", "2,5 x 2,5 piedi (30 caselle)", "3 x 3 piedi (36 caselle)"], 0, func(i): opzioni.tavolo = [24, 30, 36][i]))
 	var navi: Array = Dati.f("nave").get("navi", {}).get("righe", [])
 	var nomi_navi := ["Tira a caso"]
@@ -50,6 +64,25 @@ func _ready() -> void:
 	cb2.button_pressed = true
 	cb2.toggled.connect(func(v): opzioni.eventi_battaglia = v)
 	sx.add_child(cb2)
+	var cb3 := CheckBox.new()
+	cb3.text = "Civili neutrali in battaglia (Appendice VIII)"
+	cb3.tooltip_text = "Regola della casa: con 5+ su 1D6 ci sono 1D3 personaggi neutrali sul campo. Fuggono dagli scontri; si può chiedere il loro aiuto."
+	cb3.toggled.connect(func(v): opzioni.neutrali = v)
+	sx.add_child(cb3)
+	if ranghi > 0:
+		var cb4 := CheckBox.new()
+		cb4.text = "Usa i Ranghi d'élite (%d)" % ranghi
+		cb4.button_pressed = true
+		cb4.tooltip_text = "+%d punti Storia, %d XP per l'equipaggio%s%s." % [ranghi, 2 * ranghi,
+			", %d personaggi in più tra cui scegliere" % (ranghi / 3) if ranghi >= 3 else "", ", Stelle della Storia da usare due volte" if ranghi >= 5 else ""]
+		cb4.toggled.connect(func(v): opzioni.elite = v; _ricrea_slot())
+		sx.add_child(cb4)
+		for k in ranghi / 5:
+			var stelle: Array = Dati.f("campagna").get("stelle_della_storia", {}).get("opzioni", [])
+			opzioni.stelle_doppie.append(str(stelle[k % stelle.size()].id))
+			var nomi := stelle.map(func(o): return "Stella da usare due volte: " + str(o.nome))
+			var kk := k
+			sx.add_child(_scelta("Rango d'élite %d" % ((k + 1) * 5), nomi, k % stelle.size(), func(i): opzioni.stelle_doppie[kk] = str(stelle[i].id)))
 	sx.add_child(HSeparator.new())
 	sx.add_child(UI.bottone("Tira tutto l'equipaggio", _tira_tutti))
 	sx.add_child(UI.bottone("Metodo standard: 3 Umani, 2 Umani o Alieni, 1 Umano o Bot", _metodo_standard))
@@ -93,10 +126,31 @@ func _scelta(etichetta: String, voci: Array, sel: int, cb: Callable) -> Control:
 	v.add_child(o)
 	return v
 
+## Condizioni di vittoria ammesse dalla difficoltà (in Facile solo 20 turni o 20 vittorie).
+func _voci_vittoria() -> void:
+	if vittoria_op == null:
+		return
+	vittoria_op.clear()
+	vittorie_ids = [""]
+	vittoria_op.add_item("Nessuna: si gioca finché si vuole")
+	for c in Campagna.condizioni_vittoria(str(opzioni.difficolta)):
+		vittorie_ids.append(str(c.id))
+		vittoria_op.add_item(str(c.nome))
+	var i := vittorie_ids.find(str(opzioni.vittoria))
+	if i < 0:
+		i = 0
+		opzioni.vittoria = ""
+	vittoria_op.select(i)
+
+## Personaggi in più grazie ai Ranghi d'élite (uno ogni 3): si generano e poi se ne scelgono quanti ne servono.
+func _extra() -> int:
+	return ranghi / 3 if opzioni.elite else 0
+
 func _ricrea_slot() -> void:
-	var n := int(opzioni.dimensione)
+	var n := int(opzioni.dimensione) + _extra()
 	while slot.size() < n:
-		slot.append({"specie": "umano", "nome": anteprima.nome_casuale(slot.map(func(x): return x.nome)), "background": -1, "motivazione": -1, "classe": -1})
+		slot.append({"specie": "umano", "nome": anteprima.nome_casuale(slot.map(func(x): return x.nome)), "background": -1, "motivazione": -1, "classe": -1,
+			"escluso": slot.size() >= int(opzioni.dimensione)})
 	slot.resize(n)
 	capo = min(capo, n - 1)
 	_aggiorna()
@@ -162,7 +216,14 @@ func _aggiorna() -> void:
 		os.item_selected.connect(func(j): s.specie = specie_ids[j]; _aggiorna())
 		h.add_child(os)
 		h.add_child(UI.bottone("Tira", func(): _tira_slot(i); _aggiorna(), "Tira di nuovo specie e tabelle"))
-		h.add_child(UI.bottone("Capo" if i != capo else "CAPO", func(): capo = i; _aggiorna(), "Il Capo riceve +1 Fortuna"))
+		h.add_child(UI.bottone("Capo" if i != capo else "CAPO", func(): capo = i; s["escluso"] = false; _aggiorna(), "Il Capo riceve +1 Fortuna"))
+		if _extra() > 0:
+			var cs := CheckBox.new()
+			cs.text = "In squadra"
+			cs.button_pressed = not s.get("escluso", false)
+			cs.tooltip_text = "Ranghi d'élite: scegli %d personaggi tra quelli generati" % int(opzioni.dimensione)
+			cs.toggled.connect(func(v): s["escluso"] = not v; _info_risorse())
+			h.add_child(cs)
 		c.add_child(h)
 		var h2 := UI.hbox(6)
 		if Personaggio.usa_tabelle(pg):
@@ -196,6 +257,8 @@ func _info_risorse() -> void:
 	var altri := {"punti_storia": 0, "patrono": 0, "rivale": 0, "dicerie": 0}
 	var ogg := 0
 	for s in slot:
+		if s.get("escluso", false) and _extra() > 0:
+			continue
 		for q in ["background", "motivazione", "classe"]:
 			var righe: Array = Dati.f("creazione").get(q, {}).get("righe", [])
 			if int(s[q]) < 0 or int(s[q]) >= righe.size():
@@ -212,12 +275,20 @@ func _info_risorse() -> void:
 
 func _inizia() -> void:
 	opzioni.nome = nome_eq.text.strip_edges() if nome_eq.text.strip_edges() != "" else "Equipaggio senza nome"
+	var scelti := []
+	for i in slot.size():
+		if not slot[i].get("escluso", false) or _extra() == 0:
+			scelti.append(i)
+	if scelti.size() != int(opzioni.dimensione) or not capo in scelti:
+		info.text = "[color=#e85a4f]Scegli esattamente %d personaggi «In squadra» (Capo compreso): ora sono %d.[/color]" % [int(opzioni.dimensione), scelti.size()]
+		return
 	var c := Campagna.new()
 	c.nuova(opzioni)
 	var eq := []
-	for s in slot:
+	for i in scelti:
+		var s: Dictionary = slot[i]
 		eq.append(c.crea_personaggio(s.specie, s.nome, {"background": s.background, "motivazione": s.motivazione, "classe": s.classe}, true))
-	c.completa_creazione(eq, capo, nave)
+	c.completa_creazione(eq, scelti.find(capo), nave)
 	main.campagna = c
 	Salvataggi.salva_locale(c.salva())
 	main.mostra_campagna(c)

@@ -23,8 +23,10 @@ static func iniziali(nome: String) -> String:
 	return (parti[0].substr(0, 1) + parti[parti.size() - 1].substr(0, 1)).to_upper()
 
 ## Disegna una pedina su ci (CanvasItem) con centro c e raggio r.
-static func disegna(ci: CanvasItem, c: Vector2, r: float, chiave: String, nome: String, nemico: bool, evidenziata := false, attenuata := false) -> void:
+static func disegna(ci: CanvasItem, c: Vector2, r: float, chiave: String, nome: String, nemico: bool, evidenziata := false, attenuata := false, colore_bordo := Color(0, 0, 0, 0)) -> void:
 	var bordo := UI.ROSSO if nemico else UI.AMBRA
+	if colore_bordo.a > 0.0:
+		bordo = colore_bordo
 	if evidenziata:
 		ci.draw_circle(c, r + 5, Color(1, 1, 1, 0.85))
 	ci.draw_circle(c + Vector2(2, 3), r, Color(0, 0, 0, 0.45))
