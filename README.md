@@ -72,9 +72,18 @@ la sagoma ritagliata dalla loro immagine, estrusa con l'altezza di gioco (blocch
 e almeno 1 cm; gli edifici con interno hanno muri, porte e finestre; i personaggi sono sagome di cartoncino in piedi alte 1,2"
 (come una miniatura da 28 mm), fisse e rivolte verso il lato dell'equipaggio. Tasto destro e trascina:
 ruota; rotella: zoom; tasto centrale o Maiusc + destro: sposta; doppio clic destro: vista iniziale.
+Alcuni elementi sono **modelli 3D** (`assets/modelli/*.glb`, CC0 di Kenney, vedi `assets/modelli/CREDITI.txt`): alberi,
+cespugli e alberi sopra le aree di vegetazione, barili, casse, navetta, edificio chiuso, massi, cristalli, crateri,
+recinzioni, barricate e muretti; si sostituiscono salvando un altro GLB con lo stesso nome, e se manca resta il cartoncino.
+**Effetti**: granate e lanciagranate volano ad arco ed esplodono (lampo, schegge, fumo e anello del raggio), la granata
+accecante fa un lampo bianco, i lanciafiamme un getto di fuoco, le cariche esplodono; nebbia, polvere, gas e lucciole
+notturne si muovono sul campo secondo la condizione di schieramento, gli eventi e i tratti del mondo.
+**Gioco automatico**: una figura alla volta, con il selettore **Velocità** (Lenta, Normale, Veloce, Istantanea, vale anche
+per la fase dei nemici) e il bottone per interromperlo.
 **Linea di vista** (2D e 3D, si può spegnere): dal personaggio selezionato alla casella sotto il mouse, verde se libera,
 gialla con copertura, rossa con una X dove si interrompe, con la distanza. **Tiri**: i colpi volano da chi spara a chi è
-colpito (ambra l'equipaggio, rosso i nemici), uno per colpo della raffica; resta una freccia dell'ultimo tiro.
+colpito (ambra l'equipaggio, rosso i nemici), uno per colpo della raffica; la freccia dell'ultimo tiro sfuma e sparisce
+dopo un paio di secondi.
 
 ## Grafica
 Tutte le immagini sono state generate con i prompt dei file `PROMPT_*.md` e ridotte per il web (WebP); il gioco le carica
@@ -115,6 +124,7 @@ xvfb-run godot --path . -s tests/shot.gd              # screenshot di menu, crea
 xvfb-run godot --path . -s tests/shot_speciali.gd     # screenshot delle battaglie della Zona Nera e della Storia
 xvfb-run godot --path . -s tests/shot_mappe.gd        # il campo di battaglia in tutti gli ambienti
 xvfb-run godot --path . -s tests/shot_3d.gd           # mappa 3D, linea di vista e tiri
+xvfb-run godot --path . -s tests/shot_effetti.gd      # granate, esplosioni, nebbia, polvere, gas e buio
 python3 tools/controlla_glifi.py                      # glifi
 ```
 

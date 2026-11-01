@@ -1,4 +1,5 @@
 ## Disegno del campo di battaglia su griglia: terreno, figure, caselle raggiungibili, bersagli, marcatori.
+class_name Tavolo2D
 extends Control
 
 signal cella_cliccata(p: Vector2i, destro: bool)
@@ -15,7 +16,11 @@ var sopra := Vector2i(-1, -1)
 var linea_tiro := []     # [da, a] per l'ultimo tiro
 var anim := {}           # uid -> posizione disegnata (Vector2) per l'animazione
 var colpi: Array = []    # animazioni in corso: {da, a, lato, n, t, rissa}
-var ultimo_tiro := {}    # freccia dell'ultimo tiro: {da, a, lato}
+var ultimo_tiro := {}    # freccia dell'ultimo tiro: {da, a, lato, t}; sfuma e sparisce dopo qualche secondo
+var esplosioni: Array = [] # {pos, raggio, genere, t (negativo = in attesa che arrivi il colpo)}
+var _atm_tipo := "?"
+var _atm_nodi: Array = []
+var _ritaglio: Control
 var mostra_vista := true # linea di vista dal personaggio selezionato alla casella sotto il mouse
 
 const VOLO := 0.32       # durata del volo di un colpo (secondi)
@@ -30,9 +35,14 @@ func _ready() -> void:
 ## ---------------- colpi e risse animati ----------------
 
 ## Tiro da una casella all'altra: i colpi partono da chi spara e arrivano a chi è colpito.
-func spara(da: Vector2i, a: Vector2i, lato_: String, n := 1) -> void:
-	colpi.append({"da": da, "a": a, "lato": lato_, "n": clampi(n, 1, 6), "t": 0.0, "rissa": false})
-	ultimo_tiro = {"da": da, "a": a, "lato": lato_}
+func spara(da: Vector2i, a: Vector2i, lato_: String, n := 1, genere := "proiettile") -> void:
+	colpi.append({"da": da, "a": a, "lato": lato_, "n": clampi(n, 1, 6), "t": 0.0, "rissa": false, "genere": genere})
+	ultimo_tiro = {"da": da, "a": a, "lato": lato_, "t": 0.0}
+	set_process(true)
+
+## Esplosione (granata, lanciagranate, cariche) o vampata (lanciafiamme) nella casella, dopo il ritardo in secondi.
+func esplosione(pos: Vector2i, raggio: int, genere: String, ritardo := 0.0) -> void:
+	esplosioni.append({"pos": pos, "raggio": raggio, "genere": genere, "t": -ritardo, "scoppiata": false})
 	set_process(true)
 
 func rissa(da: Vector2i, a: Vector2i, lato_: String) -> void:
@@ -40,16 +50,45 @@ func rissa(da: Vector2i, a: Vector2i, lato_: String) -> void:
 	set_process(true)
 
 ## Durata complessiva di un'animazione (per attendere prima di passare al nemico successivo).
+const VOLO_GRANATA := 0.6
+
 static func durata(c: Dictionary) -> float:
 	if c.get("rissa", false):
 		return 0.5
+	match str(c.get("genere", "")):
+		"granata":
+			return VOLO_GRANATA
+		"fiamma":
+			return VOLO + 0.7
 	return VOLO + RITMO * (int(c.n) - 1) + 0.25
+
+## Momento (secondi dall'inizio del tiro) in cui il colpo arriva: lì parte l'esplosione.
+static func arrivo(genere: String) -> float:
+	match genere:
+		"granata":
+			return VOLO_GRANATA
+		"fiamma":
+			return VOLO * 0.8
+	return VOLO
+
+const DURATA_FRECCIA := 2.5   # secondi prima che la freccia dell'ultimo tiro sparisca
+const DURATA_ESPLOSIONE := 0.9
 
 func _process(d: float) -> void:
 	for c in colpi:
 		c.t += d
 	colpi = colpi.filter(func(c): return c.t < durata(c))
-	if colpi.is_empty():
+	for e in esplosioni:
+		e.t += d
+		if e.t >= 0.0 and not e.scoppiata:
+			e.scoppiata = true
+			_scoppio(e)
+	esplosioni = esplosioni.filter(func(e): return e.t < DURATA_ESPLOSIONE)
+	if not ultimo_tiro.is_empty():
+		ultimo_tiro.t = float(ultimo_tiro.get("t", 0.0)) + d
+		if ultimo_tiro.t > DURATA_FRECCIA:
+			ultimo_tiro = {}
+	if colpi.is_empty() and esplosioni.is_empty() and ultimo_tiro.is_empty():
 		set_process(false)
 	queue_redraw()
 
@@ -218,6 +257,8 @@ func _draw() -> void:
 			draw_string(f, c + Vector2(-lato * 0.3, lato * 0.62), s, HORIZONTAL_ALIGNMENT_LEFT, -1, int(lato * 0.4), Color(1, 0.85, 0.5))
 	_linea_vista()
 	_disegna_colpi()
+	_disegna_esplosioni()
+	_aggiorna_atmosfera.call_deferred()
 
 ## ---------------- linea di vista, tiri ----------------
 
@@ -236,7 +277,10 @@ func _freccia_tiro() -> void:
 	if a.distance_to(z) < 1:
 		return
 	var col := colore_lato(str(ultimo_tiro.lato))
-	col.a = 0.55
+	var t := float(ultimo_tiro.get("t", 0.0))
+	col.a = 0.55 * clampf((DURATA_FRECCIA - t) / 0.8, 0.0, 1.0)
+	if col.a <= 0.01:
+		return
 	var dir := (z - a).normalized()
 	var punta := z - dir * lato * 0.45
 	draw_line(a + dir * lato * 0.45, punta, col, 2.5, true)
@@ -257,6 +301,26 @@ func _disegna_colpi() -> void:
 			continue
 		var dir := (z - a).normalized()
 		var da := a + dir * lato * 0.4
+		var gen := str(c.get("genere", "proiettile"))
+		if gen == "granata":
+			# lanciata ad arco: la granata sale e scende, con l'ombra sul terreno
+			var k: float = clampf(float(c.t) / VOLO_GRANATA, 0.0, 1.0)
+			if k < 1.0:
+				var p := da.lerp(z, k)
+				var alto := sin(PI * k) * lato * 1.6
+				draw_circle(p, lato * 0.18 * (1.0 - 0.4 * sin(PI * k)), Color(0, 0, 0, 0.35))
+				draw_circle(p - Vector2(0, alto), lato * 0.22, Color(0.25, 0.3, 0.22))
+				draw_circle(p - Vector2(0, alto), lato * 0.22, Color(1.0, 0.85, 0.4), false, 2.5)
+			continue
+		if gen == "fiamma":
+			# getto di fuoco: sbuffi arancioni che corrono verso il bersaglio
+			for j in 10:
+				var k: float = float(c.t) / VOLO - j * 0.07
+				if k >= 0.0 and k <= 1.0:
+					var p := da.lerp(z, k)
+					var r := lato * (0.12 + 0.3 * k)
+					draw_circle(p, r, Color(1.0, 0.45 + 0.3 * (1.0 - k), 0.1, 0.75 * (1.0 - k * 0.6)))
+			continue
 		for i in int(c.n):
 			var t0 := RITMO * i
 			var k: float = (float(c.t) - t0) / VOLO
@@ -302,6 +366,122 @@ func _linea_vista() -> void:
 		pos.x = z.x - lato * 0.55 - w
 	draw_string_outline(fo, pos, testo, HORIZONTAL_ALIGNMENT_LEFT, -1, dim, 4, Color(0, 0, 0, 0.9))
 	draw_string(fo, pos, testo, HORIZONTAL_ALIGNMENT_LEFT, -1, dim, Color.WHITE)
+
+## ---------------- esplosioni e particelle ----------------
+
+## Lampo e anello del raggio d'effetto (le scintille e il fumo sono particelle).
+func _disegna_esplosioni() -> void:
+	for e in esplosioni:
+		if e.t < 0.0:
+			continue
+		var k: float = clampf(e.t / DURATA_ESPLOSIONE, 0.0, 1.0)
+		var c := centro_cella(e.pos)
+		var cols: Array = Atmosfera.colori_esplosione(str(e.genere))
+		var lampo: Color = cols[0]
+		var r := (float(e.raggio) + 0.5) * lato
+		draw_circle(c, r * minf(1.0, k * 5.0), Color(lampo.r, lampo.g, lampo.b, 0.55 * (1.0 - k)))
+		draw_arc(c, r, 0, TAU, 48, Color(lampo.r, lampo.g, lampo.b, 0.9 * (1.0 - k)), 3.0)
+		if str(e.genere) == "accecante" and k < 0.35:
+			draw_rect(Rect2(origine, Vector2(b.W, b.H) * lato), Color(1, 1, 1, 0.35 * (1.0 - k / 0.35)))
+
+## Particelle di un'esplosione: scintille veloci e fumo lento.
+func _scoppio(e: Dictionary) -> void:
+	var c := centro_cella(e.pos)
+	var cols: Array = Atmosfera.colori_esplosione(str(e.genere))
+	var r := (float(e.raggio) + 0.5) * lato
+	var n := 60 if str(e.genere) == "cariche" else 36
+	_particelle_scoppio(c, cols[1], n, r * 2.2, 0.55, lato * 0.18 / 64.0 * 2.0)
+	_particelle_scoppio(c, cols[2], int(n / 2.0), r * 0.7, 1.6, lato * 0.9 / 64.0 * 2.0)
+
+func _particelle_scoppio(c: Vector2, col: Color, n: int, vel: float, vita: float, scala: float) -> void:
+	var p := CPUParticles2D.new()
+	p.position = c
+	p.one_shot = true
+	p.explosiveness = 0.92
+	p.amount = maxi(4, n)
+	p.lifetime = vita
+	p.texture = Atmosfera.morbida()
+	p.spread = 180.0
+	p.gravity = Vector2.ZERO
+	p.initial_velocity_min = vel * 0.35
+	p.initial_velocity_max = vel
+	p.damping_min = vel * 0.9
+	p.damping_max = vel * 1.3
+	p.scale_amount_min = scala * 0.6
+	p.scale_amount_max = scala * 1.4
+	p.color_ramp = Atmosfera.sfuma(col)
+	p.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
+	add_child(p)
+	p.emitting = true
+	get_tree().create_timer(vita + 0.3).timeout.connect(p.queue_free)
+
+## Nebbia, polvere, gas o lucciole notturne che si muovono sul campo; banco di nebbia locale degli eventi.
+func _aggiorna_atmosfera() -> void:
+	if b == null:
+		return
+	var tipo := Atmosfera.tipo(b)
+	var firma := "%s|%s|%s|%s" % [tipo, b.nebbia, lato, origine]
+	if firma == _atm_tipo:
+		return
+	_atm_tipo = firma
+	for n in _atm_nodi:
+		(n as Node).queue_free()
+	_atm_nodi = []
+	var area := Vector2(b.W, b.H) * lato
+	if _ritaglio == null:
+		_ritaglio = Control.new()
+		_ritaglio.clip_contents = true
+		_ritaglio.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		add_child(_ritaglio)
+	_ritaglio.position = origine
+	_ritaglio.size = area
+	var centro := area / 2.0
+	match tipo:
+		"nebbia":
+			_atm_nodi.append(_strato(centro, area / 2.0, Color(0.92, 0.94, 0.97, 0.16), 36, 16.0, Vector2(lato * 0.35, 0), lato * 5.0))
+		"polvere":
+			_atm_nodi.append(_strato(centro, area / 2.0, Color(0.82, 0.62, 0.38, 0.12), 26, 9.0, Vector2(lato * 1.2, lato * 0.1), lato * 6.0))
+			_atm_nodi.append(_strato(centro, area / 2.0, Color(0.9, 0.72, 0.45, 0.55), 140, 3.0, Vector2(lato * 5.0, lato * 0.6), lato * 0.25))
+		"gas":
+			_atm_nodi.append(_strato(centro, area / 2.0, Color(0.55, 0.85, 0.25, 0.16), 34, 14.0, Vector2(lato * 0.2, -lato * 0.15), lato * 5.0))
+		"buio":
+			_atm_nodi.append(_strato(centro, area / 2.0, Color(0.85, 1.0, 0.45, 0.85), 30, 6.0, Vector2(lato * 0.25, -lato * 0.2), lato * 0.22, true))
+	if not b.nebbia.is_empty():
+		var nc := centro_cella(b.nebbia.centro) - origine
+		var nr := (float(b.nebbia.raggio) + 0.5) * lato
+		_atm_nodi.append(_strato(nc, Vector2(nr, nr) * 0.8, Color(0.95, 0.96, 0.98, 0.28), 30, 10.0, Vector2(lato * 0.2, 0), lato * 3.5))
+
+## Strato di particelle persistenti su un rettangolo (estensione = metà lati).
+func _strato(c: Vector2, est: Vector2, col: Color, n: int, vita: float, vel: Vector2, dim: float, lucciole := false) -> CPUParticles2D:
+	var p := CPUParticles2D.new()
+	p.position = c
+	p.amount = n
+	p.lifetime = vita
+	p.preprocess = vita
+	p.texture = Atmosfera.morbida()
+	p.emission_shape = CPUParticles2D.EMISSION_SHAPE_RECTANGLE
+	p.emission_rect_extents = est
+	p.direction = vel.normalized() if vel.length() > 0 else Vector2.RIGHT
+	p.spread = 25.0 if not lucciole else 180.0
+	p.gravity = Vector2.ZERO
+	p.initial_velocity_min = vel.length() * 0.5
+	p.initial_velocity_max = vel.length() * 1.2
+	var sc := dim / 64.0
+	p.scale_amount_min = sc * 0.6
+	p.scale_amount_max = sc * 1.3
+	var g := Gradient.new()
+	g.set_color(0, Color(col.r, col.g, col.b, 0.0))
+	g.set_color(1, Color(col.r, col.g, col.b, 0.0))
+	g.add_point(0.3, col)
+	g.add_point(0.7, col)
+	p.color_ramp = g
+	if lucciole:
+		p.hue_variation_min = -0.05
+		p.hue_variation_max = 0.05
+	p.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
+	_ritaglio.add_child(p)
+	p.emitting = true
+	return p
 
 ## ---------------- grafica del campo ----------------
 

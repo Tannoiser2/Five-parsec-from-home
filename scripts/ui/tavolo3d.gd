@@ -79,6 +79,7 @@ func _ready() -> void:
 	ambiente.ambient_light_color = Color(0.75, 0.78, 0.85)
 	ambiente.ambient_light_energy = 0.38
 	ambiente.tonemap_mode = Environment.TONE_MAPPER_FILMIC
+	ambiente.fog_sky_affect = 0.0
 	we.environment = ambiente
 	mondo.add_child(we)
 	luce = DirectionalLight3D.new()
@@ -114,9 +115,14 @@ func _ready() -> void:
 func centro_cella(p: Vector2i) -> Vector2:
 	return Vector2(p) + Vector2(0.5, 0.5)
 
-func spara(da: Vector2i, a: Vector2i, lato_: String, n := 1) -> void:
-	colpi.append({"da": da, "a": a, "lato": lato_, "n": clampi(n, 1, 6), "t": 0.0, "rissa": false, "nodi": []})
-	ultimo_tiro = {"da": da, "a": a, "lato": lato_}
+func spara(da: Vector2i, a: Vector2i, lato_: String, n := 1, genere := "proiettile") -> void:
+	colpi.append({"da": da, "a": a, "lato": lato_, "n": clampi(n, 1, 6), "t": 0.0, "rissa": false, "nodi": [], "genere": genere})
+	ultimo_tiro = {"da": da, "a": a, "lato": lato_, "t": 0.0}
+
+var esplosioni: Array = []
+
+func esplosione(pos: Vector2i, raggio: int, genere: String, ritardo := 0.0) -> void:
+	esplosioni.append({"pos": pos, "raggio": raggio, "genere": genere, "t": -ritardo, "scoppiata": false, "nodi": []})
 
 func rissa(da: Vector2i, a: Vector2i, lato_: String) -> void:
 	colpi.append({"da": da, "a": a, "lato": lato_, "n": 1, "t": 0.0, "rissa": true, "nodi": []})
@@ -147,8 +153,10 @@ func _process(d: float) -> void:
 	_aggiorna_figure()
 	_aggiorna_segni()
 	_aggiorna_vista()
-	_aggiorna_tiro()
+	_aggiorna_tiro(d)
 	_aggiorna_colpi(d)
+	_aggiorna_esplosioni(d)
+	_aggiorna_atmosfera()
 	_aggiorna_camera()
 
 func _aggiorna_camera() -> void:
@@ -451,6 +459,8 @@ func _costruisci_terreno() -> void:
 			for c in celle:
 				solidi[c] = true
 		var h := _altezza_elemento(e)
+		if _elemento_modello(e, h):
+			continue
 		if PER_CELLA.has(nome) and _elem(PER_CELLA[nome]) != null:
 			var tex := _elem(PER_CELLA[nome])
 			for c in celle:
@@ -482,6 +492,8 @@ func _costruisci_terreno() -> void:
 			var ts := tex.get_size()
 			var ruota: bool = chiave in ORIENTABILI and ts.x > ts.y * 1.1 and bb.size.y > bb.size.x * 1.1
 			_cartoncino(tex, bb.get_center(), bb.size.x, bb.size.y, h, 0.0, ruota)
+			if area:
+				_decora_area(e)
 		else:
 			_ripiego(e, h)
 	# muri degli edifici con interno, muri di forza e blocchi isolati
@@ -635,15 +647,15 @@ func _atmosfera() -> void:
 	elif cond == "Scarsa visibilità":
 		ambiente.fog_enabled = true
 		ambiente.fog_light_color = Color(0.7, 0.55, 0.38)
-		ambiente.fog_density = 0.018
+		ambiente.fog_density = 0.006
 	elif cond == "Ambiente tossico":
 		ambiente.fog_enabled = true
 		ambiente.fog_light_color = Color(0.55, 0.7, 0.3)
-		ambiente.fog_density = 0.012
+		ambiente.fog_density = 0.004
 	elif tratti.contains("nebbia") or tratti.contains("foschia"):
 		ambiente.fog_enabled = true
 		ambiente.fog_light_color = Color(0.75, 0.78, 0.82)
-		ambiente.fog_density = 0.015
+		ambiente.fog_density = 0.006
 
 ## ---------------- griglia ed evidenziazioni (texture sul suolo) ----------------
 
@@ -989,13 +1001,24 @@ func _quota(p: Vector2i, h: float) -> Vector3:
 	return Vector3(p.x + 0.5, float(b.a_at(p)) + h, p.y + 0.5)
 
 ## Freccia dell'ultimo tiro: da chi ha sparato a chi è stato bersagliato.
-func _aggiorna_tiro() -> void:
-	var f := str(ultimo_tiro)
+var _mat_freccia: Array = []
+
+func _aggiorna_tiro(d: float) -> void:
+	if not ultimo_tiro.is_empty():
+		ultimo_tiro.t = float(ultimo_tiro.get("t", 0.0)) + d
+		if ultimo_tiro.t > Tavolo2D.DURATA_FRECCIA:
+			ultimo_tiro = {}
+		else:
+			var al := 0.6 * clampf((Tavolo2D.DURATA_FRECCIA - float(ultimo_tiro.t)) / 0.8, 0.0, 1.0)
+			for m in _mat_freccia:
+				(m as StandardMaterial3D).albedo_color.a = al
+	var f := "" if ultimo_tiro.is_empty() else "%s|%s|%s" % [ultimo_tiro.da, ultimo_tiro.a, ultimo_tiro.lato]
 	if f == _firma_tiro:
 		return
 	_firma_tiro = f
 	for n in n_tiro.get_children():
 		n.queue_free()
+	_mat_freccia = []
 	if ultimo_tiro.is_empty():
 		return
 	var da := _quota(ultimo_tiro.da, 0.7)
@@ -1010,12 +1033,18 @@ func _aggiorna_tiro() -> void:
 	var l := (punta - da).length() - 0.45
 	if l > 0.05:
 		_segmento(da + dir * 0.45, punta, col, 0.05, n_tiro)
+		var seg := n_tiro.get_child(n_tiro.get_child_count() - 1) as MeshInstance3D
+		var ms := _mat_sfumato(col)
+		seg.material_override = ms
+		_mat_freccia.append(ms)
 	var cono := CylinderMesh.new()
 	cono.top_radius = 0.0
 	cono.bottom_radius = 0.16
 	cono.height = 0.38
 	mi.mesh = cono
-	mi.material_override = _mat("cono", col, null, true)
+	var mc := _mat_sfumato(col)
+	mi.material_override = mc
+	_mat_freccia.append(mc)
 	n_tiro.add_child(mi)
 	mi.position = punta
 	var asse := dir
@@ -1042,6 +1071,25 @@ func _aggiorna_colpi(d: float) -> void:
 			continue
 		var dir := (a - da).normalized()
 		var p0 := da + dir * 0.4
+		var gen := str(c.get("genere", "proiettile"))
+		if gen == "granata":
+			var k: float = clampf(float(c.t) / Tavolo2D.VOLO_GRANATA, 0.0, 1.0)
+			if k < 1.0:
+				var p := p0.lerp(a, k) + Vector3(0, sin(PI * k) * maxf(1.5, da.distance_to(a) * 0.3), 0)
+				var sf := SphereMesh.new()
+				sf.radius = 0.13
+				sf.height = 0.26
+				c.nodi.append(_mi(sf, _mat("granata", Color(0.3, 0.35, 0.25)), n_colpi, p))
+			continue
+		if gen == "fiamma":
+			for j in 10:
+				var k: float = float(c.t) / VOLO - j * 0.07
+				if k >= 0.0 and k <= 1.0:
+					var sf := SphereMesh.new()
+					sf.radius = 0.12 + 0.35 * k
+					sf.height = sf.radius * 2.0
+					c.nodi.append(_mi(sf, _mat_sfumato(Color(1.0, 0.45 + 0.3 * (1.0 - k), 0.1, 0.8 * (1.0 - k * 0.6))), n_colpi, p0.lerp(a, k), false))
+			continue
 		for i in int(c.n):
 			var k: float = (float(c.t) - RITMO * i) / VOLO
 			if k >= 0.0 and k <= 1.0:
@@ -1073,6 +1121,329 @@ func _aggiorna_colpi(d: float) -> void:
 	colpi = colpi.filter(func(c): return c.t < durata(c))
 
 static func durata(c: Dictionary) -> float:
-	if c.get("rissa", false):
-		return 0.5
-	return VOLO + RITMO * (int(c.n) - 1) + 0.25
+	return Tavolo2D.durata(c)
+
+## ---------------- modelli 3D (assets/modelli/*.glb: CC0 di Kenney o modelli propri) ----------------
+## Se un modello manca, l'elemento resta un cartoncino.
+
+static var _scene_modelli := {}
+static var _aabb_modelli := {}
+
+func _scena(nome: String) -> PackedScene:
+	if _scene_modelli.has(nome):
+		return _scene_modelli[nome]
+	var p := "res://assets/modelli/%s.glb" % nome
+	var s: PackedScene = load(p) if ResourceLoader.exists(p) else null
+	_scene_modelli[nome] = s
+	return s
+
+static func _aabb_nodo(n: Node, t: Transform3D) -> AABB:
+	var r := AABB()
+	var vuoto := true
+	var tt := t * (n as Node3D).transform if n is Node3D else t
+	if n is MeshInstance3D:
+		r = tt * (n as MeshInstance3D).get_aabb()
+		vuoto = false
+	for c in n.get_children():
+		var a := _aabb_nodo(c, tt)
+		if a.size != Vector3.ZERO:
+			r = a if vuoto else r.merge(a)
+			vuoto = false
+	return r
+
+## Materiali dei modelli resi opachi e non metallici: senza riflessi d'ambiente il metallo diventa nero.
+static var _mat_opachi := {}
+
+static func _opaco(n: Node) -> void:
+	if n is MeshInstance3D:
+		var mi := n as MeshInstance3D
+		if mi.mesh != null:
+			for i in mi.mesh.get_surface_count():
+				var m := mi.get_active_material(i)
+				if m is BaseMaterial3D:
+					var k := m.get_instance_id()
+					if not _mat_opachi.has(k):
+						var d := (m as BaseMaterial3D).duplicate() as BaseMaterial3D
+						d.metallic = 0.0
+						d.metallic_specular = 0.3
+						d.roughness = 0.9
+						# tinta calda e meno satura, per avvicinarsi alla grafica dipinta della plancia
+						d.albedo_color = d.albedo_color * Color(0.86, 0.8, 0.7)
+						_mat_opachi[k] = d
+					mi.set_surface_override_material(i, _mat_opachi[k])
+	for c in n.get_children():
+		_opaco(c)
+
+## Primo modello disponibile tra i nomi (scelto con il seme, per variare tra caselle vicine).
+func _scegli_modello(nomi: Array, seme: int) -> String:
+	var ok := nomi.filter(func(n): return _scena(str(n)) != null)
+	if ok.is_empty():
+		return ""
+	return str(ok[posmod(seme, ok.size())])
+
+## Piazza un modello nella scatola w (x) x d (z) x h, centrata in c, appoggiata a quota y0.
+## uniforme: mantiene le proporzioni (sta dentro la scatola); ruota_lungo: allinea il lato lungo del modello al lato
+## lungo della scatola.
+func _modello(nome: String, c: Vector2, w: float, d: float, h: float, y0 := 0.0, uniforme := false) -> Node3D:
+	var sc := _scena(nome)
+	if sc == null:
+		return null
+	var inst := sc.instantiate() as Node3D
+	if not _aabb_modelli.has(nome):
+		_aabb_modelli[nome] = _aabb_nodo(inst, Transform3D.IDENTITY)
+	var a: AABB = _aabb_modelli[nome]
+	var ax := maxf(a.size.x, 0.001)
+	var ay := maxf(a.size.y, 0.001)
+	var az := maxf(a.size.z, 0.001)
+	var perno := Node3D.new()
+	perno.position = Vector3(c.x, y0, c.y)
+	# lato lungo del modello lungo il lato lungo della scatola
+	if (ax > az * 1.15 and d > w * 1.15) or (az > ax * 1.15 and w > d * 1.15):
+		perno.rotation.y = PI / 2.0
+		var t := w
+		w = d
+		d = t
+	var s := Vector3(w / ax, h / ay, d / az)
+	if uniforme:
+		var k := minf(s.x, minf(s.y, s.z))
+		s = Vector3(k, k, k)
+	inst.scale = s
+	inst.position = Vector3(-a.get_center().x * s.x, -a.position.y * s.y, -a.get_center().z * s.z)
+	_opaco(inst)
+	perno.add_child(inst)
+	n_terreno.add_child(perno)
+	return perno
+
+## Elementi resi con modelli 3D. Restituisce true se l'elemento è stato disegnato (niente cartoncino).
+func _elemento_modello(e: Dictionary, h: float) -> bool:
+	var nome := str(e.nome)
+	var celle: Array = e.celle
+	var bb := _bbox(celle)
+	match nome:
+		"Alberi":
+			var n := _scegli_modello(["albero_1", "albero_2", "albero_3"], 0)
+			if n == "":
+				return false
+			for c in celle:
+				var m := _scegli_modello(["albero_1", "albero_2", "albero_3"], c.x * 7 + c.y * 3)
+				_modello(m, Vector2(c) + Vector2(0.5, 0.5), 1.2, 1.2, H_CHIOMA)
+			return true
+		"Barili":
+			if _scegli_modello(["barile"], 0) == "":
+				return false
+			for c in celle:
+				var m := _scegli_modello(["barile", "barili"], c.x + c.y)
+				_modello(m, Vector2(c) + Vector2(0.5, 0.5), 0.8, 0.8, 1.2, 0.0, true)
+			return true
+		"Deposito di casse", "Casse della navetta":
+			if _scegli_modello(["cassa"], 0) == "":
+				return false
+			for c in celle:
+				var hh := maxf(SPESSORE, float(b.a_at(c))) if int(e.tipo) == Battaglia.T.BLOCCO else 0.8
+				_modello("cassa", Vector2(c) + Vector2(0.5, 0.5), 0.95, 0.95, hh)
+			return true
+		"Cristalli":
+			if _scegli_modello(["cristalli_1"], 0) == "":
+				return false
+			for c in celle:
+				_modello(_scegli_modello(["cristalli_1", "cristalli_2"], c.x * 3 + c.y), Vector2(c) + Vector2(0.5, 0.5), 1.0, 1.0, 1.2, 0.0, true)
+			return true
+		"Navetta atterrata":
+			if _scena("navetta") == null:
+				return false
+			var lungo := maxf(bb.size.x, bb.size.y) * 0.98
+			var a := _aabb_modelli.get("navetta", AABB()) as AABB
+			var p := _modello("navetta", bb.get_center(), bb.size.x, bb.size.y, h, 0.0, true)
+			# la navetta riempie la lunghezza: si allarga oltre la larghezza delle caselle (ali)
+			if p != null and a.size == Vector3.ZERO:
+				a = _aabb_modelli["navetta"]
+			if p != null:
+				var inst := p.get_child(0) as Node3D
+				var k := lungo / maxf(a.size.x, a.size.z)
+				inst.scale = Vector3(k, k, k)
+				inst.position = Vector3(-a.get_center().x * k, -a.position.y * k, -a.get_center().z * k)
+			return p != null
+		"Edificio chiuso":
+			return _modello("edificio", bb.get_center(), bb.size.x, bb.size.y, h) != null
+		"Masso":
+			return _modello(_scegli_modello(["masso_1", "masso_2"], bb.position.x as int), bb.get_center(), bb.size.x * 1.05, bb.size.y * 1.05, h) != null
+		"Cratere":
+			if _scena("cratere") == null:
+				return false
+			_modello("cratere", bb.get_center(), bb.size.x * 1.15, bb.size.y * 1.15, 0.25)
+			return true
+		"Recinzione", "Barricata", "Muretto":
+			var m := {"Recinzione": "recinzione", "Barricata": "barricata", "Muretto": "muretto"}[nome] as String
+			if _scena(m) == null:
+				return false
+			for c in celle:
+				var oriz: bool = (c + Vector2i.LEFT) in celle or (c + Vector2i.RIGHT) in celle
+				var vert: bool = (c + Vector2i.UP) in celle or (c + Vector2i.DOWN) in celle
+				var cc := Vector2(c) + Vector2(0.5, 0.5)
+				if oriz or not vert:
+					_modello(m, cc, 1.04, 0.25, Battaglia.H_LINEARE)
+				if vert:
+					_modello(m, cc, 0.25, 1.04, Battaglia.H_LINEARE)
+			return true
+	return false
+
+## Piante o alberi sopra le aree di vegetazione (il cartoncino resta come base).
+func _decora_area(e: Dictionary) -> void:
+	var nome := str(e.nome)
+	var celle: Array = e.celle
+	if nome == "Bosco":
+		for c in celle:
+			if posmod(c.x * 3 + c.y * 5, 7) == 0:
+				var m := _scegli_modello(["albero_1", "albero_2", "albero_3"], c.x * 5 + c.y)
+				if m != "":
+					_modello(m, Vector2(c) + Vector2(0.5, 0.5), 1.15, 1.15, H_CHIOMA - SPESSORE, SPESSORE)
+	elif nome in ["Cespugli", "Vegetazione"]:
+		for c in celle:
+			if posmod(c.x * 3 + c.y * 5, 3) == 0:
+				var m := _scegli_modello(["cespuglio_1", "cespuglio_2", "cespuglio_3"], c.x + c.y * 3)
+				if m != "":
+					_modello(m, Vector2(c) + Vector2(0.5, 0.5), 0.95, 0.95, 0.8, SPESSORE, true)
+	elif nome == "Rovine":
+		for c in celle:
+			if posmod(c.x * 7 + c.y * 3, 5) == 0:
+				var m := _scegli_modello(["sassi"], 0)
+				if m != "":
+					_modello(m, Vector2(c) + Vector2(0.5, 0.5), 0.9, 0.9, 0.25, SPESSORE)
+
+## ---------------- esplosioni e atmosfera ----------------
+
+func _aggiorna_esplosioni(d: float) -> void:
+	for e in esplosioni:
+		e.t += d
+		for n in e.nodi:
+			(n as Node).queue_free()
+		e.nodi = []
+		if e.t < 0.0:
+			continue
+		var cols: Array = Atmosfera.colori_esplosione(str(e.genere))
+		var c := _quota(e.pos, 0.3)
+		if not e.scoppiata:
+			e.scoppiata = true
+			var r := float(e.raggio) + 0.5
+			_scintille(c, cols[1], 60 if str(e.genere) == "cariche" else 40, r * 2.2, 0.6, 0.18)
+			_scintille(c + Vector3(0, 0.3, 0), cols[2], 22, r * 0.6, 1.8, 0.9, true)
+		var k: float = clampf(e.t / Tavolo2D.DURATA_ESPLOSIONE, 0.0, 1.0)
+		var lampo: Color = cols[0]
+		var r2 := (float(e.raggio) + 0.5) * minf(1.0, k * 5.0)
+		var sf := SphereMesh.new()
+		sf.radius = maxf(0.05, r2 * 0.55)
+		sf.height = sf.radius * 1.2
+		e.nodi.append(_mi(sf, _mat_sfumato(Color(lampo.r, lampo.g, lampo.b, 0.6 * (1.0 - k))), n_colpi, c, false))
+		var an := CylinderMesh.new()
+		an.top_radius = float(e.raggio) + 0.5
+		an.bottom_radius = an.top_radius
+		an.height = 0.05
+		e.nodi.append(_mi(an, _mat_sfumato(Color(lampo.r, lampo.g, lampo.b, 0.35 * (1.0 - k))), n_colpi, _quota(e.pos, 0.04), false))
+		var luce_e := OmniLight3D.new()
+		luce_e.light_color = lampo
+		luce_e.light_energy = 6.0 * (1.0 - k) * (3.0 if str(e.genere) == "accecante" else 1.0)
+		luce_e.omni_range = float(e.raggio) * 3.0 + 3.0
+		luce_e.position = c + Vector3(0, 1.0, 0)
+		n_colpi.add_child(luce_e)
+		e.nodi.append(luce_e)
+	var finite := esplosioni.filter(func(e): return e.t >= Tavolo2D.DURATA_ESPLOSIONE)
+	for e in finite:
+		for n in e.nodi:
+			(n as Node).queue_free()
+	esplosioni = esplosioni.filter(func(e): return e.t < Tavolo2D.DURATA_ESPLOSIONE)
+
+func _mat_particelle(col := Color.WHITE) -> StandardMaterial3D:
+	var m := StandardMaterial3D.new()
+	m.albedo_texture = Atmosfera.morbida()
+	m.albedo_color = col
+	m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	m.billboard_mode = BaseMaterial3D.BILLBOARD_PARTICLES
+	m.vertex_color_use_as_albedo = true
+	m.cull_mode = BaseMaterial3D.CULL_DISABLED
+	return m
+
+## Scintille o fumo di un'esplosione.
+func _scintille(c: Vector3, col: Color, n: int, vel: float, vita: float, dim: float, sale := false) -> void:
+	var p := CPUParticles3D.new()
+	p.position = c
+	p.one_shot = true
+	p.explosiveness = 0.92
+	p.amount = maxi(4, n)
+	p.lifetime = vita
+	var q := QuadMesh.new()
+	q.size = Vector2(1, 1)
+	q.material = _mat_particelle()
+	p.mesh = q
+	p.direction = Vector3.UP
+	p.spread = 180.0 if not sale else 60.0
+	p.gravity = Vector3(0, 0.6, 0) if sale else Vector3(0, -4.0, 0)
+	p.initial_velocity_min = vel * 0.35
+	p.initial_velocity_max = vel
+	p.damping_min = vel * 0.8
+	p.damping_max = vel * 1.2
+	p.scale_amount_min = dim * 0.6
+	p.scale_amount_max = dim * 1.4
+	p.color_ramp = Atmosfera.sfuma(col)
+	n_colpi.add_child(p)
+	p.emitting = true
+	get_tree().create_timer(vita + 0.3).timeout.connect(p.queue_free)
+
+var _atm_firma := "?"
+var _atm_nodi: Array = []
+
+## Nebbia, polvere, gas o lucciole notturne sopra il campo; banco di nebbia locale degli eventi.
+func _aggiorna_atmosfera() -> void:
+	var tipo := Atmosfera.tipo(b)
+	var firma := "%s|%s|%d" % [tipo, b.nebbia, b.W]
+	if firma == _atm_firma:
+		return
+	_atm_firma = firma
+	for n in _atm_nodi:
+		(n as Node).queue_free()
+	_atm_nodi = []
+	var c := Vector3(b.W / 2.0, 1.2, b.H / 2.0)
+	var est := Vector3(b.W / 2.0, 1.0, b.H / 2.0)
+	match tipo:
+		"nebbia":
+			_atm_nodi.append(_strato3d(c, est, Color(0.92, 0.94, 0.97, 0.22), 60, 16.0, Vector3(0.35, 0, 0.05), 5.0))
+		"polvere":
+			_atm_nodi.append(_strato3d(c, est, Color(0.82, 0.62, 0.38, 0.16), 40, 9.0, Vector3(1.2, 0, 0.1), 6.0))
+			_atm_nodi.append(_strato3d(c, est, Color(0.9, 0.72, 0.45, 0.6), 220, 2.0, Vector3(3.0, 0.2, 0.4), 0.12))
+		"gas":
+			_atm_nodi.append(_strato3d(Vector3(c.x, 0.6, c.z), Vector3(est.x, 0.5, est.z), Color(0.55, 0.85, 0.25, 0.2), 55, 14.0, Vector3(0.2, 0.1, 0.1), 4.5))
+		"buio":
+			_atm_nodi.append(_strato3d(c, est, Color(0.85, 1.0, 0.45, 0.9), 45, 6.0, Vector3(0.25, 0.15, 0.2), 0.1, true))
+	if not b.nebbia.is_empty():
+		var nc: Vector2i = b.nebbia.centro
+		var nr := float(b.nebbia.raggio) + 0.5
+		_atm_nodi.append(_strato3d(Vector3(nc.x + 0.5, 1.0, nc.y + 0.5), Vector3(nr, 0.8, nr) * 0.8, Color(0.95, 0.96, 0.98, 0.35), 45, 10.0, Vector3(0.2, 0, 0), 3.5))
+
+func _strato3d(c: Vector3, est: Vector3, col: Color, n: int, vita: float, vel: Vector3, dim: float, lucciole := false) -> CPUParticles3D:
+	var p := CPUParticles3D.new()
+	p.position = c
+	p.amount = n
+	p.lifetime = vita
+	p.preprocess = vita
+	var q := QuadMesh.new()
+	q.size = Vector2(1, 1)
+	q.material = _mat_particelle()
+	p.mesh = q
+	p.emission_shape = CPUParticles3D.EMISSION_SHAPE_BOX
+	p.emission_box_extents = est
+	p.direction = vel.normalized() if vel.length() > 0 else Vector3.RIGHT
+	p.spread = 25.0 if not lucciole else 180.0
+	p.gravity = Vector3.ZERO
+	p.initial_velocity_min = vel.length() * 0.5
+	p.initial_velocity_max = vel.length() * 1.2
+	p.scale_amount_min = dim * 0.6
+	p.scale_amount_max = dim * 1.3
+	var g := Gradient.new()
+	g.set_color(0, Color(col.r, col.g, col.b, 0.0))
+	g.set_color(1, Color(col.r, col.g, col.b, 0.0))
+	g.add_point(0.3, col)
+	g.add_point(0.7, col)
+	p.color_ramp = g
+	mondo.add_child(p)
+	p.emitting = true
+	return p

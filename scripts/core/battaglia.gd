@@ -1979,7 +1979,8 @@ func _risolvi_colpi(u: Dictionary, v: Dictionary, arma_id: String, op := {}) -> 
 	var mira: bool = not u.mosso and int(u.stordito) == 0 and not op.get("panico", false) and not op.get("reazione", false) and not u.get("menomato", false) and not u.get("confuso", false)
 	if u.lato != EQ:
 		mira = mira and str(u.ia) in ["tattico", "cauto", "difensivo"] and in_cop
-	eventi.append({"tipo": "spara", "uid": u.uid, "a": v.uid, "da_pos": u.pos, "a_pos": v.pos, "lato": u.lato, "colpi": colpi})
+	eventi.append({"tipo": "spara", "uid": u.uid, "a": v.uid, "da_pos": u.pos, "a_pos": v.pos, "lato": u.lato, "colpi": colpi,
+		"genere": _genere_arma(arma_id)})
 	var bersaglio := v
 	var orig: Vector2i = v.pos
 	var surriscaldata := false
@@ -2026,6 +2027,10 @@ func _risolvi_colpi(u: Dictionary, v: Dictionary, arma_id: String, op := {}) -> 
 		for k in n_colpi:
 			colpisci(u, bersaglio, int(a.danno), tr_c)
 	if "area" in tr:
+		# per l'interfaccia: esplosione (o vampata) nel punto colpito
+		var gen := _genere_arma(arma_id)
+		eventi.append({"tipo": "esplosione", "pos": orig, "raggio": 2, "lato": u.lato,
+			"genere": "accecante" if "stordente" in tr else ("fiamma" if gen == "fiamma" else "frammenti")})
 		for w in unita.duplicate():
 			if w.attiva and w.uid != v.uid and w.uid != u.uid and dist(w.pos, v.pos) <= 2 and not _congelato(w):
 				var s2 := soglia_colpire(u, w, arma_id)
@@ -2038,6 +2043,14 @@ func _risolvi_colpi(u: Dictionary, v: Dictionary, arma_id: String, op := {}) -> 
 	if surriscaldata:
 		u.guasti[arma_id] = "rotta"
 		scrivi("  L'arma di %s si surriscalda: inutilizzabile per il resto dello scontro." % u.nome, "pericolo")
+
+## Aspetto del tiro per l'interfaccia: proiettile, granata (lanciata ad arco) o fiamma.
+static func _genere_arma(arma_id: String) -> String:
+	if arma_id.begins_with("granata") or arma_id == "lanciaproiettili":
+		return "granata"
+	if arma_id.begins_with("lanciafiamme") or arma_id == "pistola_fuoco":
+		return "fiamma"
+	return "proiettile"
 
 func _vicino_a_terreno(p: Vector2i) -> bool:
 	for d in _dir8():
@@ -3880,6 +3893,7 @@ func _detona() -> void:
 	stato_obj["esploso"] = true
 	var r := dadi.tira("1d6+3")
 	scrivi("Le cariche esplodono! Raggio %d\"." % r, "titolo")
+	eventi.append({"tipo": "esplosione", "pos": centro, "raggio": r, "lato": EQ, "genere": "cariche"})
 	for u in unita.duplicate():
 		if u.attiva and dist(u.pos, centro) <= r:
 			elimina(u, {})

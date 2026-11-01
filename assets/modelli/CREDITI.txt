@@ -1,0 +1,16 @@
+Modelli 3D di questa cartella: Kenney (www.kenney.nl), licenza Creative Commons Zero (CC0)
+http://creativecommons.org/publicdomain/zero/1.0/
+Kit di origine: Nature Kit, Space Kit, Survival Kit, Building Kit (convertiti in GLB con le texture incorporate).
+
+albero_1/2/3   Nature Kit: tree_oak, tree_default, tree_plateau
+cespuglio_1/2/3 Nature Kit: plant_bushLarge, plant_bushDetailed, plant_bush
+barile         Survival Kit: barrel        barili    Space Kit: barrels
+cassa          Survival Kit: box           cassa_lunga Survival Kit: box-large
+navetta        Space Kit: craft_cargoA     edificio  Space Kit: hangar_smallA
+masso_1/2      Space Kit: rock_largeA/B    cristalli_1/2 Space Kit: rock_crystals, rock_crystalsLargeA
+cratere        Space Kit: craterLarge      sassi     Space Kit: rocks_smallA
+recinzione     Survival Kit: fence         barricata Survival Kit: fence-fortified
+muretto        Building Kit: wall-low
+
+Per sostituirne uno basta salvare un altro GLB con lo stesso nome: il gioco lo scala sulle caselle che l'elemento occupa.
+Se il file manca, l'elemento torna a essere un cartoncino.
