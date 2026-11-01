@@ -11,6 +11,7 @@ var area_tavolo: VBoxContainer
 var barra_vista: HBoxContainer
 var mostra_vista := true
 var in_automatico := false
+var parti_automatica := false   # aperta con «Gioca la battaglia in automatico»: l'IA gioca subito, con la velocità scelta
 var ferma_auto := false
 var barra_fasi: HBoxContainer
 var info_round: Label
@@ -53,6 +54,8 @@ func _ready() -> void:
 	else:
 		b.inizia_round()
 	aggiorna()
+	if parti_automatica:
+		_automatico.call_deferred()
 
 func _costruisci() -> void:
 	var radice := UI.hbox(12)
