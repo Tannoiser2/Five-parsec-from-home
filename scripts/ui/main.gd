@@ -59,11 +59,12 @@ func mostra_campagna(c: Campagna = null) -> void:
 	v.c = campagna
 	_cambia(v)
 
-func mostra_battaglia() -> void:
+func mostra_battaglia(automatica := false) -> void:
 	sfondo.pianeta = false
 	var v = preload("res://scripts/ui/battaglia_view.gd").new()
 	v.main = self
 	v.c = campagna
+	v.parti_automatica = automatica
 	_cambia(v)
 
 func mostra_regole() -> void:

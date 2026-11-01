@@ -570,7 +570,7 @@ func _passo_battaglia() -> void:
 	if not b.get("luogo", {}).is_empty():
 		centro.add_child(_riga_illustrata(Immagini.luogo(str(b.luogo.get("nome", ""))), "Luogo notevole: %s - %s" % [b.luogo.get("nome", ""), b.luogo.get("testo", "")]))
 	_bottone_grande("Al campo di battaglia!", func(): main.salva(false); main.mostra_battaglia())
-	_bottone_grande("Risolvi la battaglia in automatico", _auto_battaglia)
+	_bottone_grande("Gioca la battaglia in automatico (sulla mappa)", func(): main.salva(false); main.mostra_battaglia(true))
 
 func _auto_battaglia() -> void:
 	var bt := Battaglia.new(c.dadi.d(999999))
