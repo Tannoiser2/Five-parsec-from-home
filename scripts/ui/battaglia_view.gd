@@ -7,6 +7,9 @@ var main
 var c: Campagna
 var b: Battaglia
 var tavolo
+var area_tavolo: VBoxContainer
+var barra_vista: HBoxContainer
+var mostra_vista := true
 var barra_fasi: HBoxContainer
 var info_round: Label
 var squadra_box: VBoxContainer
@@ -57,13 +60,14 @@ func _costruisci() -> void:
 	radice.offset_right = -10
 	radice.offset_bottom = -10
 	add_child(radice)
-	tavolo = preload("res://scripts/ui/tavolo.gd").new()
-	tavolo.b = b
-	tavolo.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	tavolo.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	tavolo.cella_cliccata.connect(_clic)
-	tavolo.cella_sopra.connect(_sopra)
-	radice.add_child(tavolo)
+	# campo di battaglia: barra (2D/3D, linea di vista) e tavolo
+	area_tavolo = UI.vbox(4)
+	area_tavolo.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	area_tavolo.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	radice.add_child(area_tavolo)
+	barra_vista = UI.hbox(6)
+	area_tavolo.add_child(barra_vista)
+	_crea_tavolo(bool(c.s.opzioni.get("vista_3d", false)))
 	var dx := UI.vbox(6)
 	dx.custom_minimum_size.x = 660
 	var scorri := UI.scorrimento(dx)
@@ -114,6 +118,40 @@ func _costruisci() -> void:
 	registro.add_theme_font_size_override("normal_font_size", 15)
 	registro.add_theme_font_size_override("bold_font_size", 16)
 	dx.add_child(registro)
+
+## Crea (o sostituisce) il tavolo 2D o 3D: stessa interfaccia, stesse informazioni.
+func _crea_tavolo(tre_d: bool) -> void:
+	var tiro := {}
+	if tavolo != null:
+		tiro = tavolo.ultimo_tiro
+		tavolo.queue_free()
+	tavolo = (preload("res://scripts/ui/tavolo3d.gd") if tre_d else preload("res://scripts/ui/tavolo.gd")).new()
+	tavolo.b = b
+	tavolo.ultimo_tiro = tiro
+	tavolo.mostra_vista = mostra_vista
+	tavolo.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	tavolo.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	tavolo.cella_cliccata.connect(_clic)
+	tavolo.cella_sopra.connect(_sopra)
+	area_tavolo.add_child(tavolo)
+	c.s.opzioni["vista_3d"] = tre_d
+	_barra_vista(tre_d)
+	if not sel.is_empty():
+		_evidenzia()
+
+func _barra_vista(tre_d: bool) -> void:
+	UI.svuota(barra_vista)
+	for v in [[false, "Mappa 2D"], [true, "Mappa 3D"]]:
+		var bt := UI.bottone(str(v[1]), func(): if bool(v[0]) != tre_d: _crea_tavolo(bool(v[0])))
+		if bool(v[0]) == tre_d:
+			bt.add_theme_stylebox_override("normal", UI.stile(UI.AMBRA.darkened(0.45), UI.AMBRA, 2, 6, 6))
+		barra_vista.add_child(bt)
+	var cb := CheckBox.new()
+	cb.text = "Linea di vista (passa il mouse su una casella)"
+	cb.button_pressed = mostra_vista
+	cb.focus_mode = Control.FOCUS_NONE
+	cb.toggled.connect(func(on): mostra_vista = on; tavolo.mostra_vista = on; tavolo.queue_redraw())
+	barra_vista.add_child(cb)
 
 func _schierati() -> Array:
 	var r := []
@@ -506,10 +544,10 @@ func _clic(p: Vector2i, destro: bool) -> void:
 		return
 	if iniziativa_libera:
 		if not f.is_empty() and tavolo.bersagli.has(f.uid):
-			tavolo.linea_tiro = [sel.pos, f.pos]
 			b.spara(sel, f, "", true)
 			sel.mosso = true
 			sel = {}
+			_mostra_eventi()
 			aggiorna()
 		elif tavolo.raggiungibili.has(p):
 			var da: Vector2i = sel.pos
@@ -528,11 +566,8 @@ func _clic(p: Vector2i, destro: bool) -> void:
 				return
 			var a := str(sel.arma)
 			if a != "" and b.bersagli(sel, a).any(func(x): return x.u.uid == f.uid):
-				tavolo.linea_tiro = [sel.pos, f.pos]
 				_esegui("spara:" + a, f.uid)
 			return
-		if modo.begins_with("spara:"):
-			tavolo.linea_tiro = [sel.pos, f.pos]
 		_esegui(modo, f.uid)
 		return
 	if tavolo.raggiungibili.has(p) or tavolo.raggiungibili_scatto.has(p):
@@ -544,7 +579,21 @@ func _anima(u: Dictionary, da: Vector2i, a: Vector2i) -> void:
 	tw.tween_method(func(v): tavolo.anim[u.uid] = v; tavolo.queue_redraw(), tavolo.centro_cella(da), tavolo.centro_cella(a), 0.22)
 	tw.tween_callback(func(): tavolo.anim.erase(u.uid); tavolo.queue_redraw())
 
+## Anima i tiri e le risse appena avvenuti (da chi spara a chi è colpito). Restituisce la durata in secondi.
+func _mostra_eventi() -> float:
+	var t := 0.0
+	for e in b.eventi:
+		if e.tipo == "spara" and e.has("da_pos"):
+			tavolo.spara(e.da_pos, e.a_pos, str(e.get("lato", "")), int(e.get("colpi", 1)))
+			t = maxf(t, 0.6)
+		elif e.tipo == "rissa" and e.has("da_pos"):
+			tavolo.rissa(e.da_pos, e.a_pos, str(e.get("lato", "")))
+			t = maxf(t, 0.5)
+	b.eventi = []
+	return t
+
 func _dopo_azione() -> void:
+	_mostra_eventi()
 	if b._controlla_fine():
 		aggiorna()
 		return
@@ -607,12 +656,9 @@ func _fase_nemici() -> void:
 		b.attiva_nemico(u)
 		if u.pos != prima:
 			_anima(u, prima, u.pos)
-		for e in b.eventi:
-			if e.tipo == "spara":
-				tavolo.linea_tiro = [e.da_pos, e.a_pos]
-		b.eventi = []
+		var attesa := _mostra_eventi()
 		aggiorna()
-		await get_tree().create_timer(0.35).timeout
+		await get_tree().create_timer(maxf(0.35, attesa + 0.1)).timeout
 		if b._controlla_fine():
 			break
 	occupato = false
@@ -648,6 +694,7 @@ func _automatico() -> void:
 				b.ritirata()
 			else:
 				b.inizia_round()
+		_mostra_eventi()
 		aggiorna()
 		await get_tree().create_timer(0.05).timeout
 	occupato = false

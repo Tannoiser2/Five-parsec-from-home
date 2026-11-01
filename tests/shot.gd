@@ -96,6 +96,15 @@ func _run() -> void:
 	bv._prossimo()
 	await wait(4)
 	await shot("battaglia_azioni")
+	# la stessa situazione nella mappa 3D, con la linea di vista verso un nemico
+	bv._crea_tavolo(true)
+	if not bv.sel.is_empty():
+		bv._evidenzia()
+		bv.tavolo.sopra = b.figure(Battaglia.NEM)[0].pos
+	await wait(20)
+	await shot("battaglia_3d")
+	bv._crea_tavolo(false)
+	await wait(4)
 	# un movimento e un tiro del primo personaggio attivo
 	if not bv.sel.is_empty():
 		var u = bv.sel

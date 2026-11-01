@@ -14,11 +14,52 @@ var selezionata := -1
 var sopra := Vector2i(-1, -1)
 var linea_tiro := []     # [da, a] per l'ultimo tiro
 var anim := {}           # uid -> posizione disegnata (Vector2) per l'animazione
+var colpi: Array = []    # animazioni in corso: {da, a, lato, n, t, rissa}
+var ultimo_tiro := {}    # freccia dell'ultimo tiro: {da, a, lato}
+var mostra_vista := true # linea di vista dal personaggio selezionato alla casella sotto il mouse
+
+const VOLO := 0.32       # durata del volo di un colpo (secondi)
+const RITMO := 0.11      # intervallo tra i colpi di una raffica
 
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_STOP
 	texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
 	resized.connect(_calcola)
+	set_process(false)
+
+## ---------------- colpi e risse animati ----------------
+
+## Tiro da una casella all'altra: i colpi partono da chi spara e arrivano a chi è colpito.
+func spara(da: Vector2i, a: Vector2i, lato_: String, n := 1) -> void:
+	colpi.append({"da": da, "a": a, "lato": lato_, "n": clampi(n, 1, 6), "t": 0.0, "rissa": false})
+	ultimo_tiro = {"da": da, "a": a, "lato": lato_}
+	set_process(true)
+
+func rissa(da: Vector2i, a: Vector2i, lato_: String) -> void:
+	colpi.append({"da": da, "a": a, "lato": lato_, "n": 1, "t": 0.0, "rissa": true})
+	set_process(true)
+
+## Durata complessiva di un'animazione (per attendere prima di passare al nemico successivo).
+static func durata(c: Dictionary) -> float:
+	if c.get("rissa", false):
+		return 0.5
+	return VOLO + RITMO * (int(c.n) - 1) + 0.25
+
+func _process(d: float) -> void:
+	for c in colpi:
+		c.t += d
+	colpi = colpi.filter(func(c): return c.t < durata(c))
+	if colpi.is_empty():
+		set_process(false)
+	queue_redraw()
+
+static func colore_lato(l: String) -> Color:
+	if l == Battaglia.EQ:
+		return Color(1.0, 0.78, 0.35)
+	if l == Battaglia.MOSTRI:
+		return Color(0.6, 0.95, 0.35)
+	return Color(1.0, 0.35, 0.3)
+
 
 func _calcola() -> void:
 	if b == null:
@@ -138,9 +179,8 @@ func _draw() -> void:
 		draw_rect(Rect2(origine + Vector2(p) * lato, Vector2(lato, lato)).grow(-3), Color(0.36, 0.78, 0.80, 0.22))
 	if b.dentro(sopra):
 		draw_rect(Rect2(origine + Vector2(sopra) * lato, Vector2(lato, lato)), Color(1, 1, 1, 0.5), false, 2.0)
-	# linea dell'ultimo tiro
-	if linea_tiro.size() == 2:
-		draw_line(centro_cella(linea_tiro[0]), centro_cella(linea_tiro[1]), Color(1.0, 0.85, 0.4, 0.8), 2.5)
+	# freccia dell'ultimo tiro (sotto le figure)
+	_freccia_tiro()
 	# figure
 	for u in b.unita:
 		if not u.attiva:
@@ -176,6 +216,92 @@ func _draw() -> void:
 			var s := "%d+" % int(bersagli[u.uid])
 			draw_string_outline(f, c + Vector2(-lato * 0.3, lato * 0.62), s, HORIZONTAL_ALIGNMENT_LEFT, -1, int(lato * 0.4), 4, Color.BLACK)
 			draw_string(f, c + Vector2(-lato * 0.3, lato * 0.62), s, HORIZONTAL_ALIGNMENT_LEFT, -1, int(lato * 0.4), Color(1, 0.85, 0.5))
+	_linea_vista()
+	_disegna_colpi()
+
+## ---------------- linea di vista, tiri ----------------
+
+func _unita(uid: int) -> Dictionary:
+	for u in b.unita:
+		if u.uid == uid:
+			return u
+	return {}
+
+## Freccia dell'ultimo tiro: da chi ha sparato a chi è stato bersagliato.
+func _freccia_tiro() -> void:
+	if ultimo_tiro.is_empty():
+		return
+	var a := centro_cella(ultimo_tiro.da)
+	var z := centro_cella(ultimo_tiro.a)
+	if a.distance_to(z) < 1:
+		return
+	var col := colore_lato(str(ultimo_tiro.lato))
+	col.a = 0.55
+	var dir := (z - a).normalized()
+	var punta := z - dir * lato * 0.45
+	draw_line(a + dir * lato * 0.45, punta, col, 2.5, true)
+	var n := Vector2(-dir.y, dir.x)
+	draw_colored_polygon(PackedVector2Array([punta + dir * lato * 0.02, punta - dir * lato * 0.3 + n * lato * 0.16, punta - dir * lato * 0.3 - n * lato * 0.16]), col)
+
+## Colpi in volo e lampi d'impatto.
+func _disegna_colpi() -> void:
+	for c in colpi:
+		var a := centro_cella(c.da)
+		var z := centro_cella(c.a)
+		var col := colore_lato(str(c.lato))
+		if c.rissa:
+			var m := (a + z) / 2.0
+			var k: float = clampf(c.t / 0.5, 0.0, 1.0)
+			draw_arc(m, lato * (0.2 + 0.5 * k), 0, TAU, 24, Color(col.r, col.g, col.b, 1.0 - k), 3.0)
+			draw_line(a, z, Color(col.r, col.g, col.b, 0.8 * (1.0 - k)), 3.0, true)
+			continue
+		var dir := (z - a).normalized()
+		var da := a + dir * lato * 0.4
+		for i in int(c.n):
+			var t0 := RITMO * i
+			var k: float = (float(c.t) - t0) / VOLO
+			if k >= 0.0 and k <= 1.0:
+				var testa := da.lerp(z, k)
+				var coda := da.lerp(z, maxf(0.0, k - 0.3))
+				draw_line(coda, testa, Color(col.r, col.g, col.b, 0.85), 3.0, true)
+				draw_circle(testa, lato * 0.09, Color(1, 1, 0.9))
+				if k < 0.3:
+					draw_circle(da, lato * 0.16 * (1.0 - k / 0.3), Color(1, 0.95, 0.7, 0.9))
+			elif k > 1.0 and k < 1.0 + 0.25 / VOLO:
+				var e: float = (k - 1.0) * VOLO / 0.25
+				draw_arc(z, lato * (0.15 + 0.45 * e), 0, TAU, 20, Color(1, 0.9, 0.6, 1.0 - e), 2.5)
+
+## Linea di vista dal personaggio selezionato alla casella sotto il mouse: verde libera, gialla con copertura,
+## rossa dove si interrompe (con una X sull'ostacolo).
+func _linea_vista() -> void:
+	if not mostra_vista or selezionata < 0 or not b.dentro(sopra):
+		return
+	var u := _unita(selezionata)
+	if u.is_empty() or not u.attiva or u.pos == sopra:
+		return
+	var info := LineaVista.vista(b, u, sopra)
+	var a := centro_cella(u.pos)
+	var z := centro_cella(sopra)
+	var col: Color = info.colore
+	if info.blocco != null:
+		var m := centro_cella(info.blocco)
+		draw_line(a, m, LineaVista.VERDE, 2.5, true)
+		draw_line(m, z, Color(col.r, col.g, col.b, 0.6), 2.0, true)
+		var q := lato * 0.22
+		draw_line(m - Vector2(q, q), m + Vector2(q, q), col, 3.5)
+		draw_line(m - Vector2(q, -q), m + Vector2(q, -q), col, 3.5)
+	else:
+		draw_line(a, z, col, 2.5, true)
+		draw_circle(z, lato * 0.1, col)
+	var testo: String = info.testo
+	var fo: Font = UI.font_titoli
+	var dim := int(clampf(lato * 0.45, 15, 22))
+	var pos := z + Vector2(lato * 0.55, -lato * 0.35)
+	var w := fo.get_string_size(testo, HORIZONTAL_ALIGNMENT_LEFT, -1, dim).x
+	if pos.x + w > origine.x + lato * b.W:
+		pos.x = z.x - lato * 0.55 - w
+	draw_string_outline(fo, pos, testo, HORIZONTAL_ALIGNMENT_LEFT, -1, dim, 4, Color(0, 0, 0, 0.9))
+	draw_string(fo, pos, testo, HORIZONTAL_ALIGNMENT_LEFT, -1, dim, Color.WHITE)
 
 ## ---------------- grafica del campo ----------------
 
