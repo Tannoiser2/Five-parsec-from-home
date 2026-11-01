@@ -65,6 +65,16 @@ La pubblicazione non parte da sola: Actions → **Pubblica** → *Run workflow*.
 - **Salvataggi**: automatici sul dispositivo (anche nel browser) e **nel cloud** (Firebase): ogni campagna ha un codice di
   6 lettere con cui la si riapre da qualsiasi dispositivo.
 
+## Mappa 3D, linea di vista e tiri
+Sopra il campo di battaglia i bottoni **Mappa 2D / Mappa 3D** cambiano vista (la scelta resta salvata nella campagna).
+Nella mappa 3D (`scripts/ui/tavolo3d.gd`, stessa interfaccia del 2D) gli elementi di scena sono **cartoncini spessi**:
+la sagoma ritagliata dalla loro immagine, estrusa con l'altezza di gioco (blocchi 1-3", ostacoli lineari 1", elementi singoli)
+e almeno 1 cm; gli edifici con interno hanno muri, porte e finestre; le pedine sono dischi di cartone. Tasto destro e trascina:
+ruota; rotella: zoom; tasto centrale o Maiusc + destro: sposta; doppio clic destro: vista iniziale.
+**Linea di vista** (2D e 3D, si può spegnere): dal personaggio selezionato alla casella sotto il mouse, verde se libera,
+gialla con copertura, rossa con una X dove si interrompe, con la distanza. **Tiri**: i colpi volano da chi spara a chi è
+colpito (ambra l'equipaggio, rosso i nemici), uno per colpo della raffica; resta una freccia dell'ultimo tiro.
+
 ## Grafica
 Tutte le immagini sono state generate con i prompt dei file `PROMPT_*.md` e ridotte per il web (WebP); il gioco le carica
 da `scripts/ui/immagini.gd` e, se un file manca, torna al disegno di ripiego (pedine con iniziali, terreno a colori).
@@ -103,6 +113,7 @@ godot --headless --path . -s tests/sim_campagna.gd    # 6 campagne automatiche d
 xvfb-run godot --path . -s tests/shot.gd              # screenshot di menu, creazione, campagna, battaglia
 xvfb-run godot --path . -s tests/shot_speciali.gd     # screenshot delle battaglie della Zona Nera e della Storia
 xvfb-run godot --path . -s tests/shot_mappe.gd        # il campo di battaglia in tutti gli ambienti
+xvfb-run godot --path . -s tests/shot_3d.gd           # mappa 3D, linea di vista e tiri
 python3 tools/controlla_glifi.py                      # glifi
 ```
 

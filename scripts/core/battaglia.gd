@@ -973,20 +973,20 @@ func lds(a: Vector2i, b: Vector2i, ignora_figure := false, osservatore := {}, be
 		match t:
 			T.BLOCCO:
 				if float(ap) >= h - 0.05:
-					return no
+					return _bloccata(p)
 			T.MURO:
-				return no
+				return _bloccata(p)
 			T.INTERNO:
 				if h >= H_MURO:
-					return no   # tetto
+					return _bloccata(p)   # tetto
 			T.PORTA:
 				if h >= H_MURO or not porte_aperte.has(p):
-					return no
+					return _bloccata(p)
 				if dist(p, a) > 1:
 					cop = true
 			T.FINESTRA:
 				if h >= H_MURO:
-					return no
+					return _bloccata(p)
 				if dist(p, a) > 1:
 					cop = true
 			T.AREA:
@@ -994,7 +994,7 @@ func lds(a: Vector2i, b: Vector2i, ignora_figure := false, osservatore := {}, be
 					# p.38: la vista entra in un'area fino al bordo; nella stessa area ci si vede entro 3"
 					if not ((area_a or area_b) and d <= 3):
 						if not (dist(p, a) <= 1 and area_a) and not (dist(p, b) <= 1 and area_b):
-							return no
+							return _bloccata(p)
 					if dist(p, a) > 1:
 						cop = true
 			T.LINEARE:
@@ -1008,7 +1008,7 @@ func lds(a: Vector2i, b: Vector2i, ignora_figure := false, osservatore := {}, be
 		if not ignora_figure:
 			var f := figura_in(p)
 			if not f.is_empty() and h >= float(ap) - 0.05 and h <= float(ap) + H_FIGURA:
-				return no
+				return _bloccata(p)
 	# dall'interno di un'area si vede fuori solo dal bordo
 	if area_a and d > 3 and za < H_AREA + 0.5:
 		var bordo := false
@@ -1018,6 +1018,10 @@ func lds(a: Vector2i, b: Vector2i, ignora_figure := false, osservatore := {}, be
 		if not bordo:
 			return no
 	return {"vede": true, "copertura": cop, "colpibile": colpibile}
+
+## Linea di vista interrotta nella casella p (per mostrare all'interfaccia dove si blocca).
+func _bloccata(p: Vector2i) -> Dictionary:
+	return {"vede": false, "copertura": false, "colpibile": false, "dove": p}
 
 func b_at_occhi(p: Vector2i) -> float:
 	return a_at(p) + 1.0
@@ -1975,7 +1979,7 @@ func _risolvi_colpi(u: Dictionary, v: Dictionary, arma_id: String, op := {}) -> 
 	var mira: bool = not u.mosso and int(u.stordito) == 0 and not op.get("panico", false) and not op.get("reazione", false) and not u.get("menomato", false) and not u.get("confuso", false)
 	if u.lato != EQ:
 		mira = mira and str(u.ia) in ["tattico", "cauto", "difensivo"] and in_cop
-	eventi.append({"tipo": "spara", "uid": u.uid, "a": v.uid, "da_pos": u.pos, "a_pos": v.pos})
+	eventi.append({"tipo": "spara", "uid": u.uid, "a": v.uid, "da_pos": u.pos, "a_pos": v.pos, "lato": u.lato, "colpi": colpi})
 	var bersaglio := v
 	var orig: Vector2i = v.pos
 	var surriscaldata := false
@@ -2097,7 +2101,7 @@ func rissa(u: Dictionary, v: Dictionary) -> bool:
 	if u.get("no_combattimento", false):
 		return false
 	u.agito = true
-	eventi.append({"tipo": "rissa", "uid": u.uid, "a": v.uid})
+	eventi.append({"tipo": "rissa", "uid": u.uid, "a": v.uid, "da_pos": u.pos, "a_pos": v.pos, "lato": u.lato})
 	if u.speciali.get("risse_fine_fase_nemica", false) and fase == "nemici":
 		risse_in_attesa.append([u.uid, v.uid])
 		scrivi("%s balza su %s: la Rissa si risolverà alla fine della fase nemica (cacciatori in branco)." % [u.nome, v.nome], "rissa")
