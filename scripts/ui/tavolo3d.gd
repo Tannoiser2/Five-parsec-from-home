@@ -463,9 +463,9 @@ func _costruisci_terreno() -> void:
 					var tr := CylinderMesh.new()
 					tr.top_radius = 0.09
 					tr.bottom_radius = 0.12
-					tr.height = H_CHIOMA
-					_mi(tr, _mat("tronco", Color(0.36, 0.26, 0.17)), n_terreno, Vector3(cc.x, H_CHIOMA / 2.0, cc.y))
-					_cartoncino(tex, cc, 1.35, 1.35, SPESSORE, H_CHIOMA)
+					tr.height = H_CHIOMA - 0.9
+					_mi(tr, _mat("tronco", Color(0.36, 0.26, 0.17)), n_terreno, Vector3(cc.x, (H_CHIOMA - 0.9) / 2.0, cc.y))
+					_cartoncino(tex, cc, 1.35, 1.35, 0.9, H_CHIOMA - 0.9)
 				else:
 					_cartoncino(tex, cc, 1.0, 1.0, h, y0)
 		elif LINEARI.has(nome) and _elem(LINEARI[nome]) != null:
@@ -714,6 +714,10 @@ func _cerchio(img: Image, c: Vector2, r: float, col: Color) -> void:
 
 const R_PEDINA := 0.42
 const H_PEDINA := 0.22
+const H_BASE := 0.1                 # base della sagoma (circa 2,5 mm)
+const H_FIGURA_3D := 1.2            # altezza di una figura per il regolamento (miniatura da 28 mm)
+const R_SAGOMA := (H_FIGURA_3D - H_BASE) / 2.0
+const SPESSORE_SAGOMA := 0.06
 
 func _disco(r: float) -> ArrayMesh:
 	var k := "disco%.2f" % r
@@ -741,37 +745,54 @@ func _crea_pedina(u: Dictionary) -> Dictionary:
 	var bordo := UI.ROSSO if nem else UI.AMBRA
 	if u.lato == Battaglia.MOSTRI:
 		bordo = Color(0.6, 0.9, 0.3)
+	# base rotonda del colore della fazione
 	var cil := CylinderMesh.new()
 	cil.top_radius = R_PEDINA
 	cil.bottom_radius = R_PEDINA
-	cil.height = H_PEDINA
+	cil.height = H_BASE
 	cil.radial_segments = 32
-	_mi(cil, _mat("bordo_pedina", bordo.darkened(0.15)), nodo, Vector3(0, H_PEDINA / 2.0, 0))
+	_mi(cil, _mat("bordo_pedina", bordo.darkened(0.15)), nodo, Vector3(0, H_BASE / 2.0, 0))
+	# sagoma di cartoncino in piedi, alta come una miniatura, fissa e rivolta verso il lato dell'equipaggio
+	# (l'immagine è su entrambe le facce)
+	var sagoma := Node3D.new()
+	sagoma.position = Vector3(0, H_BASE + R_SAGOMA, 0)
+	nodo.add_child(sagoma)
+	var bordo_sag := CylinderMesh.new()
+	bordo_sag.top_radius = R_SAGOMA
+	bordo_sag.bottom_radius = R_SAGOMA
+	bordo_sag.height = SPESSORE_SAGOMA
+	bordo_sag.radial_segments = 32
+	var bs := _mi(bordo_sag, _mat("bordo_sagoma", bordo.darkened(0.1)), sagoma)
+	bs.rotation_degrees = Vector3(90, 0, 0)
 	var tex := Pedine.texture(str(u.pedina))
-	var faccia := MeshInstance3D.new()
-	faccia.mesh = _disco(R_PEDINA * 0.92)
-	faccia.position = Vector3(0, H_PEDINA + 0.003, 0)
+	var m := StandardMaterial3D.new()
+	m.cull_mode = BaseMaterial3D.CULL_DISABLED
+	m.roughness = 0.8
+	m.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS_ANISOTROPIC
 	if tex != null:
-		var m := StandardMaterial3D.new()
 		m.albedo_texture = tex
-		m.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS_ANISOTROPIC
-		m.roughness = 0.8
-		m.cull_mode = BaseMaterial3D.CULL_DISABLED
-		faccia.material_override = m
 	else:
-		var m := StandardMaterial3D.new()
 		m.albedo_color = Pedine.colore_da_nome(str(u.pedina) if str(u.pedina) != "" else str(u.nome), nem)
-		m.cull_mode = BaseMaterial3D.CULL_DISABLED
-		faccia.material_override = m
+	var faccia := MeshInstance3D.new()
+	faccia.mesh = _disco(R_SAGOMA * 0.93)
+	faccia.material_override = m
+	faccia.rotation_degrees = Vector3(90, 0, 0)
+	faccia.position = Vector3(0, 0, SPESSORE_SAGOMA / 2.0 + 0.003)
+	sagoma.add_child(faccia)
+	var retro := MeshInstance3D.new()
+	retro.mesh = faccia.mesh
+	retro.material_override = m
+	retro.rotation_degrees = Vector3(90, 0, 0)
+	retro.position = Vector3(0, 0, -SPESSORE_SAGOMA / 2.0 - 0.003)
+	sagoma.add_child(retro)
+	if tex == null:
 		var l := _etichetta(Pedine.iniziali(str(u.nome)), 40, Color.WHITE)
 		l.billboard = BaseMaterial3D.BILLBOARD_DISABLED
 		l.fixed_size = false
-		l.pixel_size = 0.008
+		l.pixel_size = 0.01
 		l.no_depth_test = false
-		l.rotation_degrees = Vector3(-90, 0, 0)
-		l.position = Vector3(0, H_PEDINA + 0.01, 0)
-		nodo.add_child(l)
-	nodo.add_child(faccia)
+		l.position = Vector3(0, 0, SPESSORE_SAGOMA / 2.0 + 0.01)
+		sagoma.add_child(l)
 	# anello di selezione / bersaglio (sul tavolo, sotto la pedina)
 	var an := CylinderMesh.new()
 	an.top_radius = 0.52
@@ -780,13 +801,13 @@ func _crea_pedina(u: Dictionary) -> Dictionary:
 	var anello := _mi(an, _mat("sel", Color.WHITE, null, true), nodo, Vector3(0, 0.02, 0), false)
 	anello.visible = false
 	var soglia := _etichetta("", 64, Color(1, 0.85, 0.5))
-	soglia.position = Vector3(0, 1.0, 0)
+	soglia.position = Vector3(0, H_FIGURA_3D + 0.45, 0)
 	soglia.visible = false
 	nodo.add_child(soglia)
 	var stato := _etichetta("", 40, Color(0.85, 0.9, 1.0))
-	stato.position = Vector3(0, 0.62, 0)
+	stato.position = Vector3(0, H_FIGURA_3D + 0.2, 0)
 	nodo.add_child(stato)
-	return {"nodo": nodo, "faccia": faccia, "anello": anello, "soglia": soglia, "stato": stato}
+	return {"nodo": nodo, "faccia": faccia, "sagoma": sagoma, "anello": anello, "soglia": soglia, "stato": stato}
 
 func _etichetta(t: String, dim: int, col: Color) -> Label3D:
 	var l := Label3D.new()

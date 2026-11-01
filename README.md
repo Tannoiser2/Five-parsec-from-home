@@ -69,7 +69,8 @@ La pubblicazione non parte da sola: Actions → **Pubblica** → *Run workflow*.
 Sopra il campo di battaglia i bottoni **Mappa 2D / Mappa 3D** cambiano vista (la scelta resta salvata nella campagna).
 Nella mappa 3D (`scripts/ui/tavolo3d.gd`, stessa interfaccia del 2D) gli elementi di scena sono **cartoncini spessi**:
 la sagoma ritagliata dalla loro immagine, estrusa con l'altezza di gioco (blocchi 1-3", ostacoli lineari 1", elementi singoli)
-e almeno 1 cm; gli edifici con interno hanno muri, porte e finestre; le pedine sono dischi di cartone. Tasto destro e trascina:
+e almeno 1 cm; gli edifici con interno hanno muri, porte e finestre; i personaggi sono sagome di cartoncino in piedi alte 1,2"
+(come una miniatura da 28 mm), fisse e rivolte verso il lato dell'equipaggio. Tasto destro e trascina:
 ruota; rotella: zoom; tasto centrale o Maiusc + destro: sposta; doppio clic destro: vista iniziale.
 **Linea di vista** (2D e 3D, si può spegnere): dal personaggio selezionato alla casella sotto il mouse, verde se libera,
 gialla con copertura, rossa con una X dove si interrompe, con la distanza. **Tiri**: i colpi volano da chi spara a chi è
