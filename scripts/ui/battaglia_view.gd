@@ -10,6 +10,8 @@ var tavolo
 var area_tavolo: VBoxContainer
 var barra_vista: HBoxContainer
 var mostra_vista := true
+var in_automatico := false
+var ferma_auto := false
 var barra_fasi: HBoxContainer
 var info_round: Label
 var squadra_box: VBoxContainer
@@ -448,6 +450,9 @@ func _esegui(id: String, param) -> void:
 func _comandi() -> void:
 	UI.svuota(comandi)
 	if occupato:
+		if in_automatico:
+			comandi.add_child(UI.bottone("Interrompi il gioco automatico", func(): ferma_auto = true, "Riprendi il controllo alla fine dell'azione in corso"))
+		comandi.add_child(_selettore_velocita())
 		return
 	match b.fase:
 		"iniziativa":
@@ -462,6 +467,7 @@ func _comandi() -> void:
 			comandi.add_child(UI.bottone("Round successivo", func(): b.inizia_round(); sel = {}; dado_sel = -1; aggiorna()))
 	comandi.add_child(UI.bottone("Gioca il resto in automatico", _automatico, "L'equipaggio viene mosso dall'IA tattica fino alla fine"))
 	comandi.add_child(UI.bottone("Ritirata", func(): b.ritirata(); aggiorna(), "Tutto l'equipaggio abbandona il campo"))
+	comandi.add_child(_selettore_velocita())
 
 func _dopo_conferma() -> void:
 	if b.fase == "nemici":
@@ -582,15 +588,50 @@ func _anima(u: Dictionary, da: Vector2i, a: Vector2i) -> void:
 ## Anima i tiri e le risse appena avvenuti (da chi spara a chi è colpito). Restituisce la durata in secondi.
 func _mostra_eventi() -> float:
 	var t := 0.0
+	var arrivo := 0.0
 	for e in b.eventi:
 		if e.tipo == "spara" and e.has("da_pos"):
-			tavolo.spara(e.da_pos, e.a_pos, str(e.get("lato", "")), int(e.get("colpi", 1)))
-			t = maxf(t, 0.6)
+			var gen := str(e.get("genere", "proiettile"))
+			tavolo.spara(e.da_pos, e.a_pos, str(e.get("lato", "")), int(e.get("colpi", 1)), gen)
+			arrivo = Tavolo2D.arrivo(gen)
+			t = maxf(t, 0.6 if gen == "proiettile" else arrivo + 0.4)
 		elif e.tipo == "rissa" and e.has("da_pos"):
 			tavolo.rissa(e.da_pos, e.a_pos, str(e.get("lato", "")))
 			t = maxf(t, 0.5)
+		elif e.tipo == "esplosione":
+			tavolo.esplosione(e.pos, int(e.get("raggio", 2)), str(e.get("genere", "frammenti")), arrivo)
+			t = maxf(t, arrivo + 0.9)
 	b.eventi = []
 	return t
+
+## ---------------- velocità del gioco automatico ----------------
+
+const VELOCITA := [["Lenta", 1.2], ["Normale", 0.6], ["Veloce", 0.25], ["Istantanea", 0.0]]
+
+func _ritardo() -> float:
+	var i := clampi(int(c.s.opzioni.get("velocita_auto", 1)), 0, VELOCITA.size() - 1)
+	return float(VELOCITA[i][1])
+
+## Attesa dopo l'azione di una figura: abbastanza per vedere colpi ed esplosioni, secondo la velocità scelta.
+func _pausa(animazione := 0.0) -> void:
+	var r := _ritardo()
+	if r <= 0.0:
+		await get_tree().process_frame
+		return
+	await get_tree().create_timer(maxf(r, minf(animazione, r * 2.0) + 0.1)).timeout
+
+func _selettore_velocita() -> Control:
+	var h := UI.hbox(4)
+	h.add_child(UI.etichetta("Velocità:", 15, UI.TENUE))
+	var op := OptionButton.new()
+	for v in VELOCITA:
+		op.add_item(str(v[0]))
+	op.selected = clampi(int(c.s.opzioni.get("velocita_auto", 1)), 0, VELOCITA.size() - 1)
+	op.focus_mode = Control.FOCUS_NONE
+	op.tooltip_text = "Velocità del gioco automatico e della fase dei nemici"
+	op.item_selected.connect(func(i): c.s.opzioni["velocita_auto"] = i)
+	h.add_child(op)
+	return h
 
 func _dopo_azione() -> void:
 	_mostra_eventi()
@@ -658,7 +699,7 @@ func _fase_nemici() -> void:
 			_anima(u, prima, u.pos)
 		var attesa := _mostra_eventi()
 		aggiorna()
-		await get_tree().create_timer(maxf(0.35, attesa + 0.1)).timeout
+		await _pausa(attesa)
 		if b._controlla_fine():
 			break
 	occupato = false
@@ -669,35 +710,70 @@ func _fase_nemici() -> void:
 func _automatico() -> void:
 	iniziativa_libera = false
 	occupato = true
+	in_automatico = true
+	ferma_auto = false
 	b.auto_decisioni = true
 	if not b.scelta_in_attesa.is_empty():
 		b.scegli(b._scelta_automatica(b.scelta_in_attesa))
 	if b.fase == "iniziativa":
 		_reset_iniziativa()
 		b.inizia_round()
+	aggiorna()
 	var guardia := 0
-	while b.fase != "finita" and guardia < 80:
+	while b.fase != "finita" and guardia < 400 and not ferma_auto:
 		guardia += 1
 		if b.fase == "reazioni":
 			b.conferma_reazioni()
+			aggiorna()
+			await _pausa()
 		elif b.fase in ["rapida", "lenta"]:
-			for u in b.da_attivare():
+			# una figura alla volta, con il ritmo scelto
+			var att := b.da_attivare()
+			if att.is_empty():
+				b.avanza_fase()
+			else:
+				var u: Dictionary = att[0]
+				var prima: Vector2i = u.pos
+				sel = u
+				b.auto_equipaggio(u)
+				if u.pos != prima:
+					_anima(u, prima, u.pos)
+				var t := _mostra_eventi()
+				sel = {}
+				aggiorna()
+				await _pausa(t)
+		elif b.fase == "nemici":
+			if b._nemici_bloccati():
+				b.scrivi("Il nemico, colto di sorpresa, non agisce in questo round.")
+			for u in b.ordine_nemici():
 				if b.fase == "finita":
 					break
-				b.auto_equipaggio(u)
-			if b.fase != "finita":
+				var prima: Vector2i = u.pos
+				b.attiva_nemico(u)
+				if u.pos != prima:
+					_anima(u, prima, u.pos)
+				var t := _mostra_eventi()
+				aggiorna()
+				await _pausa(t)
+				if b._controlla_fine():
+					break
+			if b.fase == "nemici":
 				b.avanza_fase()
-		elif b.fase == "nemici":
-			b.esegui_fase_nemici()
 		elif b.fase == "fine":
 			if b.round_n >= 14:
 				b.ritirata()
 			else:
 				b.inizia_round()
-		_mostra_eventi()
-		aggiorna()
-		await get_tree().create_timer(0.05).timeout
+			aggiorna()
+			await _pausa()
+		else:
+			break
+		if b.fase not in ["rapida", "lenta"]:
+			_mostra_eventi()
 	occupato = false
+	in_automatico = false
+	b.auto_decisioni = false
+	ferma_auto = false
 	aggiorna()
 
 ## ---------------- scelte degli eventi ----------------
